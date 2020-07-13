@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="taxontabletools", # Replace with your own username
+    name="taxontabletools-TillMacher", # Replace with your own username
     version="1.0.0",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",

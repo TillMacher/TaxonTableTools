@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
-Name: TillMacher
+Name: taxontabletools-TillMacher
 Version: 1.0.0
-Summary: TaXonTableTools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data
+Summary: taxontabletools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data
 Home-page: https://github.com/pypa/taxontabletools
 Author: Till-Hendrik Macher
 Author-email: till-hendrik.macher@uni-due.de

@@ -1,10 +1,5 @@
 README.md
 setup.py
-TillMacher.egg-info/PKG-INFO
-TillMacher.egg-info/SOURCES.txt
-TillMacher.egg-info/dependency_links.txt
-TillMacher.egg-info/requires.txt
-TillMacher.egg-info/top_level.txt
 _app/CCA_analysis.py
 _app/PCoA_analysis.py
 _app/__init__.py
@@ -31,3 +26,8 @@ _app/site_occupancy.py
 _app/taxon_converter.py
 _app/taxon_table_filtering.py
 _app/venn_diagram.py
+taxontabletools_TillMacher.egg-info/PKG-INFO
+taxontabletools_TillMacher.egg-info/SOURCES.txt
+taxontabletools_TillMacher.egg-info/dependency_links.txt
+taxontabletools_TillMacher.egg-info/requires.txt
+taxontabletools_TillMacher.egg-info/top_level.txt
