@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version Alpha 1.0 (r 09.07.2020)"
+taxon_tools_version = "Version Alpha 1.0.0 (r 13.07.2020)"
 
 ##########################################################################################################################
 # general functions
@@ -83,34 +83,61 @@ sg.ChangeLookAndFeel('Reddit')
 ##########################################################################################################################
 # start Popup window
 
+# collect user data from the user_data.txt file in the main TTT directory
+path_to_main = "/Users/tillmacher/Library/Python/3.7/lib/python/site-packages/ttt_test/"
+user_data_txt = path_to_main + "user_data.txt"
+
 # check for already existing projects
-projects = glob.glob('Projects/*')
+f = open(user_data_txt, "r")
+projects_main_path = f.read()
+f.close()
+
+# fresh start: there is an empty user_data file
+# ask for user Input
+# stay open until a path was defined
+# then write it the user_data file to reload
+while projects_main_path == "":
+    projects_main_path = sg.PopupGetFolder("Enter path to ouput directory:", title="Output directory")
+    if projects_main_path == None:
+        sys.exit()
+    f = open(user_data_txt, "w")
+    f.write(projects_main_path)
+    f.close()
+
+# create display text
+current_path = "Current path: " + projects_main_path
+# load all available projects
+projects = glob.glob(projects_main_path + '/Projects/*')
 projects_list = []
 
 for project in projects:
     projects_list.append(Path(project).stem)
 
-projects_radio = list(slices([sg.Radio(name, "projects", default=True) for name in sorted(projects_list)], 2))
+projects_radio = list(slices([sg.Radio(name, "projects", default=True) for name in sorted(projects_list)], 3))
 
 start_window_layout = [
             [sg.Text('',size=(1,1))],
+			[sg.Text('Output directory', size=(50,1), font=('Arial', 11, "bold"))],
+            [sg.Text(current_path)],
+            [sg.Text('Define new output directory:')],
+            [sg.Input(key = "new_projects_main_path", size=(40,1)), sg.FolderBrowse(), sg.Button("Refresh")],
+            [sg.Text('',size=(1,1))],
+			[sg.Text('Project management', size=(50,1), font=('Arial', 11, "bold"))],
             [sg.Text('Create new project folder:')],
-            [sg.Input('', key='new_project_folder', size=(40,1))],
-            [sg.Text('',size=(1,1))],
-            [sg.Button('Create new')],
-            [sg.Text('',size=(1,4))],
-            [sg.Text('Load existing project folder')],
+            [sg.Input('', key='new_project_folder', size=(40,1)), sg.Button('Create new')],
+            [sg.Text('Load existing project folder:')],
             [sg.Frame(layout = projects_radio, title = '')],
-            [sg.Text('',size=(1,1))],
             [sg.Button('Load')],
-            [sg.Text('',size=(1,4))],
+            [sg.Text('',size=(1,1))],
             [sg.Button('Exit', button_color=('black', 'red'))],
             ]
 
-start_window = sg.Window('Projects', start_window_layout, keep_on_top=True)
+start_window = sg.Window('Projects', start_window_layout)
 event, values = start_window.read()
 
 while True:
+
+    new_projects_main_path = values["new_projects_main_path"]
 
     if event == 'Create new':
         if values["new_project_folder"] != '':
@@ -129,18 +156,32 @@ while True:
             project_folder = "Default_project"
         break
 
+    if event == 'Refresh':
+        if new_projects_main_path == None:
+            break
+        f = open(user_data_txt, "w")
+        f.write(new_projects_main_path)
+        f.close()
+        sg.Popup("Please reload TaxonTableTools to apply changes", title="Refresh output directory")
+        sys.exit()
+
     if event == 'Exit':
         sys.exit()
 
 start_window.close()
 
+print(projects_main_path)
+
 ##########################################################################################################################
-# check folders and create folders if neccessary
+# check folders and create new folders if neccessary
+try:
+    if not os.path.exists(Path(projects_main_path + "/Projects")):
+        os.mkdir(Path(projects_main_path + "/Projects"))
+except:
+    sg.PopupError("The output directory does not exist anymore! Please refresh the output folder.")
+    sys.exit()
 
-if not os.path.exists("Projects"):
-    os.mkdir(Path("Projects"))
-
-path_to_outdirs = Path("Projects" + "/" + project_folder)
+path_to_outdirs = Path(projects_main_path + "/Projects/" + project_folder)
 if not os.path.exists(path_to_outdirs):
     os.mkdir(path_to_outdirs)
 
@@ -149,9 +190,18 @@ directories_to_create = ["Pie_charts", "Venn_diagrams","TaXon_tables", "TaXon_ta
 "Krona_charts", "Perlodes", "Alpha_diversity", "Beta_diversity", "PCoA_plots"]
 
 for directory in directories_to_create:
-    dirName = Path("Projects" + "/" + project_folder + "/" + directory + "/")
+    dirName = Path(str(path_to_outdirs) + "/" + directory + "/")
     if not os.path.exists(dirName):
         os.mkdir(Path(dirName))
+
+##########################################################################################################################
+# assign picture paths
+crash = path_to_main + '_source/crash.png'
+fließgewaesserbewertungde = path_to_main + '_source/fließgewässerbewertung_de.png'
+github = path_to_main + '_source/github.png'
+ttt_main = path_to_main + '_source/main.png'
+ttt_logo = path_to_main + '_source/taxotabletools.png'
+twitter = path_to_main + '_source/twitter.png'
 
 ##########################################################################################################################
 ##########################################################################################################################
@@ -169,7 +219,7 @@ data_conversion = [
 					[sg.Text('')],
                     [sg.Text('Check TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taXon_table_to_check'), sg.Button("Check table", key = 'run_taXon_table_check', button_color=('black', 'white'))],
                     [sg.Text('_'*105)],
-					[sg.Image(r'_source/main.png')],
+					[sg.Image(ttt_main)],
 					]
 
 processing_1_layout = [
@@ -361,10 +411,10 @@ create_perlodes_input_layout = [
 					[sg.Text('',size=(1,1))],
 					[sg.Text("Create Perlodes input file: "), sg.Button("Run", key = 'run_create_perlodes_input_file')],
 					[sg.Text('',size=(1,2))],
-					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=r'_source/fließgewässerbewertung_de.png', image_size=(687,157))],
+					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=fließgewaesserbewertungde, image_size=(687,157))],
                     ]
 
-layout = [  [sg.Image(r'_source/taxotabletools.png'), sg.Text("", size=(9,1)), sg.Text('Project:', font=('Arial', 12, "bold")), sg.Text(project_folder, font=('Arial', 12, "bold"))],
+layout = [  [sg.Image(ttt_logo), sg.Text("", size=(9,1)), sg.Text('Project:', font=('Arial', 12, "bold")), sg.Text(project_folder, font=('Arial', 12, "bold"))],
 			[sg.Text('',size=(1,1))],
 			[sg.TabGroup([[
             sg.Tab('Data conversion', data_conversion),
@@ -378,8 +428,8 @@ layout = [  [sg.Image(r'_source/taxotabletools.png'), sg.Text("", size=(9,1)), s
             sg.Tab('WFD', create_perlodes_input_layout)]])],
 			[sg.Text('',size=(1,1))],
 			[sg.Exit(button_color=('black', 'red')), sg.Text("", size=(57,1)),
-            sg.Button(image_filename=r'_source/github.png', image_size=(26,26), key='open_github', button_color=('black', 'white')),
-            sg.Button(key='open_twitter', button_color=('white', 'white'), image_filename=r'_source/twitter.png', image_size=(26,26)),
+            sg.Button(image_filename=github, image_size=(26,26), key='open_github', button_color=('black', 'white')),
+            sg.Button(key='open_twitter', button_color=('white', 'white'), image_filename=twitter, image_size=(26,26)),
             sg.Text('', size=(1,1)), sg.Text(taxon_tools_version, font=('Arial', 8))]]
 
 
@@ -1177,7 +1227,7 @@ while True:
             pass
 
         layout = [
-                    [sg.Image(r'_source/crash.png'), sg.Text(" You've been awarded with the gold medal in program crashing!")],
+                    [sg.Image(crash), sg.Text(" You've been awarded with the gold medal in program crashing!")],
                     [sg.Text("", size=(1,1))],
                     [sg.Text("Unexpected error: " + str(sys.exc_info()[0]))],
                     [sg.Text("", size=(1,1))],
