@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="taxontabletools-TillMacher", # Replace with your own username
-    version="1.0.0",
+    name="taxontabletools-TiMa", # Replace with your own username
+    version="1.0.2",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",
     description="taxontabletools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data",
@@ -17,7 +17,6 @@ setuptools.setup(
     install_requires = ['pySimpleGUI>=4.15.2',
                         'pandas>=0.25.3',
                         'numpy>=1.18.1',
-                        'matplotlib>=3.1.2',
                         'matplotlib-venn>=0.11.5',
                         'xlrd>=1.2.0',
                         'openpyxl>=3.0.3',
