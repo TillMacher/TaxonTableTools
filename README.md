@@ -2,9 +2,9 @@
 
 ## Installation
 
-TaXonTableTools requires Python version 3.6 or higher and can be installed using pip.
+TaXonTableTools requires Python version 3.6 and 3.7 and can be easily installed using pip.
 
-Make sure you run the correct pip version via:
+First, make sure you run the correct pip version via:
 
 `pip3 --version`
 
@@ -14,7 +14,7 @@ Then install TaXonTableTools via pip:
 
 `pip3 install taxontabletools`
 
-TaXonTableTools can be then started via:  
+TaXonTableTools can then be started via:  
 
 `python3 -m taxontabletools`
 
