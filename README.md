@@ -29,4 +29,4 @@ The sequencing of DNA metabarcoding data has drastically increased over the past
 
 ## Manual
 
-Find more information of how to use TaXonTableTools in the [manual](_data_/TaXonTableTools_manual.docx) and the [tutorial](_data_/TaXonTableTools_tutorial.pptx).
+Find more information of how to use TaXonTableTools in the [manual](_data/TaXonTableTools_manual.docx) and the [tutorial](_data/TaXonTableTools_tutorial.pptx).
