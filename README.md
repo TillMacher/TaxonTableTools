@@ -22,6 +22,9 @@ Updates can be installed via:
 
 `pip3 install --upgrade taxontabletools`
 
+Krona tools is optinal and needs to be installed seperately:
+
+[Krona tools](https://github.com/marbl/Krona/wiki)
 
 ## Introduction
 
