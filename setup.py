@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="taxontabletools-TiMa", # Replace with your own username
-    version="1.0.2",
+    name="taxontabletools", # Replace with your own username
+    version="1.0",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",
     description="taxontabletools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data",
@@ -23,6 +23,7 @@ setuptools.setup(
                         'xlsxwriter>=1.2.7',
                         'biopython',
                         'scikit-bio'],
+    include_package_data = True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
