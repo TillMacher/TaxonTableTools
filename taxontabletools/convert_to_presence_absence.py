@@ -1,4 +1,4 @@
-def covert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
+def convert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
 
     from pathlib import Path
     import PySimpleGUI as sg

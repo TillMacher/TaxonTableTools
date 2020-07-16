@@ -433,7 +433,7 @@ def main():
 
 
     # Create the Window
-    window = sg.Window('TaXonTableTools', layout)
+    window = sg.Window('TaXonTableTools', layout, grab_anywhere=True)
     win2_active=False
 
     ##########################################################################################################################
@@ -542,7 +542,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import taxon_converter
+                    from taxontabletools.taxon_converter import taxon_converter
                     if sorting_method_fh == True:
                         sheet_name = "First hit"
                     elif sorting_method_jamp == True:
@@ -558,7 +558,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import check_taxononomy_table_format
+                    from taxontabletools.check_taxononomy_table_format import check_taxononomy_table_format
                     if sorting_method_fh == True:
                         sheet_name = "First hit"
                     elif sorting_method_jamp == True:
@@ -574,7 +574,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 elif read_table_format_TTT == True:
-                    from taxontabletools import check_read_table_format_TTT
+                    from taxontabletools.check_read_table_format_TTT import check_read_table_format_TTT
                     check_read_table_format_TTT(Read_table_path)
                 elif read_table_format_jamp == True:
                     sg.Popup("Not supported yet!")
@@ -588,7 +588,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import check_taXon_table_format
+                    from taxontabletools.check_taXon_table_format import check_taXon_table_format
                     check_taXon_table_format(taXon_table_to_check)
 
             if event == "run_taxon_table_per_sample":
@@ -598,7 +598,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import create_taxon_table_per_sample
+                    from taxontabletools.create_taxon_table_per_sample import create_taxon_table_per_sample
                     create_taxon_table_per_sample(taxon_table_processing_1_table, path_to_outdirs)
 
             if event == "run_convert_to_pa":
@@ -608,8 +608,8 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import covert_to_presence_absence
-                    covert_to_presence_absence(taxon_table_processing_1_table, path_to_outdirs)
+                    from taxontabletools.convert_to_presence_absence import convert_to_presence_absence
+                    convert_to_presence_absence(taxon_table_processing_1_table, path_to_outdirs)
 
             if event == 'run_pie_chart':
                 print("Pie chart")
@@ -618,7 +618,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import pie_charts
+                    from taxontabletools.pie_charts import pie_charts
                     pie_charts(statistics_2_taxon_table_path, path_to_outdirs, pc_label_font_size)
 
             if event == 'run_venn2_diagram':
@@ -631,7 +631,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import venn_diagram
+                    from taxontabletools.venn_diagram import venn_diagram
                     venn_taxon_table_3_path = False
                     venn_diagram(statistics_2_taxon_table_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
 
@@ -645,7 +645,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import venn_diagram
+                    from taxontabletools.venn_diagram import venn_diagram
                     venn_diagram(statistics_2_taxon_table_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
 
             if event == 'run_rarefaction_curve_OTUs':
@@ -657,7 +657,7 @@ def main():
                         error_bar_style = "a"
                     if error_bar_style_b == True:
                         error_bar_style = "b"
-                    from taxontabletools import rarefaction_curve_OTUs
+                    from taxontabletools.rarefaction_curve import rarefaction_curve_OTUs
                     rarefaction_curve_OTUs(statistics_2_taxon_table_path, int(repetitions), error_bar_style, rarefaction_ylim, path_to_outdirs)
 
             if event == 'run_rarefaction_curve_species':
@@ -669,7 +669,7 @@ def main():
                         error_bar_style = "a"
                     if error_bar_style_b == True:
                         error_bar_style = "b"
-                    from taxontabletools import rarefaction_curve_species
+                    from taxontabletools.rarefaction_curve import rarefaction_curve_species
                     rarefaction_curve_species(statistics_2_taxon_table_path, int(repetitions), error_bar_style, rarefaction_ylim, path_to_outdirs)
 
             if event == 'run_create_taxon_list':
@@ -681,7 +681,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import create_taxon_list
+                    from taxontabletools.create_taxon_list import create_taxon_list
                     create_taxon_list(taxon_list_taxon_table_path, taxon_list_output_file_name, language, values, create_gbif_link, taxon_tools_version, path_to_outdirs)
 
             if event == 'run_taxon_filtering' and not win2_active:
@@ -703,7 +703,7 @@ def main():
                     print("Error: Please provide a file")
 
                 else:
-                    from taxontabletools import create_taxa_mask
+                    from taxontabletools.create_taxa_mask import create_taxa_mask
                     available_taxa = create_taxa_mask(taxon_table_processing_2_table, mask)
                     win2_active = True
                     window.Hide()
@@ -740,7 +740,7 @@ def main():
                                 if value == True:
                                     check_list.append(key)
 
-                            from taxontabletools import taxon_table_filter
+                            from taxontabletools.taxon_table_filter import taxon_table_filter
 
                             if check_list == []:
                                 check_list = ['no taxa to filter']
@@ -765,7 +765,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import create_sample_mask
+                    from taxontabletools.create_sample_mask import create_sample_mask
                     available_samples = sorted(create_sample_mask(taxon_table_processing_2_table))
                     win2_active = True
                     window.Hide()
@@ -798,7 +798,7 @@ def main():
                                     check_list.append(key)
 
                             print("Excluded samples:", ', '.join(check_list))
-                            from taxontabletools import exclude_samples
+                            from taxontabletools.exclude_samples import exclude_samples
                             exclude_samples(taxon_table_processing_2_table, check_list, appendix_name, path_to_outdirs)
 
                             win2.Close()
@@ -820,7 +820,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import combine_replicates
+                    from taxontabletools.combine_replicates import combine_replicates
                     combine_replicates(taxon_table_processing_1_table, replicate_suffix_list, path_to_outdirs)
 
             if event == 'run_preview_suffix':
@@ -833,7 +833,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import calculate_taxonomic_richness
+                    from taxontabletools.calculate_taxonomic_richness import calculate_taxonomic_richness
                     calculate_taxonomic_richness(statistics_1_taxon_table_path, path_to_outdirs, x_tax_rich, y_tax_rich, font_tax_rich, ylim_tax_rich)
 
             if event == 'run_taxonomic_resolution':
@@ -845,7 +845,7 @@ def main():
                         figure_type = "a"
                     if tres_type_b == True:
                         figure_type = "b"
-                    from taxontabletools import calculate_taxonomic_resolution
+                    from taxontabletools.calculate_taxonomic_resolution import calculate_taxonomic_resolution
                     calculate_taxonomic_resolution(statistics_1_taxon_table_path, path_to_outdirs, x_tax_res, y_tax_res, font_tax_res, figure_type, ylim_tax_res)
 
             if event == 'run_create_meta_data_table':
@@ -853,7 +853,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import create_metadata_table
+                    from taxontabletools.create_metadata_table import create_metadata_table
                     create_metadata_table(taxon_table_processing_2_table, path_to_outdirs)
 
             if event == 'run_site_occupancy':
@@ -862,7 +862,7 @@ def main():
                     print("Error: Please provide a file")
 
                 else:
-                    from taxontabletools import get_available_meta_data
+                    from taxontabletools.get_available_meta_data import get_available_meta_data
                     meta_data_to_test = get_available_meta_data(statistics_3_taxon_table_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
@@ -894,7 +894,7 @@ def main():
                                                                    meta_data_to_test = input_value
                                                                if (test == True and input_value in taxonmic_levels_to_choose):
                                                                    taxon_level = input_value
-                                                           from taxontabletools import site_occupancy
+                                                           from taxontabletools.site_occupancy import site_occupancy
                                                            site_occupancy(statistics_3_taxon_table_path, meta_data_to_test, taxon_level, path_to_outdirs, x_site_occ, y_site_occ, font_site_occ)
                                                            win2.Close()
                                                            win2_active = False
@@ -933,7 +933,7 @@ def main():
                     if read_props_best_hit == True:
                         no_hit_visualization = "best_hit"
 
-                    from taxontabletools import read_proportions
+                    from taxontabletools.read_proportions import read_proportions
                     read_proportions(statistics_3_taxon_table_path, taxonomic_level, path_to_outdirs, x_read_props_scatter, y_read_props_scatter, font_read_props_scatter, no_hit_visualization, read_props_alternating_colors)
 
             if event == 'run_basic_stats':
@@ -941,7 +941,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import basic_stats
+                    from taxontabletools.basic_stats import basic_stats
                     basic_stats(statistics_1_taxon_table_path, bstats_h, bstats_w, bstats_f, path_to_outdirs)
 
             if event == 'run_create_krona_chart':
@@ -949,7 +949,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import create_krona_chart
+                    from taxontabletools.create_krona_chart import create_krona_chart
                     create_krona_chart(statistics_3_taxon_table_path, path_to_outdirs)
 
             if event == 'run_CCA_analysis':
@@ -959,7 +959,7 @@ def main():
                     print("Error: Please provide a file")
 
                 else:
-                    from taxontabletools import get_available_meta_data
+                    from taxontabletools.get_available_meta_data import get_available_meta_data
                     meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
@@ -984,7 +984,7 @@ def main():
                                         for input_value, test in values2.items():
                                                 if test == True:
                                                         meta_data_to_test = input_value
-                                                        from taxontabletools import CCA_analysis
+                                                        from taxontabletools.CCA_analysis import CCA_analysis
                                                         CCA_analysis(statistics_4_taxon_table_path, meta_data_to_test, cca_w, cca_h, cca_s, path_to_outdirs)
                                                         win2.Close()
                                                         win2_active = False
@@ -1004,7 +1004,7 @@ def main():
                     print("Error: Please provide a file")
 
                 else:
-                    from taxontabletools import get_available_meta_data
+                    from taxontabletools.get_available_meta_data import get_available_meta_data
                     meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
@@ -1029,7 +1029,7 @@ def main():
                                         for input_value, test in values2.items():
                                                 if test == True:
                                                         meta_data_to_test = input_value
-                                                        from taxontabletools import PCoA_analysis
+                                                        from taxontabletools.PCoA_analysis import PCoA_analysis
                                                         PCoA_analysis(statistics_4_taxon_table_path, meta_data_to_test, pcoa_w, pcoa_h, pcoa_s, path_to_outdirs)
                                                         win2.Close()
                                                         win2_active = False
@@ -1048,7 +1048,7 @@ def main():
                     print("Error: Please provide a file")
                 else:
                     replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
-                    from taxontabletools import replicate_consistency_filter
+                    from taxontabletools.replicate_consistency_filter import replicate_consistency_filter
                     replicate_consistency_filter(taxon_table_processing_1_table, replicate_suffix_list, path_to_outdirs)
 
             if event == 'run_create_perlodes_input_file':
@@ -1056,7 +1056,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools import convert_to_perlodes
+                    from taxontabletools.convert_to_perlodes import convert_to_perlodes
                     convert_to_perlodes(perlodes_taxon_table_path, operational_taxon_list_path, path_to_outdirs)
 
             if event == 'run_alpha_diversity':
@@ -1066,7 +1066,7 @@ def main():
                         print("Error: Please provide a file")
 
                     else:
-                        from taxontabletools import get_available_meta_data
+                        from taxontabletools.get_available_meta_data import get_available_meta_data
                         meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
 
                         if meta_data_to_test == False:
@@ -1090,7 +1090,7 @@ def main():
                                     if event2 == 'Calculate':
                                             for meta_data_to_test, test in values2.items():
                                                 if test == True:
-                                                    from taxontabletools import alpha_diversity
+                                                    from taxontabletools.alpha_diversity import alpha_diversity
                                                     alpha_diversity(statistics_4_taxon_table_path, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs)
                                                     win2.Close()
                                                     win2_active = False
@@ -1109,7 +1109,7 @@ def main():
                         print("Error: Please provide a file")
 
                     else:
-                        from taxontabletools import get_available_meta_data
+                        from taxontabletools.get_available_meta_data import get_available_meta_data
                         meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
 
                         if meta_data_to_test == False:
@@ -1133,7 +1133,7 @@ def main():
                                     if event2 == 'Calculate':
                                             for meta_data_to_test, test in values2.items():
                                                 if test == True:
-                                                    from taxontabletools import beta_diversity
+                                                    from taxontabletools.beta_diversity import beta_diversity
                                                     beta_diversity(statistics_4_taxon_table_path, beta_w, beta_h, beta_font, beta_cmap, meta_data_to_test, path_to_outdirs)
                                                     win2.Close()
                                                     win2_active = False
