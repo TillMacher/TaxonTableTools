@@ -45,6 +45,6 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 
 * Create a new project by typing the desired name or leave blank to create a "Default_project". Click on "Create new" to proceed.
 
-* Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaXonTableTools_manual.docx) for definitions and requirements).
+* Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaXonTableTools_manual.pdf) for definitions and requirements).
 
 * Check out the [tutorial](_data/TaXonTableTools_tutorial.pptx) to get a more detailed impression of the TTT workflow.
