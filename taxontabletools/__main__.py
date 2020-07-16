@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version Alpha 1.0.0 (r 13.07.2020)"
+taxon_tools_version = "Version Alpha 1.0 (r 16.07.2020)"
 
 ##########################################################################################################################
 # general functions
