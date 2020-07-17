@@ -574,7 +574,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 elif read_table_format_TTT == True:
-                    from taxontabletools.check_read_table_format_TTT import check_read_table_format_TTT
+                    from taxontabletools.check_read_table_format import check_read_table_format_TTT
                     check_read_table_format_TTT(Read_table_path)
                 elif read_table_format_jamp == True:
                     sg.Popup("Not supported yet!")
@@ -703,7 +703,7 @@ def main():
                     print("Error: Please provide a file")
 
                 else:
-                    from taxontabletools.create_taxa_mask import create_taxa_mask
+                    from taxontabletools.taxon_table_filtering import create_taxa_mask
                     available_taxa = create_taxa_mask(taxon_table_processing_2_table, mask)
                     win2_active = True
                     window.Hide()
@@ -720,7 +720,7 @@ def main():
                     [sg.Frame(layout = available_taxa_list, title = 'Check taxa to exlude')],
                     [sg.Text("")]]
 
-                    win2 = sg.Window('TaXon table filtering', layout2, keep_on_top=True)
+                    win2 = sg.Window('TaXon table filtering', layout2, keep_on_top=True, grab_anywhere=True)
                     while True:
                         event2, values2 = win2.Read()
 
@@ -740,7 +740,7 @@ def main():
                                 if value == True:
                                     check_list.append(key)
 
-                            from taxontabletools.taxon_table_filter import taxon_table_filter
+                            from taxontabletools.taxon_table_filtering import taxon_table_filter
 
                             if check_list == []:
                                 check_list = ['no taxa to filter']
@@ -765,7 +765,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                     print("Error: Please provide a file")
                 else:
-                    from taxontabletools.create_sample_mask import create_sample_mask
+                    from taxontabletools.taxon_table_filtering import create_sample_mask
                     available_samples = sorted(create_sample_mask(taxon_table_processing_2_table))
                     win2_active = True
                     window.Hide()
@@ -779,7 +779,7 @@ def main():
                     [sg.Button('Filter')],
                     [sg.Button('Back')]]
 
-                    win2 = sg.Window('TaXon table filtering', layout2, keep_on_top=True)
+                    win2 = sg.Window('TaXon table filtering', layout2, keep_on_top=True, grab_anywhere=True)
 
                     while True:
                         event2, values2 = win2.Read()
@@ -798,7 +798,7 @@ def main():
                                     check_list.append(key)
 
                             print("Excluded samples:", ', '.join(check_list))
-                            from taxontabletools.exclude_samples import exclude_samples
+                            from taxontabletools.taxon_table_filtering import exclude_samples
                             exclude_samples(taxon_table_processing_2_table, check_list, appendix_name, path_to_outdirs)
 
                             win2.Close()
@@ -976,7 +976,7 @@ def main():
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
-                            win2 = sg.Window('CCA analysis', layout2, keep_on_top=True)
+                            win2 = sg.Window('CCA analysis', layout2, keep_on_top=False)
 
                             while True:
                                 event2, values2 = win2.Read()
@@ -1021,7 +1021,7 @@ def main():
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
-                            win2 = sg.Window('PCoA analysis', layout2, keep_on_top=True)
+                            win2 = sg.Window('PCoA analysis', layout2, keep_on_top=False)
 
                             while True:
                                 event2, values2 = win2.Read()
@@ -1083,7 +1083,7 @@ def main():
                                 [sg.Button('Calculate')],
                                 [sg.Button('Back')]]
 
-                                win2 = sg.Window('Alpha diversity estimates', layout2, keep_on_top=True)
+                                win2 = sg.Window('Alpha diversity estimates', layout2, keep_on_top=False)
 
                                 while True:
                                     event2, values2 = win2.Read()
@@ -1121,12 +1121,12 @@ def main():
                                 window.Hide()
                                 meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
-                                layout2 = [[sg.Text("Alpha diversity", size=(20,1))],
+                                layout2 = [[sg.Text("Beta diversity", size=(20,1))],
                                 [sg.Frame(layout = meta_data_to_test_list, title = 'Check meta data to test')],
                                 [sg.Button('Calculate')],
                                 [sg.Button('Back')]]
 
-                                win2 = sg.Window('Alpha diversity estimates', layout2, keep_on_top=True)
+                                win2 = sg.Window('Beta diversity estimates', layout2, keep_on_top=False)
 
                                 while True:
                                     event2, values2 = win2.Read()

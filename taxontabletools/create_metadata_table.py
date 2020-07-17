@@ -45,7 +45,7 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
     window_progress_bar.Close()
 
     metadata_df = pd.DataFrame(samples_metadata_list)
-    metadata_df = metadata_df.rename({0: 'Samples'}, axis='columns')
+    metadata_df.columns  = ["Samples"] + ["col_" + str(column) for column in metadata_df.columns.tolist()[1:]]
     metadata_df.to_excel(Meta_data_table_xlsx, index=False)
 
     closing_text = "Metadata table is found under:\n" + '/'.join(str(Meta_data_table_xlsx).split("/")[-4:])

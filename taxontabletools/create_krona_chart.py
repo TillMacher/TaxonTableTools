@@ -11,7 +11,7 @@ def create_krona_chart(TaXon_table_xlsx, path_to_outdirs):
     try:
         subprocess.call(["ktImportText"], stdout=open(os.devnull, 'wb'))
     except:
-        sg.PopupError("You need to install Krona tools first!" + "\n" * 2 + "Krona tools is currently not supported on Windows!" + "\n", title="Error")
+        sg.PopupError("Krona tools must be manually installed first!" + "\n" * 2 + "Note: Krona tools is currently not supported on Windows!" + "\n", title="Error")
         raise RuntimeError("Krona tools needs to be installed")
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
