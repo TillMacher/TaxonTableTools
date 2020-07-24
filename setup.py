@@ -21,8 +21,8 @@ setuptools.setup(
                         'xlrd>=1.2.0',
                         'openpyxl>=3.0.3',
                         'xlsxwriter>=1.2.7',
-                        'biopython',
-                        'scikit-bio'],
+                        'biopython>=1.77',
+                        'scikit-bio>=0.5.6'],
     include_package_data = True,
     classifiers=[
         "Programming Language :: Python :: 3",
