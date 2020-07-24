@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version Alpha 1.0 (r 16.07.2020)"
+taxon_tools_version = "Version 1.0.8"
 
 ##########################################################################################################################
 # general functions
@@ -54,25 +54,51 @@ def metadata_table_help_text():
 
 def alpha_diversity_help_text():
     alpha_diversity_help_text = """
-    Alpha diversity
+
+    Alpha diversity is calculated with the python package scikit-bio (http://scikit-bio.org/)
+    and is based on the number of OTUs per sample, which are displayed as a scatter plot.
+
     """
     return alpha_diversity_help_text
 
 def beta_diversity_help_text():
     beta_diversity_help_text = """
-    Beta diversity
+
+    Beta diversity is calculated with the python package scikit-bio (http://scikit-bio.org/)
+    and is calculated as jaccard-distances, which are illustrated in a distance matrix.
+    An R-square test for reliability and validity is conducted.
+    Check out matplotlib colormaps to individualize the plot.
+
+    The TaXon table must be converted to incidence data.
+
     """
     return beta_diversity_help_text
 
 def cca_analysis_help_text():
     cca_analysis_help_text = """
-    CCA analysis
+
+    Canonical-correlation analysis (CCA) analysis plots are calculated with the python package scikit-bio (http://scikit-bio.org/).
+    The two axes to plot can be chosen from all available axes.
+    The meta data must be a vector of random variables (X = X1...,Xn) and must differ between samples!
+    All eigenvalues are saved as an Excel sheet.
+
+    The TaXon table must be converted to incidence data.
+
     """
     return cca_analysis_help_text
 
 def pcoa_analysis_help_text():
     pcoa_analysis_help_text = """
-    PCoA analysis
+
+    Principle coordinate analysis (PCoA) plots are calculated with the python package scikit-bio (http://scikit-bio.org/).
+    and are based on jaccard-distances.
+    The meta data must differ between samples!
+    An R-square test for reliability and validity is conducted.
+    The two axes to plot can be chosen from all available axes.
+    All eigenvalues are saved as an Excel sheet.
+
+    The TaXon table must be converted to incidence data.
+
     """
     return pcoa_analysis_help_text
 
@@ -277,18 +303,18 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Basic statistics',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate basic statistics", size=(25,1)), sg.Button("Run", key = 'run_basic_stats'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="bstats_w"),
-                        sg.Input("8", size=(3,1), key="bstats_h"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="bstats_f")]], title="Options")],
+                        sg.Input("8", size=(3,1), key="bstats_h"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("5", size=(3,1), key="bstats_f")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxonomic resolution',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Taxonomic resolution plot", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_resolution'), sg.Text("", size=(1,1)),
                         sg.Frame(layout=[
-                        [sg.Text("Plot size (w,h, ylim):"), sg.Input("20", size=(3,1), key="x_tax_res"), sg.Input("10", size=(3,1), key="y_tax_res"), sg.Input("", size=(4,1), key="ylim_tax_res"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("10", size=(3,1), key="font_tax_res")],
+                        [sg.Text("Plot size (w,h, ylim):"), sg.Input("8", size=(3,1), key="x_tax_res"), sg.Input("8", size=(3,1), key="y_tax_res"), sg.Input("", size=(4,1), key="ylim_tax_res"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("10", size=(3,1), key="font_tax_res")],
                         [sg.Text("Plot type:"), sg.Radio('a', "tres_plot_type", key='tres_type_a', default=True), sg.Radio('b', "tres_plot_type", key='tres_type_b')]
-                        ], title="Options", size=(1,2))],
+                        ], title="Settings", size=(1,2))],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxonomic richness',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Taxonomic richness plot", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_richness'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h,ylim):"), sg.Input("20", size=(3,1), key="x_tax_rich"),
-                        sg.Input("10", size=(3,1), key="y_tax_rich"), sg.Input("", size=(4,1), key="ylim_tax_rich"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("10", size=(3,1), key="font_tax_rich")]], title="Options")],
+    					[sg.Text("Taxonomic richness plot", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_richness'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h,ylim):"), sg.Input("8", size=(3,1), key="x_tax_rich"),
+                        sg.Input("8", size=(3,1), key="y_tax_rich"), sg.Input("", size=(4,1), key="ylim_tax_rich"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("10", size=(3,1), key="font_tax_rich")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					]
 
@@ -299,19 +325,19 @@ def main():
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('OTU abundance pie charts',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Create pie charts", size=(20,1)), sg.Button("Run", key = 'run_pie_chart'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Text("20", size=(3,1)),
-                        sg.Text("10", size=(3,1)), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("5", size=(3,1), key="pc_label_font_size")]], title="Options")],
+    					[sg.Text("Create pie charts", size=(20,1)), sg.Button("Run", key = 'run_pie_chart'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Text("8", size=(3,1)),
+                        sg.Text("8", size=(3,1)), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("5", size=(3,1), key="pc_label_font_size")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Venn diagrams',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text('Compare to table(s):', size=(16, 1)), sg.Input("", size=(10,1)), sg.FileBrowse(key = 'venn_taxon_table_2_path'), sg.Input("", size=(10,1)), sg.FileBrowse(key = 'venn_taxon_table_3_path'),
                         sg.Text("", size=(1,1)), sg.Text("Output file:"), sg.Input("venn_diagram", size=(15,1), key="venn_diagram_name")],
     					[sg.Text("", size=(1,1))],
-    					[sg.Text("Compare TaXon tables", size=(20,1)), sg.Button("venn2", key = 'run_venn2_diagram'), sg.Button("venn3", key = 'run_venn3_diagram'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Text("20", size=(3,1)),
-                        sg.Text("10", size=(3,1)), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Text("10", size=(3,1))]], title="Options")],
+    					[sg.Text("Compare TaXon tables", size=(20,1)), sg.Button("venn2", key = 'run_venn2_diagram'), sg.Button("venn3", key = 'run_venn3_diagram'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Text("8", size=(3,1)),
+                        sg.Text("8", size=(3,1)), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Text("10", size=(3,1))]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Rarefaction curve',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate rarefaction curve with"), sg.Input('1000', size=(6,1), key='repetitions'), sg.Text('repetitions'),
-                        sg.Frame(layout=[[sg.Text("Y-limit:"), sg.Input("", size=(4,1), key="rarefaction_ylim"), sg.Text("Error bar style:"), sg.Radio('a', "error_bar_style", key='error_bar_style_a', default=True), sg.Radio('b', "error_bar_style", key='error_bar_style_b')]], title="Options")],
+                        sg.Frame(layout=[[sg.Text("Y-limit:"), sg.Input("", size=(4,1), key="rarefaction_ylim"), sg.Text("Error bar style:"), sg.Radio('a', "error_bar_style", key='error_bar_style_a', default=True), sg.Radio('b', "error_bar_style", key='error_bar_style_b')]], title="Settings")],
                         [sg.Text("OTUs: "), sg.Button("Run", key = 'run_rarefaction_curve_OTUs'), sg.Text("", size=(1,1)), sg.Text("Species: "), sg.Button("Run", key = 'run_rarefaction_curve_species'), sg.Text("", size=(1,1))],
     					[sg.Text('',size=(1,1))],
     					]
@@ -327,14 +353,14 @@ def main():
     					sg.Radio('Order', "ra_filter", key='ra_order'), sg.Radio('Family', "ra_filter", key='ra_family'),
     					sg.Radio('Genus', "ra_filter", key='ra_genus'), sg.Radio('Species', "ra_filter", default=True, key='ra_species')],
     					[sg.Text("", size=(20, 1))],
-    					[sg.Text("Calculate read proportions", size=(25,1)), sg.Button("Run", key = 'run_read_proportions'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("10", size=(3,1), key="x_read_props_scatter"),
-                        sg.Input("5", size=(3,1), key="y_read_props_scatter"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("4", size=(3,1), key="font_read_props_scatter")],
+    					[sg.Text("Calculate read proportions", size=(25,1)), sg.Button("Run", key = 'run_read_proportions'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("8", size=(3,1), key="x_read_props_scatter"),
+                        sg.Input("8", size=(3,1), key="y_read_props_scatter"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("4", size=(3,1), key="font_read_props_scatter")],
                         [sg.Text("No hit visualization:"), sg.Radio('as nan', "read_props_taxon_level", key='read_props_as_nan', default=True), sg.Radio('best hit', "read_props_taxon_level", key='read_props_best_hit')],
-                        [sg.Checkbox("Alternating colors", key="read_props_alternating_colors", default=True)]], title="Options")],
+                        [sg.Checkbox("Alternating colors", key="read_props_alternating_colors", default=True)]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Site occupancy', size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Calculate site occupancy", size=(25,1)), sg.Button("Run", key = 'run_site_occupancy'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("10", size=(3,1), key="x_site_occ"),
-                        sg.Input("5", size=(3,1), key="y_site_occ"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="font_site_occ")]], title="Options")],
+    					[sg.Text("Calculate site occupancy", size=(25,1)), sg.Button("Run", key = 'run_site_occupancy'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("8", size=(3,1), key="x_site_occ"),
+                        sg.Input("8", size=(3,1), key="y_site_occ"), sg.Text("", size=(1,1)), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="font_site_occ")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Krona charts',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Create Krona chart", size=(25,1)), sg.Button("Run", key = 'run_create_krona_chart'), sg.Text("", size=(1,1)),
@@ -352,27 +378,27 @@ def main():
     					[sg.Text('Diversity analyses',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate alpha diversity", size=(23,1)), sg.Button("Run", key = 'run_alpha_diversity'),
                         sg.Button("Help", key = 'run_alpha_diversity_help_text', button_color=('black', 'white')),
-                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("5", size=(3,1), key="alpha_w"),
-                        sg.Input("5", size=(3,1), key="alpha_h"), sg.Text("Scatter size:"), sg.Input("8", size=(3,1), key="alpha_s"),
-                        sg.Text("Font size:"), sg.Input("8", size=(3,1), key="alpha_font")]], title="Options")],
+                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="alpha_w"),
+                        sg.Input("8", size=(3,1), key="alpha_h"), sg.Text("Scatter size:"), sg.Input("40", size=(3,1), key="alpha_s"),
+                        sg.Text("Font size:"), sg.Input("8", size=(3,1), key="alpha_font")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text("Calculate beta diversity", size=(23,1)), sg.Button("Run", key = 'run_beta_diversity'),
                         sg.Button("Help", key = 'run_beta_diversity_help_text', button_color=('black', 'white')),
-                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("5", size=(3,1), key="beta_w"),
-                        sg.Input("5", size=(3,1), key="beta_h"), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="beta_font")],
-                        [sg.Text("Cmap:"), sg.Input("Blues_r", size=(15,1), key="beta_cmap")]], title="Options")],
+                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="beta_w"),
+                        sg.Input("8", size=(3,1), key="beta_h"), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="beta_font")],
+                        [sg.Text("Cmap:"), sg.Input("Blues_r", size=(15,1), key="beta_cmap")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
 
     					[sg.Text('Ordination analyses',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate CCA", size=(23,1)), sg.Button("Run", key = 'run_CCA_analysis'),
                         sg.Button("Help", key = 'run_cca_analysis_help_text', button_color=('black', 'white')),
-                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("10", size=(3,1), key="cca_w"),
-                        sg.Input("10", size=(3,1), key="cca_h"), sg.Text("", size=(1,1)), sg.Text("Scatter size:"), sg.Input("10", size=(3,1), key="cca_s")]], title="Options")],
+                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="cca_w"),
+                        sg.Input("8", size=(3,1), key="cca_h"), sg.Text("", size=(1,1)), sg.Text("Scatter size:"), sg.Input("10", size=(3,1), key="cca_s")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text("Calculate PCoA", size=(23,1)), sg.Button("Run", key = 'run_PCoA_analysis'),
                         sg.Button("Help", key = 'run_pcoa_analysis_help_text', button_color=('black', 'white')),
-                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("10", size=(3,1), key="pcoa_w"),
-                        sg.Input("10", size=(3,1), key="pcoa_h"), sg.Text("", size=(1,1)), sg.Text("Scatter size:"), sg.Input("10", size=(3,1), key="pcoa_s")]], title="Options")],
+                        sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="pcoa_w"),
+                        sg.Input("8", size=(3,1), key="pcoa_h"), sg.Text("", size=(1,1)), sg.Text("Scatter size:"), sg.Input("10", size=(3,1), key="pcoa_s")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
         				]
 
@@ -382,8 +408,10 @@ def main():
     					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_list_taxon_table_path')],
     					[sg.Text('_'*105)],
                         [sg.Text("Enter name of output file:"), sg.Input(project_folder + "_taxon_list", size=(48,1), key='taxon_list_output_file_name'), sg.Text(".txt + .xlsx")],
-                        [sg.Text('Choose output language:'), sg.Radio('English', 'Language', key='English'), sg.Radio('German', 'Language', key='German', default=True)],
-                        [sg.Text('Create gbif link:'), sg.CB("", key="create_gbif_link", default=True)],
+                        [sg.Text('Choose output language:'), sg.Radio('English', 'Language', key='English', default=True), sg.Radio('German', 'Language', key='German', default=False)],
+                        [sg.Text('GBIF link:', size=(20,1)), sg.CB("", key="create_gbif_link", default=True), sg.Frame(layout=[[sg.Text("Internet connection is required.")]], title="Information")],
+                        [sg.Text('Intraspecific distances:', size=(20,1)), sg.CB("", key="calc_dist", default=True), sg.Frame(layout=[[sg.Text("This option can drastically increase run times.")]], title="Information")],
+                        [sg.Text('Occupancy per sample:', size=(20,1)), sg.CB("", key="calc_occupancy", default=True), sg.Frame(layout=[[sg.Text("This option can drastically increase run times.")]], title="Information")],
                         [sg.Text('', size=(1,1))],
                         [sg.Text('Additional information', font=('Arial', 10, "bold"))],
                         [sg.Text('Description:', size=(20,1)), sg.Input('', size=(48,1), key='TL_description')], # TL = taxon list -> makes it easier to find
@@ -442,6 +470,9 @@ def main():
         try:
 
             event, values = window.Read()
+
+            if event is None or event == 'Exit':
+                break
 
             i = 0
             # define variables
@@ -509,6 +540,8 @@ def main():
             cm_sample_based_filter_all = values['cm_sample_based_filter_all']
             cm_sample_based_filter_none = values['cm_sample_based_filter_none']
             create_gbif_link = values['create_gbif_link']
+            calc_dist = values['calc_dist']
+            calc_occupancy = values['calc_occupancy']
             pc_label_font_size = values['pc_label_font_size']
             sorting_method_fh = values['sorting_method_fh']
             sorting_method_jamp = values['sorting_method_jamp']
@@ -530,9 +563,6 @@ def main():
             read_table_format_jamp = values["read_table_format_jamp"]
             read_table_format_qiime = values["read_table_format_qiime"]
             read_props_alternating_colors = values["read_props_alternating_colors"]
-
-            if event is None or event == 'Exit':
-                break
 
             print("########", "\n")
 
@@ -682,7 +712,7 @@ def main():
                     print("Error: Please provide a file")
                 else:
                     from taxontabletools.create_taxon_list import create_taxon_list
-                    create_taxon_list(taxon_list_taxon_table_path, taxon_list_output_file_name, language, values, create_gbif_link, taxon_tools_version, path_to_outdirs)
+                    create_taxon_list(taxon_list_taxon_table_path, taxon_list_output_file_name, language, values, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs)
 
             if event == 'run_taxon_filtering' and not win2_active:
                 if filter_phylum == True:
