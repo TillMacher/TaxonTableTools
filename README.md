@@ -2,7 +2,7 @@
 
 ## Backround
 
-TaxonTableTools (TTT) aims to provide easy-to-use tools for biologists and non-bioinformaticians to analyse and visualize their data quickly and reproducible via a graphical user interface. Thus, the dependency on self-written R or python scripts, which can cause confusion and errors particularly when working with different datasets, is reduced. TTT allows to quickly assess data and generate information as basis for further, more dataset-specific analyses. Furthermore, the quick data visualization integrated in TTT always comes in handy for presenting first preliminary results of a dataset.
+TaxonTableTools (TTT) aims to provide easy-to-use tools for biologists and non-bioinformaticians to analyse and visualize their metabarcoding data quickly and reproducible via a graphical user interface.
 
 ## Requirements
 
