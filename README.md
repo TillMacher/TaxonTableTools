@@ -1,6 +1,6 @@
 # TaXonTableTools
 
-## Backround
+## Background
 
 TaxonTableTools (TTT) aims to provide easy-to-use tools for biologists and non-bioinformaticians to analyse and visualize their metabarcoding data quickly and reproducible via a graphical user interface.
 
