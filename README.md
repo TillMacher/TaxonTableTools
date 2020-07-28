@@ -50,4 +50,4 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 
 * Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaXonTableTools_manual.pdf) for definitions and requirements).
 
-* Check out the [tutorial](_data/TaXonTableTools_tutorial.pptx) to get a more detailed impression of the TTT workflow.
+* Check out the [tutorial](_data/TaXonTableTools_tutorial.pdf) to get a more detailed impression of the TTT workflow.
