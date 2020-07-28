@@ -38,7 +38,7 @@ Updates can be installed via:
 The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is optional and needs to be done separately. Note that Krona tools is currently not supported on Windows.
 
 ## Examples
-![alt-text-1](/_data/ttt_basic_stats.png "title-1") ![alt-text-2](/_data/ttt_read_proportions.png "title-2")
+![](/_data/ttt_figure_1.png "figure-1") ![](/_data/ttt_figure_2.png "figure-2")
 
 ## Quick start
 
