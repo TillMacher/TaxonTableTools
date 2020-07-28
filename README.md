@@ -37,6 +37,13 @@ Updates can be installed via:
 
 The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is optional and needs to be done separately. Note that Krona tools is currently not supported on Windows.
 
+## Known issues
+
+* Plots are not shown on Ubuntu 18 in some cases. They are still written to the respective folder.
+* The magnification of the window size on Windows notebooks can be too large. Thus, the TTT window may not fit the screen. Simply reduce the magnification to fit TTT.
+* Windows installations sometimes crash. Another installtation attempt often solves this problem.
+* The installation of scikit-bio can lead to an error during the installation of taxontabletools.
+
 ## Quick start
 
 * When first launched TTT will ask to define an output directory. This is where all your projects and respective output files will be stored. A new folder "Projects" will be created in this directory.
