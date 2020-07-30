@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.0.10"
+taxon_tools_version = "Version 1.0.11"
 
 ##########################################################################################################################
 # general functions
@@ -379,8 +379,9 @@ def main():
     					[sg.Text("Calculate alpha diversity", size=(23,1)), sg.Button("Run", key = 'run_alpha_diversity'),
                         sg.Button("Help", key = 'run_alpha_diversity_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("8", size=(3,1), key="alpha_w"),
-                        sg.Input("8", size=(3,1), key="alpha_h"), sg.Text("Scatter size:"), sg.Input("40", size=(3,1), key="alpha_s"),
-                        sg.Text("Font size:"), sg.Input("8", size=(3,1), key="alpha_font")]], title="Settings")],
+                        sg.Input("8", size=(3,1), key="alpha_h"), sg.Text("Font size:"), sg.Input("8", size=(3,1), key="alpha_font")],
+                        [sg.Radio("Scatter plot", "alpha_plot", key="alpha_scatter_plot", default=True), sg.Text("Scatter size:"), sg.Input("40", size=(3,1), key="alpha_s")],
+                        [sg.Radio("Box plot", "alpha_plot", key="alpha_box_plot")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text("Calculate beta diversity", size=(23,1)), sg.Button("Run", key = 'run_beta_diversity'),
                         sg.Button("Help", key = 'run_beta_diversity_help_text', button_color=('black', 'white')),
@@ -461,7 +462,7 @@ def main():
 
 
     # Create the Window
-    window = sg.Window('TaXonTableTools', layout, grab_anywhere=True)
+    window = sg.Window('TaxonTableTools', layout, grab_anywhere=True)
     win2_active=False
 
     ##########################################################################################################################
@@ -563,6 +564,8 @@ def main():
             read_table_format_jamp = values["read_table_format_jamp"]
             read_table_format_qiime = values["read_table_format_qiime"]
             read_props_alternating_colors = values["read_props_alternating_colors"]
+            alpha_box_plot = values["alpha_box_plot"]
+            alpha_scatter_plot = values["alpha_scatter_plot"]
 
             print("########", "\n")
 
@@ -1120,12 +1123,20 @@ def main():
                                     if event2 == 'Calculate':
                                             for meta_data_to_test, test in values2.items():
                                                 if test == True:
-                                                    from taxontabletools.alpha_diversity import alpha_diversity
-                                                    alpha_diversity(statistics_4_taxon_table_path, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs)
-                                                    win2.Close()
-                                                    win2_active = False
-                                                    window.UnHide()
-                                                    break
+                                                    if alpha_box_plot == True:
+                                                            from taxontabletools.alpha_diversity import alpha_diversity_boxplot
+                                                            alpha_diversity_boxplot(statistics_4_taxon_table_path, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs)
+                                                            win2.Close()
+                                                            win2_active = False
+                                                            window.UnHide()
+                                                            break
+                                                    if alpha_scatter_plot == True:
+                                                            from taxontabletools.alpha_diversity import alpha_diversity_scatter_plot
+                                                            alpha_diversity_scatter_plot(statistics_4_taxon_table_path, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs)
+                                                            win2.Close()
+                                                            win2_active = False
+                                                            window.UnHide()
+                                                            break
                                     if event2 is None or event2 == 'Back':
                                             win2.Close()
                                             win2_active = False
@@ -1184,8 +1195,8 @@ def main():
                 webbrowser.open('https://www.gewaesser-bewertung-berechnung.de/index.php/perlodes-online.html')
 
             if event == 'open_github':
-                print("Open: https://github.com/thm93/TaxonTableTools")
-                webbrowser.open('https://github.com/thm93/TaxonTableTools')
+                print("Open: https://github.com/TillMacher/TaxonTableTools")
+                webbrowser.open('https://github.com/TillMacher/TaxonTableTools')
 
             if event == 'open_twitter':
                 print("Open: https://twitter.com/THM_93")
@@ -1230,6 +1241,7 @@ def main():
             print("\n" + "########")
 
         # Raised when an error is detected that doesn’t fall in any of the other categories. The associated value is a string indicating what precisely went wrong.
+        # CHANGE TO CUSTOM ERROR and not RuntimeError!!!
         except RuntimeError:
             print("\n" + "########")
             try:

@@ -1,4 +1,4 @@
-# TaXonTableTools
+# TaxonTableTools
 
 ## Background
 
@@ -12,7 +12,7 @@ TaxonTableTools (TTT) aims to provide easy-to-use tools for biologists and non-b
 
 ## Installation
 
-TaXonTableTools requires Python version 3.6 and 3.7 and can be easily installed using pip.
+TaxonTableTools requires Python version 3.6 and 3.7 and can be easily installed using pip.
 
 First, make sure you run the correct pip version via:
 
@@ -20,11 +20,11 @@ First, make sure you run the correct pip version via:
 
 Which should return python3.6 or 3.7. Otherwise specify your pip using `pip3.6` or `pip3.7`
 
-Then install TaXonTableTools via pip:
+Then install TaxonTableTools via pip:
 
 `pip3 install taxontabletools`
 
-TaXonTableTools can then be started via:  
+TaxonTableTools can then be started via:  
 
 `python3 -m taxontabletools`
 
@@ -48,6 +48,6 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 
 * Create a new project by typing the desired name or leave blank to create a "Default_project". Click on "Create new" to proceed.
 
-* Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaXonTableTools_manual.pdf) for definitions and requirements).
+* Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaxonTableTools_manual.pdf) for definitions and requirements).
 
-* Check out the [tutorial](_data/TaXonTableTools_tutorial.pdf) to get a more detailed impression of the TTT workflow.
+* Check out the [tutorial](_data/TaxonTableTools_tutorial.pdf) to get a more detailed impression of the TTT workflow.
