@@ -186,3 +186,6 @@ def basic_stats(TaXon_table_xlsx, bstats_h, bstats_w, bstats_f, path_to_outdirs)
         if event is None or event == 'Close':
             window_basic_stats.close()
             break
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("basic stats", "analysis", TaXon_table_xlsx.name, basic_stats_xlsx.name, "nan", path_to_outdirs)

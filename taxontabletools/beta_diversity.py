@@ -80,6 +80,10 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_font, beta_cmap, meta_
             plt.close()
             print("\n" + "Beta diversity estimate plots are found in", path_to_outdirs, "/Beta_diversity/")
             sg.Popup("Beta diversity estimate are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
+
         else:
             plt.close()
 

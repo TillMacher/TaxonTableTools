@@ -56,5 +56,9 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
         closing_text = "\n" + "Taxonomic richness plots are found in: " + str(path_to_outdirs) + "/taxonomic_richness_plots/"
         print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("taxonomic richness", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
+
     else:
         plt.close()

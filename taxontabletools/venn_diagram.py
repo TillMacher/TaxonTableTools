@@ -119,6 +119,10 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
         df.to_excel(output_xlsx, index=False)
 
+        from taxontabletools.create_log import ttt_log
+        ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+        ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+
     else:
     ############################################################################
     # use venn3
@@ -257,6 +261,11 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
         output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
         df.to_excel(output_xlsx, index=False)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+        ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+        ttt_log("venn diagram", "analysis", file_c.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
 
     ############################################################################
     # finish script

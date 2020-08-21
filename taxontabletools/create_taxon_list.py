@@ -13,7 +13,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, language, v
 
     # load the TaXon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
     TaXon_table_df = TaXon_table_df.fillna("nan")
     samples = TaXon_table_df.columns.tolist()[10:]
@@ -318,3 +317,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, language, v
     closing_text = "Taxon list is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("taxon list", "analysis", TaXon_table_xlsx.name, output_xlsx.name, "nan", path_to_outdirs)

@@ -110,6 +110,10 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, pcoa_w, pcoa_h, pcoa_s, p
                         closing_text = "\n" + "PCoA plots are found in: " + str(path_to_outdirs) + "/PCoA_plots/"
                         print(closing_text)
                         sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+                        from taxontabletools.create_log import ttt_log
+                        ttt_log("pcoa analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
+
                         break
                     else:
                         plt.close()

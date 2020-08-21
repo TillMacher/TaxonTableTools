@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="taxontabletools", # Replace with your own username
-    version="1.0.11",
+    version="1.0.12",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",
     description="taxontabletools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data",
@@ -22,7 +22,8 @@ setuptools.setup(
                         'openpyxl>=3.0.3',
                         'xlsxwriter>=1.2.7',
                         'biopython>=1.77',
-                        'scikit-bio>=0.5.6'],
+                        'scikit-bio>=0.5.6',
+                        'networkx>=2.4'],
     include_package_data = True,
     classifiers=[
         "Programming Language :: Python :: 3",

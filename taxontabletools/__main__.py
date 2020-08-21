@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.0.11"
+taxon_tools_version = "Version 1.0.12"
 
 ##########################################################################################################################
 # general functions
@@ -456,6 +456,7 @@ def main():
                 sg.Tab('WFD', create_perlodes_input_layout)]])],
     			[sg.Text('',size=(1,1))],
     			[sg.Exit(button_color=('black', 'red')), sg.Text("", size=(57,1)),
+                sg.Button("Log file network", button_color=('black', 'white'), key='run_log_network'), sg.Text("", size=(4,1)),
                 sg.Button(image_filename=github, image_size=(26,26), key='open_github', button_color=('black', 'white')),
                 sg.Button(key='open_twitter', button_color=('white', 'white'), image_filename=twitter, image_size=(26,26)),
                 sg.Text('', size=(1,1)), sg.Text(taxon_tools_version, font=('Arial', 8))]]
@@ -1185,6 +1186,10 @@ def main():
                                             win2_active = False
                                             window.UnHide()
                                             break
+
+            if event == 'run_log_network':
+                from taxontabletools.create_log import ttt_log_network
+                ttt_log_network(path_to_outdirs)
 
             if event == 'open_fgbewertung':
                 print("Open: https://www.gewaesser-bewertung-berechnung.de")

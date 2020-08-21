@@ -158,6 +158,10 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     print(closing_text)
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+                    from taxontabletools.create_log import ttt_log
+                    placeholder = TaXon_table_xlsx.name + " (multiple site occupancy plots)"
+                    ttt_log("site occupancy", "analysis", TaXon_table_xlsx.name, placeholder, meta_data_to_test, path_to_outdirs)
+
             else:
                 sg.PopupError("Please check your Metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!", keep_on_top=True)
                 print("Please check your metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!")

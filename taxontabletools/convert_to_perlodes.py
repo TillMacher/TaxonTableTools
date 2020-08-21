@@ -115,3 +115,6 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
     closing_text = "Perlodes input file is found under:\n" + '/'.join(str(perlodes_xlsx).split("/")[-4:])
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("perlodes conversion", "processing", TaXon_table_xlsx.name, perlodes_xlsx.name, "nan", path_to_outdirs)

@@ -62,6 +62,10 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
             closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
             print(closing_text)
             sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_file.name, "plot a", path_to_outdirs)
+
         else:
             plt.close()
 
@@ -87,5 +91,9 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
             closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
             print(closing_text)
             sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_file.name, "plot b", path_to_outdirs)
+
         else:
             plt.close()

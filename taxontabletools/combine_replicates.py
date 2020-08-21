@@ -45,3 +45,6 @@ def combine_replicates(TaXon_table_xlsx, suffix_list, path_to_outdirs):
     closing_text = "Taxon table is found under:\n" + '/'.join(str(output_file).split("/")[-4:])
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("replicate merging", "processing", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)

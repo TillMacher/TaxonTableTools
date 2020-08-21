@@ -54,3 +54,6 @@ def create_krona_chart(TaXon_table_xlsx, path_to_outdirs):
 
     closing_text = "Krona chart is found under:\n" + '/'.join(str(krona_chart_html).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("krona chart", "analysis", TaXon_table_xlsx.name, krona_chart_html.name, "nan", path_to_outdirs)

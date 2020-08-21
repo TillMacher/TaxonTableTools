@@ -17,3 +17,6 @@ def convert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
     closing_text = "Presence absence tables is found in: " + str(path_to_outdirs) + "/TaXon_tables/"
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("presence absence conversion", "processing", TaXon_table_xlsx.name, output_file.name, "nan", path_to_outdirs)

@@ -51,3 +51,6 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
     closing_text = "Metadata table is found under:\n" + '/'.join(str(Meta_data_table_xlsx).split("/")[-4:])
     print("\n" + closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("meta data table", "analysis", TaXon_table_xlsx.name, Meta_data_table_xlsx.name, "nan", path_to_outdirs)

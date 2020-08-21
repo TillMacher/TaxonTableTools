@@ -148,6 +148,10 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, replicates, error_style, rarefactio
         closing_text = "\n" + "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
         print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("rarefaction curve OTUs", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
+
     else:
         plt.close()
 
@@ -297,5 +301,9 @@ def rarefaction_curve_species(TaXon_table_xlsx, replicates, error_style, rarefac
         closing_text = "\n" + "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
         print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("rarefaction curve species", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
+
     else:
         plt.close()

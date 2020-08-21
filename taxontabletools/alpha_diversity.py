@@ -85,6 +85,10 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, alpha_w, a
             plt.close()
             print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
             sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, Output_basic_alpha_plot_pdf.name, meta_data_to_test, path_to_outdirs)
+
         else:
             plt.close()
 
@@ -165,6 +169,10 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, alpha_w, alpha_
             plt.close()
             print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
             sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, Output_basic_alpha_plot_pdf.name, meta_data_to_test, path_to_outdirs)
+
         else:
             plt.close()
 

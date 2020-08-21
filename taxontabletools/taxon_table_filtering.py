@@ -87,6 +87,9 @@ def taxon_table_filter(TaXon_table_xlsx, exclude_taxa, mask, appendix_name, thre
         print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+        from taxontabletools.create_log import ttt_log
+        ttt_log("taxon filter", "processing", TaXon_table_file.name, output_name.name, "nan", path_to_outdirs)
+
 # 2.a create mask for user input
 def create_sample_mask(TaXon_table_xlsx):
 
@@ -143,3 +146,6 @@ def exclude_samples(TaXon_table_xlsx, exluded_samples, appendix_name, path_to_ou
     closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("sample filter", "processing", TaXon_table_file.name, output_name.name, "nan", path_to_outdirs)

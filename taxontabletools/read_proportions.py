@@ -154,5 +154,9 @@ def read_proportions(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, x_read_
         closing_text = "Read proportion plot is found under:\n" + '/'.join(str(scatter_pdf).split("/")[-4:])
         print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("read proportions", "analysis", TaXon_table_xlsx.name, scatter_pdf.name, no_hit_visualization, path_to_outdirs)
+
     else:
         plt.close()

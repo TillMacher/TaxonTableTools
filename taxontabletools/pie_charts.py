@@ -136,3 +136,7 @@ def pie_charts(TaXon_table_xlsx, path_to_outdirs, pc_label_font_size):
         progress_update += 167
         ############################################################################
     window_progress_bar.close()
+
+    from taxontabletools.create_log import ttt_log
+    placeholder = TaXon_table_file.name + " (multiple pie charts)"
+    ttt_log("pie charts", "analysis", TaXon_table_file.name, placeholder, "nan", path_to_outdirs)

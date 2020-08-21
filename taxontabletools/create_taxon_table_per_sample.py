@@ -64,3 +64,7 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
     closing_text = "\n" + "Taxon tables are found in: " + str(path_to_outdirs) + "/TaXon_tables_per_sample/"
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    placeholder = TaXon_table_file.name + " (multiple files)"
+    ttt_log("taXon table per sample", "analysis", TaXon_table_file.name, placeholder, "nan", path_to_outdirs)

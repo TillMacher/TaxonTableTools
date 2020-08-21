@@ -136,6 +136,10 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, cca_w, cca_h, cca_s, path_
                     closing_text = "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
                     print(closing_text)
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+                    from taxontabletools.create_log import ttt_log
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
+
                     break
                 else:
                     plt.close()

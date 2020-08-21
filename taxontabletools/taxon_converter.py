@@ -19,10 +19,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     # store the file name for later use
     file_name = taxonomy_results_xlsx.name
 
-    # load the taxonomy file as dataframe
-    taxonomy_results_xlsx = pd.ExcelFile(taxonomy_results_xlsx)
-    # load the Read table as dataframe
-    read_table_xlsx = pd.ExcelFile(read_table_xlsx)
     # create datafrmes for both files
     taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0).set_index('IDs')
     if sheet_name == "BOLDigger hit":
@@ -119,3 +115,7 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
     print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    input = taxonomy_results_xlsx.name + " + " + read_table_xlsx.name
+    ttt_log("taXon table converter", "processing", input, Output_file.name, "nan", path_to_outdirs)
