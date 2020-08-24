@@ -11,8 +11,7 @@ TaxonTableTools is an evolving software and there will be bugs and issues at few
 * Python version 3.6 or 3.7
 * Pip
 * OS independent (tested on Windows 10, Ubuntu 16 & 18 and MacOS Catalina)
-  * Installation failed on some Windows machines, but could be fixed by a second installation attempt
-  * In other cases some Windows machines required the installation of C++ Build Tools
+  * Some issues were reported during the [installation on Windows](https://github.com/TillMacher/TaxonTableTools/issues/1) 
 
 ## Installation
 
