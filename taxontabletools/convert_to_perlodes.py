@@ -27,7 +27,7 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
     samples_list = TaXon_table_df.columns.tolist()[10:]
 
     # store hits and dropped OTUs
-    hit_list, dropped_list = [], []
+    hit_list, dropped_list, transversion_list = [], [], []
 
     # loop through the taxon table
     for taxonomy in TaXon_table_df[TaXon_table_taxonomy].drop_duplicates().values.tolist():
@@ -35,20 +35,34 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
        # collect the OTU name, species, genus and family and convert to perlodes format
        OTU = taxonomy[0]
        Species = taxonomy[6]
+       Species_group = str(taxonomy[6]) + "-Gr."
        Genus = str(taxonomy[5]) + " sp."
        Family = str(taxonomy[4]) + " Gen. sp."
 
        # test if the OTU has a hit at: Species level, Genus level or Family level
        if Species in operational_taxon_list_dict.keys():
+           # add to hit list
            hit_list.append([OTU] + [str(operational_taxon_list_dict[Species])] + [Species])
+           # add to perlodes log file
+           transversion_list.append(taxonomy + [str(operational_taxon_list_dict[Species])] + [Species])
+
+       elif Species_group in operational_taxon_list_dict.keys():
+           hit_list.append([OTU] + [str(operational_taxon_list_dict[Species_group])] + [Species_group])
+           transversion_list.append(taxonomy + [str(operational_taxon_list_dict[Species_group])] + [Species_group])
+
        elif Genus in operational_taxon_list_dict.keys():
            hit_list.append([OTU] + [str(operational_taxon_list_dict[Genus])] + [Genus])
+           transversion_list.append(taxonomy + [str(operational_taxon_list_dict[Genus])] + [Genus])
+
        elif Family in operational_taxon_list_dict.keys():
            hit_list.append([OTU] + [str(operational_taxon_list_dict[Family])] + [Family])
+           transversion_list.append(taxonomy + [str(operational_taxon_list_dict[Family])] + [Family])
+
        # otherwise store the hit with an "nan"
        else:
            hit_list.append([OTU] + ["nan"])
            dropped_list.append(OTU)
+           transversion_list.append(taxonomy + ["", ""])
 
     # create an output list for perlodes
     # make read abundaces binary
@@ -107,14 +121,19 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
     # write the filtered list to a dataframe
     perlodes_df = pd.DataFrame(perlodes_filtered_list)
     perlodes_df.columns = ["ID_ART", "TAXON_NAME"] + samples_list
-
     perlodes_directory = Path(str(path_to_outdirs) + "/" + "Perlodes" + "/" + TaXon_table_xlsx.stem)
     perlodes_xlsx = Path(str(perlodes_directory) + "_perlodes.xlsx")
     perlodes_df.to_excel(perlodes_xlsx, sheet_name='ImportList', index=False)
 
+    # write the log file file to a different dataframe
+    transversion_df = pd.DataFrame(transversion_list)
+    transversion_df.columns = ["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species", "ID_ART", "TAXON_NAME"]
+    transversion_xlsx = Path(str(perlodes_directory) + "_perlodes_conversion_table.xlsx")
+    transversion_df.to_excel(transversion_xlsx, index=False)
+
     closing_text = "Perlodes input file is found under:\n" + '/'.join(str(perlodes_xlsx).split("/")[-4:])
     print(closing_text)
-    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+    sg.Popup(closing_text + "\n\nWarning: Please check the converted table for errors and compare the conversion results in the conversion table.\n\nThe conversion is still in beta and might contain errors!", title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log
     ttt_log("perlodes conversion", "processing", TaXon_table_xlsx.name, perlodes_xlsx.name, "nan", path_to_outdirs)
