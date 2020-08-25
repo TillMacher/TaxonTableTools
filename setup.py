@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="taxontabletools", # Replace with your own username
-    version="1.0.12",
+    version="1.0.13",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",
-    description="taxontabletools: A comprehensive and user-friendly program to analyse and visualise DNA metabarcoding data",
+    description="TaxonTableTools - A comprehensive, platform-independent graphical user interface software to explore and visualise DNA metabarcoding data",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pypa/taxontabletools",
