@@ -54,3 +54,12 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 * Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaxonTableTools_manual.pdf) for definitions and requirements). A template TaXon table is available [here](_data/template_taxon_table.xlsx).
 
 * Check out the [tutorial](_data/TaxonTableTools_tutorial.pdf) to get a more detailed impression of the TTT workflow.
+
+## How to cite
+
+If you use TTT (preprint as of now):
+* Macher, T.-H., Beermann, A. J., & Leese, F. (2020). TaxonTableTools - A comprehensive, platform-independent graphical user interface software to explore and visualise DNA metabarcoding data. BioRxiv, 2020.08.24.264317. doi: 10.1101/2020.08.24.264317
+
+If you create Krona charts, please also cite:
+* Ondov, B. D., Bergman, N. H., & Phillippy, A. M. (2011). Interactive metagenomic visualization in a Web browser. BMC Bioinformatics, 12(1), 385. doi: 10.1186/1471-2105-12-385
+
