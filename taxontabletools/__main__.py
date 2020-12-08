@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.1.0"
+taxon_tools_version = "Version 1.1.1"
 
 ##########################################################################################################################
 # general functions
@@ -284,9 +284,9 @@ def main():
             os.mkdir(Path(dirName))
 
     available_templates_list = ['seaborn', 'ggplot2', 'simple_white', 'plotly', 'plotly_dark', 'presentation', 'plotly_white']
-    available_templates_radio = list(slices([sg.Radio(name, "template_radio", key=name, default=True, size=(13,1)) for name in available_templates_list], 7))
+    available_templates_radio = list(slices([sg.Radio(name, "template_radio", key=name, default=True) for name in available_templates_list], 7))
     available_color1_list = ["Dark", "Light", "Green", "Python", "Teal", "Blue"]
-    available_color1_radio = list(slices([sg.Radio(name, "theme_radio", key=name, default=True, size=(13,1)) for name in available_color1_list], 6))
+    available_color1_radio = list(slices([sg.Radio(name, "theme_radio", key=name, default=True) for name in available_color1_list], 6))
 
     plotly_colors = ["aliceblue", "antiquewhite", "aqua", "aquamarine", "azure",
     "beige", "bisque", "black", "blanchedalmond", "blue",
@@ -579,7 +579,7 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text("Create Perlodes input file: "), sg.Button("Run", key = 'run_create_perlodes_input_file')],
     					[sg.Text('',size=(1,2))],
-    					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=fließgewaesserbewertungde, image_size=(687,157))],
+    					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=fließgewaesserbewertungde)],
                         ]
 
     layout = [  [sg.Image(ttt_logo), sg.Text("", size=(9,1)), sg.Text('Project:', font=('Arial', 12, "bold")), sg.Text(project_folder, font=('Arial', 12, "bold"))],
