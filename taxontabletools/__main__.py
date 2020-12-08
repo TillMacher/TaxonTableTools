@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.1.1"
+taxon_tools_version = "Version 1.1.2"
 
 ##########################################################################################################################
 # general functions
@@ -149,9 +149,6 @@ def read_proportions_help_text():
         -> Removing of not required samples
         -> Removing of for the study irrelevant taxa groups
         -> Keep only species level hits (see Tutorial how to do that)
-
-    Follow Ockham's razor principle as a guideline:
-    -- The simplest explanation is usually the right one! --
 
     """
     return read_proportions_help_text

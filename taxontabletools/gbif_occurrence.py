@@ -376,7 +376,7 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
         for taxon in taxa:
             n_occurrences.append(len([value for value in occurrence_df_filtered_relative[taxon].values.tolist() if value != 0]))
 
-        fig.add_trace(go.Scatter(x=taxa, y=[105]*len(taxa), text=n_occurrences, name="countries", mode="text"))
+        fig.add_trace(go.Scatter(x=list(taxa), y=[105]*len(taxa), text=n_occurrences, name="countries", mode="text"))
 
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
@@ -472,7 +472,7 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
                 fig.write_image(str(output_pdf))
                 fig.write_html(str(output_html))
 
-                closing_text = "Occurrence plots are found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
+                closing_text = "Occurrence plots and tables are found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
                 sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
                 win2.Close()
