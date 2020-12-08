@@ -1,11 +1,15 @@
-def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, font_site_occ):
+def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme):
 
     import os
     import pandas as pd
     from pandas import DataFrame
     from pathlib import Path
-    import matplotlib.pyplot as plt
+    import plotly.graph_objects as go
     import PySimpleGUI as sg
+
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header = 0)
@@ -82,85 +86,53 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     # count the number of occurences for each species and calculate the occpancy based on the number of samples
                     for species in overall_included_species_set:
                         count = present_OTU_list_flattened.count(species)
-                        occupancy = count / n_samples
+                        occupancy = count / n_samples * 100
                         occupancy_dict[species] = occupancy
 
                     occupancy_dict = {k: v for k, v in sorted(occupancy_dict.items(), key=lambda item: item[1])}
                     occupancy_list = list(occupancy_dict.values())
                     species_list = list(occupancy_dict.keys())
 
-                    # create a simple bar plot for each site
-                    plt.figure(figsize=(int(x_site_occ), int(y_site_occ)))
-                    plt.bar(species_list, occupancy_list)
-                    plt.title(site + " (" + taxonomic_level + ")")
-                    plt.xticks(fontsize=font_site_occ, rotation=90)
-                    plt.yticks(fontsize=font_site_occ)
-                    plt.ylabel("occupancy", fontsize=font_site_occ)
-                    plt.ylim(0,1)
-
                     occupancy_plot_directory = Path(str(path_to_outdirs) + "/" + "Site_occupancy_plots" + "/" + TaXon_table_xlsx.stem)
                     if not os.path.exists(occupancy_plot_directory):
                         os.mkdir(occupancy_plot_directory)
 
+                    fig = go.Figure(data=[go.Bar(x=species_list, y=occupancy_list)])
+                    fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=0.6, opacity=opacity_value)
+                    fig.update_layout(title_text=site + " (" + taxonomic_level + ")", yaxis_title="occupancy (%)")
+                    fig.update_layout(height=int(y_site_occ), width=int(x_site_occ), template=template)
+                    fig.update_yaxes(range=[0,100])
+
                     occupancy_plot_pdf = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".pdf")
+                    occupancy_plot_html = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".html")
                     occupancy_table = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".xlsx")
+                    fig.write_image(str(occupancy_plot_pdf))
+                    fig.write_html(str(occupancy_plot_html))
+                    occupancy_df = pd.DataFrame(occupancy_list, species_list)
+                    occupancy_df.columns = ["Occupancy"]
+                    occupancy_df.index.name = "Taxon"
+                    occupancy_df = occupancy_df.sort_values("Occupancy")
+                    # sort the table numerical if OTUs were chosen
+                    if taxonomic_level == "IDs":
+                        sort_list = []
+                        for OTU in occupancy_df.index.tolist():
+                            sort_list.append(int(OTU.split("_")[1]))
+                        occupancy_df["sort"] = sort_list
+                        occupancy_df = occupancy_df.sort_values("sort")
+                        occupancy_df = occupancy_df.drop("sort", axis=1)
+                    occupancy_df.to_excel(occupancy_table)
 
-                    if answer == "Ask":
-                        # show the first plot
-                        plt.show(block=False)
-                        # ask for answer
-                        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
-                        # if answer is yes, save all upcoming plots
-                        if answer == "Yes":
-                            output_message = "Yes"
-                            occupancy_df = pd.DataFrame(occupancy_list, species_list)
-                            occupancy_df.columns = ["Occupancy"]
-                            occupancy_df.index.name = "Taxon"
-                            occupancy_df = occupancy_df.sort_values("Occupancy")
-                            # sort the table numerical if OTUs were chosen
-                            if taxonomic_level == "IDs":
-                                sort_list = []
-                                for OTU in occupancy_df.index.tolist():
-                                    sort_list.append(int(OTU.split("_")[1]))
-                                occupancy_df["sort"] = sort_list
-                                occupancy_df = occupancy_df.sort_values("sort")
-                                occupancy_df = occupancy_df.drop("sort", axis=1)
-                            occupancy_df.to_excel(occupancy_table)
-                            # save the plot
-                            plt.savefig(occupancy_plot_pdf)
-                            plt.close()
-                        else:
-                            # answer is "No"
-                            plt.close()
-                    elif answer == "Yes":
-                        # write the other sites
-                            occupancy_df = pd.DataFrame(occupancy_list, species_list)
-                            occupancy_df.columns = ["Occupancy"]
-                            occupancy_df.index.name = "Taxon"
-                            occupancy_df = occupancy_df.sort_values("Occupancy")
-                            # sort the table numerical if OTUs were chosen
-                            if taxonomic_level == "IDs":
-                                sort_list = []
-                                for OTU in occupancy_df.index.tolist():
-                                    sort_list.append(int(OTU.split("_")[1]))
-                                occupancy_df["sort"] = sort_list
-                                occupancy_df = occupancy_df.sort_values("sort")
-                                occupancy_df = occupancy_df.drop("sort", axis=1)
-                            occupancy_df.to_excel(occupancy_table)
-                            # save the plot
-                            plt.savefig(occupancy_plot_pdf)
-                            plt.close()
-                    else:
-                            plt.close()
+                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                if answer == "Yes":
+                    fig.show()
 
-                if output_message == "Yes":
-                    closing_text = "Site occupancy plots are found under:\n" + '/'.join(str(occupancy_plot_pdf).split("/")[-4:])
-                    print(closing_text)
-                    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+                closing_text = "Site occupancy plots are found under:\n" + '/'.join(str(occupancy_plot_pdf).split("/")[-4:])
+                print(closing_text)
+                sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-                    from taxontabletools.create_log import ttt_log
-                    placeholder = TaXon_table_xlsx.name + " (multiple site occupancy plots)"
-                    ttt_log("site occupancy", "analysis", TaXon_table_xlsx.name, placeholder, meta_data_to_test, path_to_outdirs)
+                from taxontabletools.create_log import ttt_log
+                placeholder = TaXon_table_xlsx.name + " (multiple site occupancy plots)"
+                ttt_log("site occupancy", "analysis", TaXon_table_xlsx.name, placeholder, meta_data_to_test, path_to_outdirs)
 
             else:
                 sg.PopupError("Please check your Metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!", keep_on_top=True)
@@ -171,6 +143,7 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
             print("Missing metadata file!")
 
     except:
+        raise
         exception_text = "Something went wrong!" + "\n" + "Do not use numbers as metadata keys." + "\n" + "Please check your metadata file and read the manual."
         sg.PopupError(exception_text, title="Error", keep_on_top=True)
         print(exception_text)

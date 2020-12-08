@@ -1,4 +1,4 @@
-def basic_stats(TaXon_table_xlsx, bstats_h, bstats_w, bstats_f, path_to_outdirs):
+def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme):
 
     import csv, glob, sys, os
     import PySimpleGUI as sg
@@ -6,11 +6,16 @@ def basic_stats(TaXon_table_xlsx, bstats_h, bstats_w, bstats_f, path_to_outdirs)
     from pandas import DataFrame
     import numpy as np
     from pathlib import Path
-    import matplotlib.pyplot as plt
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
     TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
 
     # number of samples
     n_samples = len(TaXon_table_df.columns[10:].tolist())
@@ -106,38 +111,33 @@ def basic_stats(TaXon_table_xlsx, bstats_h, bstats_w, bstats_f, path_to_outdirs)
     species =  [i[3] for i in reads_dict.values()]
     max_otus = max(otus) + 20
 
-    bstats_w, bstats_h, bstats_f = int(bstats_w), int(bstats_h), int(bstats_f)
+    width, heigth = int(width), int(heigth)
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(bstats_w, bstats_h))
-    ax1.bar(samples, reads)
-    ax1.grid(color="grey", alpha=0.1)
-    ax1.set_title('Reads', fontsize=bstats_f+2)
-    ax1.tick_params(axis='y', which='major', labelsize=bstats_f)
-    ax2.bar(samples, otus)
-    ax2.grid(color="grey", alpha=0.1)
-    ax2.set_title('OTUs', fontsize=bstats_f+2)
-    ax2.tick_params(axis='y', which='major', labelsize=bstats_f)
-    ax2.set_ylim(0, max_otus)
-    ax3.bar(samples, species)
-    ax3.grid(color="grey", alpha=0.1)
-    ax3.set_title('OTUs on species level', fontsize=bstats_f+2)
-    ax3.tick_params(axis='y', which='major', labelsize=bstats_f)
-    ax3.set_ylim(0, max_otus)
-    plt.xticks(fontsize=5, rotation=90)
+    # create subplots
+    fig = make_subplots(rows=3, cols=1, subplot_titles=("Reads", "OTUs", "OTUs on species level"), vertical_spacing=0.05, shared_xaxes=True)
+    # reads
+    fig.add_trace(go.Bar(name="reads", x=samples, y=reads),row=1, col=1)
+    fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=1, col=1)
+    fig.update_yaxes(title_text="# reads", row=1, col=1)
+    # OTUs
+    fig.add_trace(go.Bar(name="OTUs", x=samples, y=otus),row=2, col=1)
+    fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=2, col=1)
+    fig.update_yaxes(range=[0, max_otus], title_text="# OTUs", row=2, col=1)
+    # OTUs on species level
+    fig.add_trace(go.Bar(name="OTUs on species level", x=samples, y=species),row=3, col=1)
+    fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=3, col=1)
+    fig.update_yaxes(range=[0, max_otus], title_text="# OTUs", row=3, col=1)
+    # update the layout
+    fig.update_layout(height=heigth, width=width, template=template, showlegend=False)
 
-    plt.show(block=False)
-    answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        basic_stats_directory = Path(str(path_to_outdirs) + "/" + "Basic_stats" + "/" + TaXon_table_xlsx.stem)
-        basic_stats_plot = Path(str(basic_stats_directory) + "_basic_stats.pdf")
-        fig.savefig(basic_stats_plot)
-        plt.close()
-        closing_text = "Basis stats plots are found in: " + str(path_to_outdirs) + "/Basic_stats/"
-        print(closing_text)
-        sg.Popup(closing_text, title="Finished", keep_on_top=True)
-    else:
-        plt.close()
-
+        fig.show()
+    basic_stats_directory = Path(str(path_to_outdirs) + "/" + "Basic_stats" + "/" + TaXon_table_xlsx.stem)
+    output_pdf = Path(str(basic_stats_directory) + "_basic_stats.pdf")
+    output_html = Path(str(basic_stats_directory) + "_basic_stats.html")
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
 
     #####################################################################################
     output_list_1 = []

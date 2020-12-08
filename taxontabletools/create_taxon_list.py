@@ -1,4 +1,4 @@
-def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, language, values, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs):
+def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs):
 
     import requests_html, json
     import re
@@ -22,57 +22,7 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, language, v
     # create the output files
     if taxon_list_output_file_name == '':
         taxon_list_output_file_name = "my_taxon_list"
-    output_txt = Path(str(path_to_outdirs) + "/" + "Taxon_lists" + "/" + taxon_list_output_file_name + ".txt")
     output_xlsx = Path(str(path_to_outdirs) + "/" + "Taxon_lists" + "/" + taxon_list_output_file_name + ".xlsx")
-
-    # write the text file
-    # open document
-    document = open(output_txt, "w")
-    # add explanation to beginning of the file
-    if language == "German":
-
-        # if german: add explanation to taxon list
-        document.write('Taxonliste ' + "(" + str(date.today()) + ")" + "\n")
-        document.write('\n')
-        document.write('Datenblatt:' + "\n")
-        document.write('Beschreibung:: ' + values["TL_description"] + "\n")
-        document.write('Author(en): ' + values["TL_authors"] + "\n")
-        document.write('Laborprotokoll: ' + values["TL_lab_protocol"] + "\n")
-        document.write('Anz. Replikate: ' + values["TL_replicates"] + "\n")
-        document.write('Anz. Negativ-Kontrollen: ' + values["TL_negative_controls"] + "\n")
-        document.write('Primer: ' + values["TL_primers"] + "\n")
-        document.write('Sequenzierlauf: ' + values["TL_sequencing_run"] + "\n")
-        document.write('Bionf. Pipeline: ' + values["TL_pipeline"] + "\n")
-        document.write('Taxon Table Tools: ' + taxon_tools_version + "\n")
-
-        document.write('\n')
-        document.write('Taxonliste: ')
-        document.write('Folgende Taxonliste enthält die durch DNA-Metabarcoding ermittelten Taxa. Der GBIF Link befindet sich in der letzen Spalte.' + "\n")
-        document.write('\n')
-        document.write('Excel-Tabelle: ' + str(output_xlsx) + "\n")
-
-    if language == "English":
-
-        document.write('Taxon list ' + "(" + str(date.today()) + ")" + "\n")
-        document.write('\n')
-        document.write('Data sheet:' + "\n")
-        document.write('Description: ' + values["TL_description"] + "\n")
-        document.write('Author(s): ' + values["TL_authors"] + "\n")
-        document.write('Lab protocol: ' + values["TL_lab_protocol"] + "\n")
-        document.write('No. of replicates: ' + values["TL_replicates"] + "\n")
-        document.write('No. of negative controls: ' + values["TL_negative_controls"] + "\n")
-        document.write('Primers: ' + values["TL_primers"] + "\n")
-        document.write('Sequencing run: ' + values["TL_sequencing_run"] + "\n")
-        document.write('Bionf. pipeline: ' + values["TL_pipeline"] + "\n")
-        document.write('Taxon Table Tools: ' + taxon_tools_version + "\n")
-        document.write('\n')
-        document.write('Taxon list: ')
-        document.write('The following taxon list contains the via DNA metabarcoding identified taxa. The GBIF link is given in the last column.' + "\n")
-        document.write('\n')
-        document.write('Excel-Sheet: ' + str(output_xlsx))
-
-##############################################################################
-    # write the taxa list
 
     ############################################################################
     ## create the progress bar window
@@ -312,11 +262,9 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, language, v
     df_out  = pd.DataFrame(df_out_list, columns=TaXon_table_df.columns.tolist()[1:7] + ["reads", "reads (%)", "OTUs", "occupancy (%)", "gbif", "dist max (%)", "dist min (%)", "dist avg (%)"])
     df_out = df_out[TaXon_table_df.columns.tolist()[1:7] + ["reads", "reads (%)", "OTUs", "occupancy (%)", "dist max (%)", "dist min (%)", "dist avg (%)", "gbif"]]
     df_out.to_excel(output_xlsx, sheet_name = 'Taxa', index=False)
-    document.close()
 
     closing_text = "Taxon list is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log
-    ttt_log("taxon list", "analysis", TaXon_table_xlsx.name, output_xlsx.name, "nan", path_to_outdirs)
+    ttt_log("taxon list", "analysis", TaXon_table_xlsx.name, output_xlsx.name, "", path_to_outdirs)

@@ -1,11 +1,26 @@
-def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, cca_w, cca_h, cca_s, path_to_outdirs):
+def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter_size, draw_mesh, path_to_outdirs, template):
+
+
+    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table_cons_derep_arthropods_no_NC_pa.xlsx"
+    # meta_data_to_test = "NUM"
+    # width = "800"
+    # height = "800"
+    # cca_scatter_size = "10"
+    # draw_mesh = True
+    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
+    # template = "seaborn"
 
     import pandas as pd
-    from skbio.stats.ordination import cca
     import numpy as np
-    import matplotlib.pyplot as plt
+    from skbio.diversity import beta_diversity
+    from skbio.stats.ordination import cca
+    from skbio.stats.distance import anosim
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import plotly.express as px
     from pathlib import Path
     import PySimpleGUI as sg
+    import os
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -53,13 +68,18 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, cca_w, cca_h, cca_s, path_
         if empty_sample_test == {0}:
             empty_samples_list.append(sample)
     if empty_samples_list != []:
-        print("Please remove empty samples first!")
         sg.Popup("Please remove empty samples first!", title=("Error"))
         raise RuntimeError
 
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
+        ## create title
+        textbox = meta_data_to_test
+
+        ## create metadata list
+        metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
+
         # transpose the pa table
         df_features = TaXon_table_df[TaXon_table_samples].transpose()
         df_features.index = Meta_data_table_samples
@@ -73,85 +93,272 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, cca_w, cca_h, cca_s, path_
         df_constrains.index = Meta_data_table_samples
         df_constrains = df_constrains.rename_axis("a")
 
-    ordination_result = cca(df_features, df_constrains)
-    ordination_result.sample_constraints
+        ordination_result = cca(df_features, df_constrains)
+        ordination_result.sample_constraints
 
-    #######################################################################################
-    # create window to ask for CCA axis to test
-    def slices(list, slice):
-        for i in range(0, len(list), slice):
-            yield list[i : i + slice]
+        #######################################################################################
+        # create window to ask for CCA axis to test
+        def slices(list, slice):
+            for i in range(0, len(list), slice):
+                yield list[i : i + slice]
 
-    # collect the cca proportion explained values
-    proportion_explained_list = []
-    for i, cca_axis in enumerate(ordination_result.proportion_explained):
-        proportion_explained_list.append("CCA" + str(i+1) + " (" + str(round(cca_axis* 100, 2)) + " %)")
+        # collect the cca proportion explained values
+        proportion_explained_list = []
+        for i, cca_axis in enumerate(ordination_result.proportion_explained):
+            proportion_explained_list.append("CCA" + str(i+1) + " (" + str(round(cca_axis* 100, 2)) + " %)")
 
-    cca_axis_checkboxes = list(slices([sg.Checkbox(name, key=name, size=(15,1)) for name in proportion_explained_list], 4))
+        cca_axis_checkboxes = list(slices([sg.Checkbox(name, key=name, size=(15,1)) for name in proportion_explained_list], 4))
 
-    cca_window_layout = [
-                [sg.Text('Check two axis to be displayed')],
-                [sg.Frame(layout = cca_axis_checkboxes, title = '')],
-                [sg.Button('Plot', key='Plot'), sg.Checkbox("Invert axes", key="inverted_axis")],
-                [sg.Button('Back')],
-                ]
+        cca_window_layout = [
+                        [sg.Text('Check two axis to be displayed')],
+                        [sg.Frame(layout = cca_axis_checkboxes, title = '')],
+                        [sg.Text('Only axes >= 1 % explained variance are shown')],
+                        [sg.Text('')],
+                        [sg.Button('Plot', key='Plot'), sg.Text(''), sg.Button('Plot matrix')],
+                        [sg.Button('Back')],
+                        ]
 
-    cca_window = sg.Window('CCA axis', cca_window_layout, keep_on_top=True)
+        cca_window = sg.Window('CCA axis', cca_window_layout, keep_on_top=True)
 
-    while True:
-        event, values = cca_window.read()
+        while True:
+            event, values = cca_window.read()
 
-        if event == 'Plot':
-            # collect the cca axis values
-            axis_to_plot = [key for key,value in values.items() if value == True and "CCA" in key]
-            # pass on only if two cca axes were checked
-            if len(axis_to_plot) != 2:
-                sg.Popup("Please choose exactly two CCA axes", title="Error", keep_on_top=True)
-            else:
-                if values["inverted_axis"] == True:
+            if event is None or event == 'Back':
+                break
+
+            if event == 'Plot':
+
+                ## create a subfolder for better sorting and overview
+                dirName = Path(str(path_to_outdirs) + "/" + "CCA_plots" + "/" + TaXon_table_xlsx.stem + "/")
+                if not os.path.exists(dirName):
+                    os.mkdir(dirName)
+
+                # collect the CCA axis values
+                axis_to_plot = [key for key,value in values.items() if value == True and "CCA" in key]
+                # pass on only if two CCA axes were checked
+                if len(axis_to_plot) == 2:
+                    cat1 = axis_to_plot[1].split()[0]
                     cat2 = axis_to_plot[0].split()[0]
-                    cat1 =  axis_to_plot[1].split()[0]
-                else:
-                    cat1 = axis_to_plot[0].split()[0]
-                    cat2 =  axis_to_plot[1].split()[0]
 
-                df_cca = ordination_result.samples[[cat1, cat2]]
-                df_cca.insert(2, "label", df_constrains[meta_data_to_test].values.tolist(), True)
-                plt.figure(figsize=(int(cca_w), int(cca_h)))
-                plt.grid(color='gray', alpha=0.1)
-                groups = df_cca.groupby("label")
-                for name, group in groups:
-                    plt.plot(group[cat1], group[cat2], marker="o", linestyle="", label=name, ms=cca_s)
-                plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-                plt.xlabel(cat1 + " (" + str(round(ordination_result.proportion_explained[cat1]* 100, 2)) + " %)")
-                plt.ylabel(cat2 + " (" + str(round(ordination_result.proportion_explained[cat2]* 100, 2)) + " %)")
-                plt.title(meta_data_to_test)
+                    df_cca = ordination_result.samples[[cat1, cat2]]
+                    df_cca.insert(2, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
+                    df_cca.insert(3, "Metadata", [str(value) for value in Meta_data_table_df[meta_data_to_test].values.tolist()], True)
 
-                plt.show(block=False)
-                answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
-                if answer == "Yes":
-                    plt.savefig(output_pdf)
-                    plt.close()
+                    fig = px.scatter(df_cca, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox)
+                    fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
+                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                    fig.update_xaxes(title=axis_to_plot[1])
+                    fig.update_yaxes(title=axis_to_plot[0])
+
+                    # finish script
+                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        fig.show()
+
+                    ## define output files
+                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + ".pdf")
+                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + ".html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + ".xlsx")
+
+                    fig.write_image(str(bar_pdf))
+                    fig.write_html(str(bar_html))
                     ordination_result.samples[[cat1, cat2]].to_excel(output_xlsx)
-                    closing_text = "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
-                    print(closing_text)
+                    closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
-
                     from taxontabletools.create_log import ttt_log
-                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+                    break
 
+
+                elif len(axis_to_plot) == 3:
+                    cat1 = axis_to_plot[0].split()[0]
+                    cat2 = axis_to_plot[1].split()[0]
+                    cat3 = axis_to_plot[2].split()[0]
+
+                    df_cca = ordination_result.samples[[cat1, cat2, cat3]]
+                    df_cca.insert(3, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
+                    df_cca.insert(4, "Metadata", [str(value) for value in Meta_data_table_df[meta_data_to_test].values.tolist()], True)
+
+                    from itertools import combinations
+
+                    ## check if lines are to be drawn between the dots
+                    if draw_mesh == True:
+                        combinations_list =[]
+                        for metadata in df_cca["Metadata"]:
+                            ## collect all entries for the respective metadata
+                            arr = df_cca.loc[df_cca['Metadata'] == str(metadata)][[cat1, cat2, cat3, "Metadata", "Samples"]].to_numpy()
+                            ## create a df for all possible combinations using itertools combinations
+                            for entry in list(combinations(arr, 2)):
+                                combinations_list.append(list(entry[0]))
+                                combinations_list.append(list(entry[1]))
+                        ## create a dataframe to draw the plot from
+                        df = pd.DataFrame(combinations_list)
+                        df.columns = [cat1, cat2, cat3, "Metadata", "Samples"]
+                        ## draw the plot
+                        fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox)
+                        fig.update_traces(marker_size=int(cca_scatter_size), mode="markers+lines", line=dict(width=0.5))
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
+                    else:
+                        fig = px.scatter_3d(df_cca, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
+                        fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
+
+                    # finish script
+                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        fig.show()
+
+                    ## define output files
+                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_3d.pdf")
+                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + "_3d.html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_3d.xlsx")
+
+                    fig.write_image(str(bar_pdf))
+                    fig.write_html(str(bar_html))
+                    ordination_result.samples[[cat1, cat2]].to_excel(output_xlsx)
+                    closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
+                    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+                    from taxontabletools.create_log import ttt_log
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+                    break
+
+                else:
+                    sg.Popup("Please choose not more than 3 CCA axes", title="Error", keep_on_top=True)
+
+            if event == 'Plot matrix':
+                if len(proportion_explained_list) >= 4:
+
+                    ## create a subfolder for better sorting and overview
+                    dirName = Path(str(path_to_outdirs) + "/" + "CCA_plots" + "/" + TaXon_table_xlsx.stem + "/")
+                    if not os.path.exists(dirName):
+                        os.mkdir(dirName)
+
+                    df_cca = ordination_result.samples[["CCA1", "CCA2", "CCA3", "CCA4"]]
+                    df_cca.insert(4, "Sample", Meta_data_table_df["Samples"].values.tolist(), True)
+                    df_cca.insert(5, "Metadata", [str(value) for value in Meta_data_table_df[meta_data_to_test].values.tolist()], True)
+
+                    fig = make_subplots(rows=4, cols=4)
+                    ########### 1 ###########
+                    fig.add_trace(go.Scatter(),row=1, col=1)
+                    fig.update_layout(template=template)
+                    text = "CCA1 (" + str(round(ordination_result.proportion_explained["CCA1"]* 100, 2)) + " %)"
+                    fig.add_annotation(text=text, showarrow=False)
+                    fig.update_xaxes(showticklabels=False, showgrid=False)
+                    fig.update_yaxes(showticklabels=False, showgrid=False)
+                    ########### 2 ###########
+                    df = df_cca[["CCA1", "CCA2", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        #fig = px.scatter(df_cca, x="CCA1", y="CCA2", , )
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA1"].values.tolist(),
+                                                    y=df_metadata["CCA2"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    text=df_metadata["Sample"].values.tolist()),row=1, col=2)
+                    ########### 3 ###########
+                    df = df_cca[["CCA1", "CCA3", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        #fig = px.scatter(df_cca, x="CCA1", y="CCA2", , )
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA1"].values.tolist(),
+                                                    y=df_metadata["CCA3"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    showlegend=False,
+                                                    text=df_metadata["Sample"].values.tolist()),row=1, col=3)
+                    ########### 4 ###########
+                    df = df_cca[["CCA1", "CCA4", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA1"].values.tolist(),
+                                                    y=df_metadata["CCA4"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    showlegend=False,
+                                                    text=df_metadata["Sample"].values.tolist()),row=1, col=4)
+                        fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
+                        fig.update_xaxes(showgrid=False,row=1, col=4)
+                        fig.update_yaxes(showgrid=False,row=1, col=4)
+                    ########### 5 ###########
+                    fig.add_trace(go.Scatter(),row=2, col=2)
+                    fig.update_layout(template=template)
+                    text = "CCA2 (" + str(round(ordination_result.proportion_explained["CCA2"]* 100, 2)) + " %)"
+                    fig.add_annotation(text=text, showarrow=False, row=2, col=2)
+                    ########### 6 ###########
+                    df = df_cca[["CCA2", "CCA3", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        #fig = px.scatter(df_cca, x="CCA1", y="CCA2", , )
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA2"].values.tolist(),
+                                                    y=df_metadata["CCA3"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    showlegend=False,
+                                                    text=df_metadata["Sample"].values.tolist()),row=2, col=3)
+                    ########### 7 ###########
+                    df = df_cca[["CCA2", "CCA4", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA2"].values.tolist(),
+                                                    y=df_metadata["CCA4"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    showlegend=False,
+                                                    text=df_metadata["Sample"].values.tolist()),row=2, col=4)
+                    ########### 8 ###########
+                    fig.add_trace(go.Scatter(),row=3, col=3)
+                    fig.update_layout(template=template)
+                    text = "CCA3 (" + str(round(ordination_result.proportion_explained["CCA3"]* 100, 2)) + " %)"
+                    fig.add_annotation(text=text, showarrow=False, row=3, col=3)
+                    ########### 9 ###########
+                    df = df_cca[["CCA3", "CCA4", "Metadata", "Sample"]]
+                    for metadata in set(metadata_list):
+                        df_metadata = df[df['Metadata'] == str(metadata)]
+                        #fig = px.scatter(df_cca, x="CCA1", y="CCA2", , )
+                        fig.add_trace(go.Scatter(   x=df_metadata["CCA3"].values.tolist(),
+                                                    y=df_metadata["CCA4"].values.tolist(),
+                                                    mode='markers',
+                                                    name=metadata,
+                                                    showlegend=False,
+                                                    text=df_metadata["Sample"].values.tolist()),row=3, col=4)
+                    ########### 5 ###########
+                    fig.add_trace(go.Scatter(),row=4, col=4)
+                    fig.update_layout(template=template)
+                    text = "CCA4 (" + str(round(ordination_result.proportion_explained["CCA4"]* 100, 2)) + " %)"
+                    fig.add_annotation(text=text, showarrow=False, row=4, col=4)
+
+                    ######################
+                    fig.update_xaxes(showline=True, mirror=True, linewidth=1, linecolor='black')
+                    fig.update_yaxes(showline=True, mirror=True, linewidth=1, linecolor='black')
+                    fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
+                    # finish plot matrix
+                    fig.update_layout(height=1000, width=1000, title_text=textbox)
+
+                    # finish script
+                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        fig.show()
+
+                    ## define output files
+                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.pdf")
+                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.html")
+
+                    fig.write_image(str(bar_pdf))
+                    fig.write_html(str(bar_html))
+                    closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
+                    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+                    from taxontabletools.create_log import ttt_log
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
                     break
                 else:
-                    plt.close()
+                    sg.Popup("There must be at least 4 CCA axis available to plot the matrix!")
 
-        if event == 'Back':
-            break
+        cca_window.close()
 
-    cca_window.close()
-
-
-
-
+    else:
+        sg.PopupError("The sample of both the TaXon table and the metadata table have to match!")
 
 
 

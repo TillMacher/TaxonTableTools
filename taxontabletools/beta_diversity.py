@@ -1,10 +1,10 @@
-def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_font, beta_cmap, meta_data_to_test, path_to_outdirs):
+def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_test, path_to_outdirs, template):
 
     import pandas as pd
     import numpy as np
     from skbio.diversity import beta_diversity
     from skbio.stats.distance import anosim
-    import matplotlib.pyplot as plt
+    import plotly.express as px
     from pathlib import Path
     import PySimpleGUI as sg
 
@@ -52,40 +52,25 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_font, beta_cmap, meta_
         matrix_df.columns = samples
         matrix_df.index = samples
 
-        fig, ax = plt.subplots(figsize=(8, 8))
-        try:
-            im = ax.imshow(matrix, cmap=beta_cmap)
-        except:
-            print("Warning: Unknown cmap - using standard cmap.")
-            im = ax.imshow(matrix, cmap="Blues_r")
-        ax.set_xticks(np.arange(len(samples)))
-        ax.set_yticks(np.arange(len(samples)))
-        ax.set_xticklabels(samples)
-        ax.set_yticklabels(samples)
-        ax.tick_params(axis="x", labelsize=5)
-        ax.tick_params(axis="y", labelsize=5)
-        plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor",)
-        plt.colorbar(im)
-        ax.set_title("Jaccard distances")
-        ax.text(0, -2, textbox, horizontalalignment='left', verticalalignment='bottom', bbox=dict(facecolor='white', alpha=0.5))
+        # create plot
+        fig = px.imshow(matrix, x=samples,y=samples, labels=dict(color="Jaccard distance"))
+        fig.update_layout(height=int(beta_h), width=int(beta_w), template=template, showlegend=True, title=textbox)
 
-        plt.draw()
-        plt.pause(0.001)
-        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+        # finish script
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test  + ".pdf")
-            output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + ".xlsx")
-            plt.savefig(output_pdf)
-            matrix_df.to_excel(output_xlsx)
-            plt.close()
-            print("\n" + "Beta diversity estimate plots are found in", path_to_outdirs, "/Beta_diversity/")
-            sg.Popup("Beta diversity estimate are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
+            fig.show()
 
-            from taxontabletools.create_log import ttt_log
-            ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
-
-        else:
-            plt.close()
+        bar_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.pdf")
+        bar_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.html")
+        output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.xlsx")
+        fig.write_image(str(bar_pdf))
+        fig.write_html(str(bar_html))
+        matrix_df.to_excel(output_xlsx)
+        print("\n" + "Beta diversity estimate plots are found in", path_to_outdirs, "/Beta_diversity/")
+        sg.Popup("Beta diversity estimate are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
+        from taxontabletools.create_log import ttt_log
+        ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)

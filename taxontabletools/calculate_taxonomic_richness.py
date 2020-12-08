@@ -1,15 +1,17 @@
-def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, font_tax_rich, ylim_tax_rich):
+def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme):
 
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
     import numpy as np
-    import matplotlib.pyplot as plt
+    import plotly.graph_objects as go
     from pathlib import Path
 
-    TaXon_table_file =  Path(TaXon_table_xlsx)
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
 
-    print("\n" + "Input file:", TaXon_table_file.name)
+    TaXon_table_file =  Path(TaXon_table_xlsx)
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
 
@@ -35,30 +37,21 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     taxon_levels = list(highest_level_dict.keys())
     number_of_taxa_per_level = statistics_set
 
-    # create plot
-    output_file = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.pdf")
+    fig = go.Figure(data=[go.Bar(x=taxon_levels, y=number_of_taxa_per_level, name="Taxon", textposition="outside", text=number_of_taxa_per_level)])
+    fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
+    fig.update_layout(title_text='Taxonomic richness', yaxis_title="# OTUs")
+    fig.update_layout(height=int(y_tax_rich), width=int(x_tax_rich), template=template)
 
-    plt.figure(figsize=(int(x_tax_rich), int(y_tax_rich)))
-    if ylim_tax_rich != '':
-        plt.ylim(0, int(ylim_tax_rich))
-    plt.bar(taxon_levels, number_of_taxa_per_level)
-    plt.ylabel('# taxa')
-    plt.title('Number of taxa per taxonomic level')
-    for i, v in enumerate(number_of_taxa_per_level):
-        plt.text(i - 0.01, v, str(v), horizontalalignment='center', verticalalignment='center', fontsize=font_tax_rich)
-
-    plt.show(block=False)
-    answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        plt.savefig(output_file, bbox_inches='tight')
-        plt.close()
+        fig.show()
+    bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.pdf")
+    bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.html")
+    fig.write_image(str(bar_pdf))
+    fig.write_html(str(bar_html))
 
-        closing_text = "\n" + "Taxonomic richness plots are found in: " + str(path_to_outdirs) + "/taxonomic_richness_plots/"
-        print(closing_text)
-        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+    closing_text = "\n" + "Taxonomic richness plots are found in: " + str(path_to_outdirs) + "/taxonomic_richness_plots/"
+    sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-        from taxontabletools.create_log import ttt_log
-        ttt_log("taxonomic richness", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
-
-    else:
-        plt.close()
+    from taxontabletools.create_log import ttt_log
+    ttt_log("taxonomic richness", "analysis", TaXon_table_file.name, bar_pdf.name, "nan", path_to_outdirs)

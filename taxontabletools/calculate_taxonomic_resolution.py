@@ -1,18 +1,26 @@
-def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, font_tax_res, figure_type, ylim_tax_res):
+def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme):
+
+    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/TTT_cons_derep_arthropoda_no_NC.xlsx"
+    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
+    # x_tax_res = "1000"
+    # y_tax_res = "1000"
+    # figure_type = "a"
+    # template= "seaborn"
+    # theme = ["Blue", "Black", 1]
 
     import glob
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
     import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib_venn import venn2
-    from matplotlib.pyplot import plot, ion, show
+    import plotly.graph_objects as go
     from pathlib import Path
 
-    TaXon_table_file =  Path(TaXon_table_xlsx)
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
 
-    print("\n" + "Input file:", TaXon_table_file.name)
+    TaXon_table_file =  Path(TaXon_table_xlsx)
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
 
@@ -43,57 +51,40 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
     # option A: scatter plot
     if figure_type == "a":
 
-        output_file = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_scatter.pdf")
+        fig = go.Figure(data=[go.Bar(x=taxon_levels, y=highest_level_OTUs, name="Taxon", textposition="outside", text=highest_level_OTUs)])
+        fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
+        fig.update_layout(title_text='Taxonomic resolution (highest taxonomic level)', yaxis_title="# OTUs")
+        fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template)
 
-        plt.figure(figsize=(int(x_tax_res), int(y_tax_res)))
-        if ylim_tax_res != '':
-            plt.ylim(0, int(ylim_tax_res))
-        plt.bar(taxon_levels, highest_level_OTUs)
-        plt.ylabel('# OTUs')
-        plt.title('Taxonomic resolution (highest taxonomic level)')
-        for i, v in enumerate(highest_level_OTUs):
-            plt.text(i, v, str(v), horizontalalignment='center', verticalalignment='center', fontsize=font_tax_res)
-
-        plt.show(block=False)
-        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            plt.savefig(output_file, dpi=500)
-            plt.close()
-            closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
-            print(closing_text)
-            sg.Popup(closing_text, title="Finished", keep_on_top=True)
+            fig.show()
+        bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.pdf")
+        bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.html")
+        fig.write_image(str(bar_pdf))
+        fig.write_html(str(bar_html))
 
-            from taxontabletools.create_log import ttt_log
-            ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_file.name, "plot a", path_to_outdirs)
-
-        else:
-            plt.close()
+        from taxontabletools.create_log import ttt_log
+        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, bar_pdf.name, "plot a", path_to_outdirs)
 
     # option B: bar plot
     else:
 
-        output_file = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_bar.pdf")
+        fig = go.Figure(data=[go.Bar(x=taxon_levels, y=total_OTUs, name="Taxon", textposition="outside", text=total_OTUs)])
+        fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
+        fig.update_layout(title_text='Taxonomic resolution (total number of OTUs)', yaxis_title="# OTUs")
+        fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template)
 
-        plt.figure(figsize=(int(x_tax_res), int(y_tax_res)))
-        if ylim_tax_res != '':
-            plt.ylim(0, int(ylim_tax_res))
-        plt.bar(taxon_levels, total_OTUs)
-        plt.ylabel('# OTUs')
-        plt.title('Taxonomic resolution (highest taxonomic level)')
-        for i, v in enumerate(total_OTUs):
-            plt.text(i, v, str(v), horizontalalignment='center', verticalalignment='center', fontsize=font_tax_res)
-
-        plt.show(block=False)
-        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            plt.savefig(output_file, dpi=500)
-            plt.close()
-            closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/Taxonomic_resolution_plots/"
-            print(closing_text)
-            sg.Popup(closing_text, title="Finished", keep_on_top=True)
+            fig.show()
+        bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.pdf")
+        bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.html")
+        fig.write_image(str(bar_pdf))
+        fig.write_html(str(bar_html))
 
-            from taxontabletools.create_log import ttt_log
-            ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_file.name, "plot b", path_to_outdirs)
+        from taxontabletools.create_log import ttt_log
+        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, bar_pdf.name, "plot b", path_to_outdirs)
 
-        else:
-            plt.close()
+    closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/taxonomic_resolution_plots/"
+    sg.Popup(closing_text, title="Finished", keep_on_top=True)

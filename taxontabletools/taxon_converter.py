@@ -12,10 +12,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     Output_name = TaXon_table_name + ".xlsx"
     Output_file = path_to_outdirs / "TaXon_tables" / Output_name
 
-    # print information to console
-    print("Taxonomy table:", taxonomy_results_xlsx.name)
-    print("Read table:", read_table_xlsx.name + "\n")
-
     # store the file name for later use
     file_name = taxonomy_results_xlsx.name
 
@@ -41,7 +37,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     if taxonomy_df["sort"].values.tolist() != Read_df["sort"].values.tolist():
         error_message = "Fatal crash: Your files do not match!"
         sg.PopupError(error_message, title="Error")
-        print(error_message)
         raise Exception()
 
     # create an empty list that will be used to create the output dataFrame
@@ -58,6 +53,17 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     progress_bar = window_progress_bar['progressbar']
     progress_update = 0
     progress_increase = 1000 / len(OTU_list) + 1
+    ############################################################################
+
+    ############################################################################
+    event, values = window_progress_bar.read(timeout=10)
+    if event == 'Cancel'  or event is None:
+        print('Cancel')
+        window_progress_bar.Close()
+        raise RuntimeError
+    # update bar with loop value +1 so that bar eventually reaches the maximum
+    progress_update += 0
+    progress_bar.UpdateBar(progress_update)
     ############################################################################
 
     # iterate through the OTUs (=row of dataframe) and increase the counter with each step for visual updates
@@ -113,7 +119,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     df.to_excel(Output_file, sheet_name='TaXon table', index=False)
 
     closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

@@ -14,12 +14,12 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
     file_a = Path(file_a)
     file_b = Path(file_b)
 
+    venn_font = 20
+
     if file_c == False:
     ############################################################################
     # use venn2
 
-        print("\n" + "Input file a:", file_a.stem)
-        print("Input file b:", file_b.stem, "\n")
         count = 0
 
         allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species"]
@@ -82,10 +82,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             venn_dict[taxon + "_shared"] = shared
             venn_dict[taxon + "_b_only"] = b_only
 
-            print("Comparing on:", taxon, "level")
-
             plt.figure(figsize=(20, 10))
-            venn2(subsets = (len_a_only, len_b_only, len_shared), set_labels = (file_name_a, file_name_b))
+            out = venn2(subsets = (len_a_only, len_b_only, len_shared), set_labels = (file_name_a, file_name_b))
+            for text in out.set_labels:
+                text.set_fontsize(venn_font)
+            for x in range(len(out.subset_labels)):
+                if out.subset_labels[x] is not None:
+                    out.subset_labels[x].set_fontsize(venn_font)
 
             dirName = Path(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name)
             if not os.path.exists(dirName):
@@ -96,16 +99,16 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             plt.savefig(output_pdf, bbox_inches='tight')
 
             if taxon == "Species":
-                plt.show(block=False)
-                print("\n" + "Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/")
-                sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                if answer == "Yes":
+                    plt.show(block=False)
+                    sg.Popup("Close")
 
             plt.close()
 
             ############################################################################
             event, values = window_progress_bar.read(timeout=10)
             if event == 'Cancel'  or event is None:
-                print('Cancel')
                 window_progress_bar.Close()
                 raise RuntimeError
             # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -119,6 +122,8 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
         df.to_excel(output_xlsx, index=False)
 
+        sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+
         from taxontabletools.create_log import ttt_log
         ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
@@ -129,14 +134,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
         if file_c == '':
             sg.PopupError("Please provide a file", keep_on_top=True)
-            print("Error: Please provide a file")
             raise RuntimeError()
 
         file_c = Path(file_c)
-
-        print("\n" + "Input file a:", file_a.stem)
-        print("Input file b:", file_b.stem, "\n")
-        print("Input file c:", file_c.stem, "\n")
 
         count = 0
 
@@ -225,10 +225,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             venn_dict[taxon + "_shared_a_c"] = shared_a_c
             venn_dict[taxon + "_shared_b_c"] = shared_b_c
 
-            print("Comparing on:", taxon, "level")
-
             plt.figure(figsize=(20, 10))
-            venn3(subsets = (len_a_only, len_b_only, len_shared_a_b, len_c_only, len_shared_a_c, len_shared_b_c, len_shared_all), set_labels = (file_name_a, file_name_b, file_name_c))
+            out = venn3(subsets = (len_a_only, len_b_only, len_shared_a_b, len_c_only, len_shared_a_c, len_shared_b_c, len_shared_all), set_labels = (file_name_a, file_name_b, file_name_c))
+            for text in out.set_labels:
+                text.set_fontsize(venn_font)
+            for x in range(len(out.subset_labels)):
+                if out.subset_labels[x] is not None:
+                    out.subset_labels[x].set_fontsize(venn_font)
 
             dirName = Path(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name)
             if not os.path.exists(dirName):
@@ -239,16 +242,16 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             plt.savefig(output_pdf, bbox_inches='tight')
 
             if taxon == "Species":
-                plt.show(block=False)
-                print("\n" + "Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/")
-                sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                if answer == "Yes":
+                    plt.show(block=False)
+                    sg.Popup("Close")
 
             plt.close()
 
             ############################################################################
             event, values = window_progress_bar.read(timeout=10)
             if event == 'Cancel'  or event is None:
-                print('Cancel')
                 window_progress_bar.Close()
                 raise RuntimeError
             # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -262,13 +265,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
         df.to_excel(output_xlsx, index=False)
 
+        sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+
         from taxontabletools.create_log import ttt_log
         ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_c.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
-
-    ############################################################################
-    # finish script
-    closing_text = "Venn diagram is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
-    print(closing_text)
-    sg.Popup(closing_text, title="Finished", keep_on_top=True)

@@ -1,8 +1,6 @@
 # check the input format
 def check_taXon_table_format(taXon_table):
 
-    #taXon_table = "/Users/tillmacher/Desktop/Projects/Projects_Development/TaXon_Table_Tools/Projects/Default_project/TaXon_tables/Default_project_taxon_table.xlsx"
-
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
@@ -65,7 +63,7 @@ def check_taXon_table_format(taXon_table):
             epithet_only_list.append(species)
 
     if epithet_only_list != []:
-        WarningMessage = "Warning: There are " + str(len(epithet_only_list)) +  " species that do not fit the binomial nomenclature." + "\n" "\n" + "This error message will be ignored, but it's recommended to use binomial nomenclature!"
+        WarningMessage = "Warning: There are " + str(len(epithet_only_list)) +  " species that do not fit the binomial nomenclature." + "\n" + "This error message will be ignored, but it's recommended to use binomial nomenclature!"
         sg.Popup(WarningMessage, title="Warning", keep_on_top=True)
 
 
@@ -85,8 +83,12 @@ def check_taXon_table_format(taXon_table):
 
     OTU_reads_list = taXon_table_df.values.tolist()
 
+    ask = False
+
     for OTU_reads in OTU_reads_list:
         read_numbers = OTU_reads[10:]
+        if sum(read_numbers) == 0:
+            ask = True
         for read_number in read_numbers:
             try:
                 read_number = int(read_number)
@@ -96,8 +98,29 @@ def check_taXon_table_format(taXon_table):
                 sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
                 raise RuntimeError(ErrorMessage)
 
+    ###################################
+    # F) Taxonomy consistency
+
+    taxonomy_list = taXon_table_df[["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
+    for entry in taxonomy_list:
+        if "nan" in entry:
+            taxonomy = entry[1:]
+            OTU = entry[0]
+            n_nan = taxonomy.count("nan")
+            if 6 - taxonomy.index("nan") != n_nan:
+                ErrorMessage = "Please check the taxonomy of " + OTU + ".\nInternally missing taxonomy found!"
+                sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
+                raise RuntimeError(ErrorMessage)
 
     ###################################
-    # Wrap up
+    # write new dataframe if user chose to remove empty OTUs
+    if ask == True:
+        answer = sg.PopupOKCancel("OTUs with zero reads have been detected.\nRemove OTUs from dataframe?\nWarning: This will overwrite the dataframe!")
+        if answer == 'OK':
+            taXon_table_list = [OTU for OTU in taXon_table_df.values.tolist() if sum(OTU[10:]) != 0]
+            taXon_table_df_new = pd.DataFrame(taXon_table_list, columns=taXon_table_df.columns.tolist()).replace("nan", "")
+            taXon_table_df_new.to_excel(taXon_table, sheet_name="TaXon table", index=False)
+
+
 
     sg.Popup("Your file looks great and is ready to use!", title="Taxonomy table check", keep_on_top=True)

@@ -1,18 +1,17 @@
-def rarefaction_curve_OTUs(TaXon_table_xlsx, replicates, error_style, rarefaction_ylim, path_to_outdirs):
+def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme):
 
     import random
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import plot, ion, show
+    import plotly.graph_objects as go
     from pathlib import Path
 
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
+
     TaXon_table_file = Path(TaXon_table_xlsx)
-
-    print("\n" + "Input file:", TaXon_table_file.name)
-
-    output_file = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_otus.pdf")
 
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
     df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
@@ -49,10 +48,10 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, replicates, error_style, rarefactio
     window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
     progress_bar = window_progress_bar['progressbar']
     progress_update = 0
-    progress_increase = 1000 / replicates
+    progress_increase = 1000 / repetitions
     ############################################################################
 
-    for n_reps in range(0, replicates):
+    for n_reps in range(0, repetitions):
         # store the original dictionary to start over again
         # a copy of the original dictionary is required, because the samples will be removed with each draw
         # thus for each replicate a new dictionary to draw from has to be created
@@ -87,7 +86,6 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, replicates, error_style, rarefactio
         ############################################################################
         event, values = window_progress_bar.read(timeout=1)
         if event == 'Cancel'  or event is None:
-            print('\nCancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -110,67 +108,43 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, replicates, error_style, rarefactio
         rarefaction_dict_average[key] = average_OTUs
         rarefaction_dict_stdef[key] = stdef_OTUs
 
-    if error_style == "a":
-        draws = [i+1 for i in rarefaction_dict_average.keys()] #list(rarefaction_dict_average.keys())
-        n_OTUs = list(rarefaction_dict_average.values())
-        error_bar = list(rarefaction_dict_stdef.values())
-        plt.figure(figsize=(20, 10))
-        if rarefaction_ylim != '':
-            plt.ylim(0, int(rarefaction_ylim))
-        plt.errorbar(draws, n_OTUs, error_bar, linewidth=0.8, color='blue', capsize=1.3, capthick=1, ecolor='lightgrey')
-        plt.xticks(np.arange(1, len(draws)+1, step=1))
-        plt.xlabel('# samples')
-        plt.ylabel('# OTUs')
-        plt.title('repetitions = ' + str(replicates))
+    # draw the plot
+    draws = [i+1 for i in rarefaction_dict_average.keys()]
+    n_OTUs = list(rarefaction_dict_average.values())
+    error_bar = list(rarefaction_dict_stdef.values())
+    fig = go.Figure(data=[go.Scatter(x=draws, y=n_OTUs, error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True))])
+    fig.update_layout(title_text="repetitions = " + str(n_reps+1), yaxis_title="# OTUs", xaxis_title="# samples")
+    fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
+    fig.update_layout(height=800, width=1200, template=template, showlegend=False)
 
-
-    elif error_style == "b":
-        draws = [i+1 for i in rarefaction_dict_average.keys()] #list(rarefaction_dict_average.keys())
-        n_OTUs = list(rarefaction_dict_average.values())
-        y = np.asarray(n_OTUs)
-        error_bar = np.asarray(list(rarefaction_dict_stdef.values()))
-        plt.figure(figsize=(20, 10))
-        if rarefaction_ylim != '':
-            plt.ylim(0, int(rarefaction_ylim))
-        plt.plot(draws, n_OTUs)
-        plt.fill_between(draws, y-error_bar, y+error_bar, alpha=0.1)
-        plt.xticks(np.arange(1, len(draws)+1, step=1))
-        plt.xlabel('# samples')
-        plt.ylabel('# OTUs')
-        plt.title('repetitions = ' + str(replicates))
-
-
-    plt.show(block=False)
-    answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        plt.savefig(output_file, bbox_inches='tight')
-        plt.close()
-        closing_text = "\n" + "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
-        print(closing_text)
-        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+        fig.show()
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_OTUs.pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_OTUs.html")
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
 
-        from taxontabletools.create_log import ttt_log
-        ttt_log("rarefaction curve OTUs", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
+    closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
+    sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-    else:
-        plt.close()
+    from taxontabletools.create_log import ttt_log
+    ttt_log("rarefaction curve OTUs", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
-
-def rarefaction_curve_species(TaXon_table_xlsx, replicates, error_style, rarefaction_ylim, path_to_outdirs):
+def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme):
 
     import random
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import plot, ion, show
+    import plotly.graph_objects as go
     from pathlib import Path
 
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
+
     TaXon_table_file = Path(TaXon_table_xlsx)
-
-    print("\n" + "Input file:", TaXon_table_file.name)
-
-    output_file = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.pdf")
 
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
     df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
@@ -202,10 +176,10 @@ def rarefaction_curve_species(TaXon_table_xlsx, replicates, error_style, rarefac
     window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
     progress_bar = window_progress_bar['progressbar']
     progress_update = 0
-    progress_increase = 1000 / replicates
+    progress_increase = 1000 / repetitions
     ############################################################################
 
-    for n_reps in range(0, replicates):
+    for n_reps in range(0, repetitions):
         # store the original dictionary to start over again
         # a copy of the original dictionary is required, because the samples will be removed with each draw
         # thus for each replicate a new dictionary to draw from has to be created
@@ -240,7 +214,6 @@ def rarefaction_curve_species(TaXon_table_xlsx, replicates, error_style, rarefac
         ############################################################################
         event, values = window_progress_bar.read(timeout=1)
         if event == 'Cancel'  or event is None:
-            print('\nCancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -263,47 +236,153 @@ def rarefaction_curve_species(TaXon_table_xlsx, replicates, error_style, rarefac
         rarefaction_dict_average[key] = average_species
         rarefaction_dict_stdef[key] = stdef_species
 
-    if error_style == "a":
-        draws = [i+1 for i in rarefaction_dict_average.keys()] #list(rarefaction_dict_average.keys())
-        n_species = list(rarefaction_dict_average.values())
-        error_bar = list(rarefaction_dict_stdef.values())
-        plt.figure(figsize=(20, 10))
-        if rarefaction_ylim != '':
-            plt.ylim(0, int(rarefaction_ylim))
-        plt.errorbar(draws, n_species, error_bar, linewidth=0.8, color='blue', capsize=1.3, capthick=1, ecolor='lightgrey')
-        plt.xticks(np.arange(1, len(draws)+1, step=1))
-        plt.xlabel('# samples')
-        plt.ylabel('# species')
-        plt.title('repetitions = ' + str(replicates))
+    # draw the plot
+    draws = [i+1 for i in rarefaction_dict_average.keys()]
+    n_species = list(rarefaction_dict_average.values())
+    error_bar = list(rarefaction_dict_stdef.values())
+    fig = go.Figure(data=[go.Scatter(x=draws, y=n_species, error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True))])
+    fig.update_layout(title_text="repetitions = " + str(n_reps+1), yaxis_title="# species", xaxis_title="# samples")
+    fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
+    fig.update_layout(height=800, width=1200, template=template, showlegend=False)
 
-
-    elif error_style == "b":
-        draws = [i+1 for i in rarefaction_dict_average.keys()] #list(rarefaction_dict_average.keys())
-        n_species = list(rarefaction_dict_average.values())
-        y = np.asarray(n_species)
-        error_bar = np.asarray(list(rarefaction_dict_stdef.values()))
-        plt.figure(figsize=(20, 10))
-        if rarefaction_ylim != '':
-            plt.ylim(0, int(rarefaction_ylim))
-        plt.plot(draws, n_species)
-        plt.fill_between(draws, y-error_bar, y+error_bar, alpha=0.1)
-        plt.xticks(np.arange(1, len(draws)+1, step=1))
-        plt.xlabel('# samples')
-        plt.ylabel('# species')
-        plt.title('repetitions = ' + str(replicates))
-
-
-    plt.show(block=False)
-    answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        plt.savefig(output_file, bbox_inches='tight')
-        plt.close()
-        closing_text = "\n" + "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
-        print(closing_text)
-        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+        fig.show()
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.html")
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
 
-        from taxontabletools.create_log import ttt_log
-        ttt_log("rarefaction curve species", "analysis", TaXon_table_file.name, output_file.name, "nan", path_to_outdirs)
+    closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
+    sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-    else:
-        plt.close()
+    from taxontabletools.create_log import ttt_log
+    ttt_log("rarefaction curve species", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
+
+def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_to_outdirs, template, theme):
+
+    import pandas as pd
+    import PySimpleGUI as sg
+    import numpy as np
+    from statistics import mean
+    from pathlib import Path
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import math
+
+    TaXon_table_file = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("")
+    samples = TaXon_table_df.columns.tolist()[10:]
+    scatter_size = 5
+
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
+
+    height = int(height)
+
+    ## count rows and columns to create subplots
+    n_rows = math.ceil(len(samples) / 4)
+    n_columns = 5
+    column_count = 1
+    row_count = 1
+    fig = make_subplots(rows=n_rows, cols=4, subplot_titles=samples, shared_yaxes=True)
+
+    ## calculate maximum number of OTUs
+    max_OTUs = []
+    for sample in samples:
+        max_OTUs.append(len([OTU for OTU in TaXon_table_df[sample] if OTU != 0]))
+    y_limit = max(max_OTUs) + 20
+
+    ############################################################################
+    ## create the progress bar window
+    layout = [[sg.Text('Progress bar')],
+              [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
+              [sg.Cancel()]]
+    window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
+    progress_bar = window_progress_bar['progressbar']
+    progress_update = 0
+    progress_increase = 1000 / len(samples)
+    ############################################################################
+
+    ############################################################################
+    event, values = window_progress_bar.read(timeout=1)
+    if event == 'Cancel'  or event is None:
+        window_progress_bar.Close()
+        raise RuntimeError
+    # update bar with loop value +1 so that bar eventually reaches the maximum
+    progress_update += 0
+    progress_bar.UpdateBar(progress_update)
+    ############################################################################
+
+    for sample in samples:
+
+        ## filter sample from data
+        read_df = TaXon_table_df[[sample, "IDs"]]
+        ## drop empty OTUs
+        read_df = read_df[read_df[sample] != 0]
+        ## create read list to draw the subsamples from
+        read_list = pd.Series(np.repeat(read_df['IDs'].to_list(), read_df[sample].to_list()))
+
+        output = []
+
+        ## draw random sample
+        for perc in np.arange(0.00, 1.05, 0.05):
+            ## calculate sample size
+            sub_sample_size = int(len(read_list) * perc)
+
+            ## draw X subsamples of that size
+            mean_species = mean([read_list.sample(n = sub_sample_size).nunique() for i in range(repetitions)])
+
+            output.append(mean_species)
+
+        output = pd.DataFrame({'percentage': np.arange(0.00, 1.05, 0.05), 'mean_OTUs': output})
+
+        ## write plot
+        fig.add_trace(go.Scatter(x=output["percentage"], y=output["mean_OTUs"], name=sample, mode='markers+lines', marker=dict(size=int(scatter_size))), row=row_count, col=column_count)
+        fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value, row=row_count, col=column_count)
+        fig.update_yaxes(range=[0, y_limit], row=row_count, col=column_count)
+
+        ## add a y axis title to all left bound plots
+        if column_count == 1:
+            fig.update_yaxes(title_text="# OTUs", row=row_count, col=column_count)
+
+        ## add x axis title to all plots in the last row
+        # if row_count == n_rows:
+        #     fig.update_xaxes(title_text="subsample (%)", row=row_count, col=column_count)
+
+        column_count += 1
+        if column_count == n_columns:
+            column_count = 1
+            row_count += 1
+            height += 100
+
+        ############################################################################
+        event, values = window_progress_bar.read(timeout=1)
+        if event == 'Cancel'  or event is None:
+            window_progress_bar.Close()
+            raise RuntimeError
+        # update bar with loop value +1 so that bar eventually reaches the maximum
+        progress_update += progress_increase
+        progress_bar.UpdateBar(progress_update)
+        ############################################################################
+
+    window_progress_bar.Close()
+
+    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=False)
+    fig.update_yaxes(rangemode="tozero")
+    fig.update_xaxes(rangemode="tozero")
+
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        fig.show()
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_reads.pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_reads.html")
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
+
+    closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
+    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    from taxontabletools.create_log import ttt_log
+    ttt_log("rarefaction curve reads", "analysis", TaXon_table_file.name, output_pdf.name, repetitions, path_to_outdirs)

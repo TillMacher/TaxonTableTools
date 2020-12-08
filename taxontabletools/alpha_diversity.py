@@ -1,22 +1,19 @@
-def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs):
+def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, path_to_outdirs, template):
 
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import plot, ion, show
     from pathlib import Path
-    from matplotlib.pyplot import cm
+    import plotly.graph_objects as go
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-
-    Output_basic_alpha_plot_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.pdf")
 
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+    categories = Meta_data_table_df[meta_data_to_test].tolist()
 
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
         sg.PopupError("The meta data has to differ between samples!", title="Error")
@@ -31,90 +28,71 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, alpha_w, a
         # remove samples that do not fit the format
         for i, sample in enumerate(samples):
             meta_data = str(Meta_data_table_df.loc[i][meta_data_to_test])
-            samples_metadata_list.append([meta_data])
+            samples_metadata_list.append(meta_data)
 
         #################################
         # Calculate Alpha diversity measurements (= observed_otus)
 
         observed_otus_dict = {}
+        samples_dict = {}
 
-        for sample in samples:
+        for i, sample in enumerate(samples):
             observed_otus = len([taxon for taxon in TaXon_table_df[sample].values.tolist() if taxon != 0])
-            observed_otus_dict[sample] = observed_otus
-
-        # create list which contains the site for each sample
-        categories, color_groups_dict = [], {}
-
-        categories = Meta_data_table_df[meta_data_to_test].values.tolist()
-
-        categories_set = set(categories)
-
-        colors = [plt.cm.tab10(i/float(len(categories_set)-1)) for i in range(len(categories_set))]
-
-        for i, category in enumerate(categories_set):
-            color_groups_dict[category] = colors[i]
+            category = samples_metadata_list[i]
+            if category not in observed_otus_dict.keys():
+                observed_otus_dict[category] = [observed_otus]
+                samples_dict[category] = [sample]
+            else:
+                observed_otus_dict[category] = observed_otus_dict[category] + [observed_otus]
+                samples_dict[category] = samples_dict[category] + [sample]
 
         ########################################
         # create the plot
 
-        fig, ax = plt.subplots(figsize=(int(alpha_w), int(alpha_h)))
-        for i, sample in enumerate(samples):
-            group = samples_metadata_list[i][0]
-            try:
-                group_color = color_groups_dict[group]
-            except:
-                group_color = color_groups_dict[int(group)]
-            plt.scatter(sample, observed_otus_dict[sample], s=int(alpha_s), label=group, c=[group_color])
-        plt.xticks(fontsize=alpha_font, rotation=90)
-        plt.yticks(fontsize=alpha_font)
-        plt.title("Observed OTUs", fontsize=alpha_font)
-        plt.ylabel("# OTUs", fontsize=alpha_font, rotation=90)
-        ax.set_axisbelow(True)
-        ax.grid(color='gray', alpha=0.1)
+        fig = go.Figure()
+        for category in set(categories):
+            fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(size=int(scatter_size))))
+        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=True)
 
-        # add a legend
-        handles, labels = ax.get_legend_handles_labels()
-        unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
-        plt.legend(*zip(*unique), loc='center left', bbox_to_anchor=(1, 0.5))
-
-        plt.draw()
-        plt.pause(0.001)
-        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+        # finish script
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            plt.savefig(Output_basic_alpha_plot_pdf, bbox_inches='tight')
-            plt.close()
-            print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
-            sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+            fig.show()
 
-            from taxontabletools.create_log import ttt_log
-            ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, Output_basic_alpha_plot_pdf.name, meta_data_to_test, path_to_outdirs)
+        bar_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.pdf")
+        bar_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.html")
+        fig.write_image(str(bar_pdf))
+        fig.write_html(str(bar_html))
 
-        else:
-            plt.close()
+        print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
+        sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+        from taxontabletools.create_log import ttt_log
+        ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
         print("Error: The samples between the taxon table and meta table do not match!")
 
-def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, alpha_w, alpha_h, alpha_s, alpha_font, path_to_outdirs):
+def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, path_to_outdirs, template, theme):
 
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import plot, ion, show
     from pathlib import Path
-    from matplotlib.pyplot import cm
+    import plotly.graph_objects as go
+
+    color1 = theme[0]
+    color2 = theme[1]
+    opacity_value = theme[2]
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-
-    Output_basic_alpha_plot_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.pdf")
 
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+    categories = Meta_data_table_df[meta_data_to_test].tolist()
 
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
         sg.PopupError("The meta data has to differ between samples!", title="Error")
@@ -138,43 +116,34 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, alpha_w, alpha_
 
         for i, sample in enumerate(samples):
             observed_otus = len([taxon for taxon in TaXon_table_df[sample].values.tolist() if taxon != 0])
-            categorie = samples_metadata_list[i]
-            if categorie not in observed_otus_dict.keys():
-                observed_otus_dict[categorie] = [observed_otus]
+            category = samples_metadata_list[i]
+            if category not in observed_otus_dict.keys():
+                observed_otus_dict[category] = [observed_otus]
             else:
-                observed_otus_dict[categorie] = observed_otus_dict[categorie] + [observed_otus]
+                observed_otus_dict[category] = observed_otus_dict[category] + [observed_otus]
 
-        # create boxplot
-        labels, data = np.array(list(observed_otus_dict.keys()), dtype=object), np.array(list(observed_otus_dict.values()), dtype=object)
-        plt.figure(figsize=(int(alpha_w), int(alpha_h)))
-        plt.grid(color='gray', alpha=0.1)
-        plt.boxplot(data,
-            patch_artist=True,
-            boxprops=dict(facecolor="#0000000a", color="black"),
-            capprops=dict(color="black"),
-            whiskerprops=dict(color="black"),
-            flierprops=dict(color="black", markeredgecolor="black"),
-            medianprops=dict(color="blue"),
-            )
-        plt.xticks(range(1, len(labels) + 1), labels, fontsize=alpha_font)
-        plt.yticks(fontsize=alpha_font)
-        plt.title("Observed OTUs", fontsize=alpha_font)
-        plt.ylabel("# OTUs", fontsize=alpha_font, rotation=90)
+        ########################################
+        # create the plot
 
-        plt.draw()
-        plt.pause(0.001)
-        answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
+        fig = go.Figure()
+        for category in set(categories):
+            fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color1, marker_line_color=color2, marker_line_width=0.2, opacity=opacity_value))
+        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=False)
+
+        # finish script
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            plt.savefig(Output_basic_alpha_plot_pdf, bbox_inches='tight')
-            plt.close()
-            print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
-            sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+            fig.show()
 
-            from taxontabletools.create_log import ttt_log
-            ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, Output_basic_alpha_plot_pdf.name, meta_data_to_test, path_to_outdirs)
+        bar_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.pdf")
+        bar_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.html")
+        fig.write_image(str(bar_pdf))
+        fig.write_html(str(bar_html))
 
-        else:
-            plt.close()
+        print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
+        sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
+        from taxontabletools.create_log import ttt_log
+        ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)

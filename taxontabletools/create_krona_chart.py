@@ -1,7 +1,7 @@
 # krona chart
 def create_krona_chart(TaXon_table_xlsx, path_to_outdirs):
 
-    import subprocess, os
+    import subprocess, os, webbrowser
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
@@ -51,6 +51,11 @@ def create_krona_chart(TaXon_table_xlsx, path_to_outdirs):
     krona_taxonomy_df.to_csv(krona_table_tsv, sep="\t", header=False, index=False)
 
     os.system("ktImportText " + str(krona_table_tsv) + " -o " + str(krona_chart_html))
+
+    # finish script
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(krona_chart_html))
 
     closing_text = "Krona chart is found under:\n" + '/'.join(str(krona_chart_html).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
