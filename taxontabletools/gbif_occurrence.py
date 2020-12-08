@@ -445,7 +445,10 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
                 sg.Popup("Please first download occurrence data!")
 
             else:
-                file = Path(str(path_to_outdirs) + "/Occurrence_analysis/" + [input_files_short[value] for key, value in values2.items() if key == True][0])
+                if len(values2) == 1:
+                    file = Path(str(path_to_outdirs) + "/Occurrence_analysis/" + input_files_short[0])
+                else:
+                    file = Path(str(path_to_outdirs) + "/Occurrence_analysis/" + [input_files_short[value] for key, value in values2.items() if key == True][0])
                 occurrence_df_filtered = pd.read_excel(file, sheet_name="relative").fillna(0)
                 taxa = occurrence_df_filtered.columns.tolist()[1:]
 

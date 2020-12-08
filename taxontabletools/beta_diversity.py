@@ -20,19 +20,16 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
     # otherwise abort and print error message
     pa_test = set([val for sublist in TaXon_table_df[TaXon_table_samples].values.tolist() for val in sublist])
     if pa_test != {1,0}:
-        print("Please use presence absence data!")
         sg.Popup("Please use presence absence data!", title=("Error"))
         raise RuntimeError
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == len(Meta_data_table_df['Samples'].tolist()):
-        print("The meta data is unique for all samples. Please adjust the meta data table!")
         sg.Popup("The meta data is unique for all samples. Please adjust the meta data table!", title=("Error"))
         raise RuntimeError
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
-        print("The meta data is similar for all samples. Please adjust the meta data table!")
         sg.Popup("The meta data is similar for all samples. Please adjust the meta data table!", title=("Error"))
         raise RuntimeError
 
@@ -67,11 +64,9 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
         fig.write_image(str(bar_pdf))
         fig.write_html(str(bar_html))
         matrix_df.to_excel(output_xlsx)
-        print("\n" + "Beta diversity estimate plots are found in", path_to_outdirs, "/Beta_diversity/")
         sg.Popup("Beta diversity estimate are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
         ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
-        print("Error: The samples between the taxon table and meta table do not match!")

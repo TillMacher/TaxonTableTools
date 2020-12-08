@@ -128,17 +128,16 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
                 plt.close()
 
             else:
-                print("Warning! More than 3 replicates are not supported for Venn diagrams:    " + sample)
+                sg.Popup("Warning! More than 3 replicates are not supported for Venn diagrams:    " + sample)
 
             plt.close('all')
 
         except:
-            print("Warning! No replicates found for:    " + sample)
+            sg.Popup("Warning! No replicates found for:    " + sample)
 
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -165,7 +164,6 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     fig.write_image(str(bar_pdf))
     fig.write_html(str(bar_html))
     closing_text = "Plots are found under:\n" + "Projects/Replicate_analysis/"
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
     from taxontabletools.create_log import ttt_log
     ttt_log("replicate analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "nan", path_to_outdirs)

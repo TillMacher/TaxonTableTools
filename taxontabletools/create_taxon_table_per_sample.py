@@ -7,8 +7,6 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 
-    print("\n" + "Input file:", TaXon_table_file.name)
-
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_file)
     TaXon_datasheet = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
     TaXon_table = TaXon_datasheet.values.tolist()
@@ -30,8 +28,6 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
 
     for sample in samples_to_process:
 
-        print("Creating TaXon list for sample: ", sample)
-
         Output_name = Path(sample + ".xlsx")
         Output_file = path_to_outdirs / "TaXon_tables_per_sample" / Output_name
 
@@ -51,7 +47,6 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -62,7 +57,6 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
     window_progress_bar.Close()
 
     closing_text = "\n" + "Taxon tables are found in: " + str(path_to_outdirs) + "/TaXon_tables_per_sample/"
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

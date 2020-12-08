@@ -127,7 +127,6 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     fig.show()
 
                 closing_text = "Site occupancy plots are found under:\n" + '/'.join(str(occupancy_plot_pdf).split("/")[-4:])
-                print(closing_text)
                 sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
                 from taxontabletools.create_log import ttt_log
@@ -136,14 +135,11 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
 
             else:
                 sg.PopupError("Please check your Metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!", keep_on_top=True)
-                print("Please check your metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!")
 
         else:
             sg.PopupError("Missing metadata file!", keep_on_top=True)
-            print("Missing metadata file!")
 
     except:
         raise
         exception_text = "Something went wrong!" + "\n" + "Do not use numbers as metadata keys." + "\n" + "Please check your metadata file and read the manual."
         sg.PopupError(exception_text, title="Error", keep_on_top=True)
-        print(exception_text)

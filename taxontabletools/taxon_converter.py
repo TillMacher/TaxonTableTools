@@ -58,7 +58,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
     ############################################################################
     event, values = window_progress_bar.read(timeout=10)
     if event == 'Cancel'  or event is None:
-        print('Cancel')
         window_progress_bar.Close()
         raise RuntimeError
     # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -88,7 +87,6 @@ def taxon_converter(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sh
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum

@@ -182,7 +182,6 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -285,7 +284,6 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum

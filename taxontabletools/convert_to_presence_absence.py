@@ -15,7 +15,6 @@ def convert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
     output_file = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + TaXon_table_xlsx.stem + "_pa.xlsx")
     df_pa.to_excel(output_file, index=False, sheet_name = 'TaXon table')
     closing_text = "Presence absence tables is found in: " + str(path_to_outdirs) + "/TaXon_tables/"
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

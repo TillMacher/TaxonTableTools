@@ -105,7 +105,6 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -143,7 +142,6 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
     change_log_df.to_excel(change_log_name, sheet_name = 'TaXon table', index=False)
 
     closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:]) + "\n\n" + "Log file is found under:\n" + '/'.join(str(change_log_name).split("/")[-4:])
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

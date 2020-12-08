@@ -132,7 +132,6 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
     transversion_df.to_excel(transversion_xlsx, index=False)
 
     closing_text = "Perlodes input file is found under:\n" + '/'.join(str(perlodes_xlsx).split("/")[-4:])
-    print(closing_text)
     sg.Popup(closing_text + "\n\nWarning: Please check the converted table for errors and compare the conversion results in the conversion table.\n\nThe conversion is still in beta and might contain errors!", title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

@@ -8,8 +8,6 @@ def combine_replicates(TaXon_table_xlsx, suffix_list, path_to_outdirs):
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 
-    print("\n" + "Input file:", TaXon_table_file.name)
-
     # create output file
     output_file = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + str(TaXon_table_file.stem) + "_derep.xlsx")
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
@@ -43,7 +41,6 @@ def combine_replicates(TaXon_table_xlsx, suffix_list, path_to_outdirs):
 
     df.to_excel(output_file, index=False, sheet_name = 'TaXon table')
     closing_text = "Taxon table is found under:\n" + '/'.join(str(output_file).split("/")[-4:])
-    print(closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

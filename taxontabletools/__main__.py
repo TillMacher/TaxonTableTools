@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.1.2"
+taxon_tools_version = "Version 1.1.3"
 
 ##########################################################################################################################
 # general functions

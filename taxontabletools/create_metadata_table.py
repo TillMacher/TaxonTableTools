@@ -34,7 +34,6 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -49,7 +48,6 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
     metadata_df.to_excel(Meta_data_table_xlsx, index=False)
 
     closing_text = "Metadata table is found under:\n" + '/'.join(str(Meta_data_table_xlsx).split("/")[-4:])
-    print("\n" + closing_text)
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log

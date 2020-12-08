@@ -1,15 +1,4 @@
 def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, draw_mesh, path_to_outdirs, template):
-
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table_cons_derep_arthropods_no_NC_pa.xlsx"
-    # meta_data_to_test = "Stream"
-    # width = "800"
-    # height = "800"
-    # pcoa_s = "10"
-    # draw_mesh = True
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
-    # template = "seaborn"
-
-
     import pandas as pd
     import numpy as np
     from skbio.diversity import beta_diversity
@@ -33,19 +22,16 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
     # otherwise abort and print error message
     pa_test = set([val for sublist in TaXon_table_df[TaXon_table_samples].values.tolist() for val in sublist])
     if pa_test != {1,0}:
-        print("Please use presence absence data!")
         sg.Popup("Please use presence absence data!", title=("Error"))
         raise RuntimeError
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == len(Meta_data_table_df['Samples'].tolist()):
-        print("The meta data is unique for all samples. Please adjust the meta data table!")
         sg.Popup("The meta data is unique for all samples. Please adjust the meta data table!", title=("Error"))
         raise RuntimeError
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
-        print("The meta data is similar for all samples. Please adjust the meta data table!")
         sg.Popup("The meta data is similar for all samples. Please adjust the meta data table!", title=("Error"))
         raise RuntimeError
 

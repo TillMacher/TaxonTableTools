@@ -67,7 +67,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
         ############################################################################
         event, values = window_progress_bar.read(timeout=5)
         if event == 'Cancel'  or event is None:
-            print('Cancel')
             window_progress_bar.Close()
             raise RuntimeError
         # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -122,7 +121,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
             ############################################################################
             event, values = window_progress_bar.read(timeout=5)
             if event == 'Cancel'  or event is None:
-                print('Cancel')
                 window_progress_bar.Close()
                 raise RuntimeError
             # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -161,7 +159,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
             ############################################################################
             event, values = window_progress_bar.read(timeout=5)
             if event == 'Cancel'  or event is None:
-                print('Cancel')
                 window_progress_bar.Close()
                 raise RuntimeError
             # update bar with loop value +1 so that bar eventually reaches the maximum
@@ -234,7 +231,6 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
             ############################################################################
             event, values = window_progress_bar.read(timeout=10)
             if event == 'Cancel'  or event is None:
-                print('Cancel')
                 window_progress_bar.Close()
                 raise RuntimeError
             # update bar with loop value +1 so that bar eventually reaches the maximum

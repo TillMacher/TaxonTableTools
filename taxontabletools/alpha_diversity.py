@@ -64,14 +64,12 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
         fig.write_image(str(bar_pdf))
         fig.write_html(str(bar_html))
 
-        print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
         sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
         ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
-        print("Error: The samples between the taxon table and meta table do not match!")
 
 def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, path_to_outdirs, template, theme):
 
@@ -140,11 +138,9 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
         fig.write_image(str(bar_pdf))
         fig.write_html(str(bar_html))
 
-        print("\n" + "Alpha diversity estimate plots are found in", path_to_outdirs, "/Alpha_diversity/")
         sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
         ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
-        print("Error: The samples between the taxon table and meta table do not match!")

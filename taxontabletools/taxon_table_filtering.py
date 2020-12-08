@@ -31,9 +31,6 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
 
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_file)
     df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
-
-    print("\n" + "Input file:", TaXon_table_file.name)
-
     # convert taxa to exclude to a list if only one taxon is given (which is then string)
     if type(filtered_taxa) == str:
         filtered_taxa = [filtered_taxa]
@@ -74,7 +71,6 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
 
     if df_out.empty:
         sg.PopupError('Filter theshold were to harsh: Nothing to print', title="Error", keep_on_top=True)
-        print('\n' + 'Filter theshold were to harsh: Nothing to print', '\n')
 
     else:
         df_out.columns = df_columns
@@ -93,7 +89,6 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
         writer.close()
 
         closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
-        print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
         from taxontabletools.create_log import ttt_log

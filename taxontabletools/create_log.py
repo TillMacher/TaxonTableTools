@@ -79,12 +79,10 @@ def ttt_log_network(path_to_outdirs):
 
     answer = sg.PopupYesNo('Save figure?', keep_on_top=True)
     if answer == "Yes":
-        print("Saving...")
         log_pdf = Path(str(path_to_outdirs) + "/log.pdf")
         plt.savefig(log_pdf)
         plt.close()
         closing_text = "Log network is found under:\n" + log_pdf.name
-        print(closing_text)
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
     else:
         plt.close()
