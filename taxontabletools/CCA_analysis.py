@@ -1,15 +1,5 @@
 def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter_size, draw_mesh, path_to_outdirs, template):
 
-
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table_cons_derep_arthropods_no_NC_pa.xlsx"
-    # meta_data_to_test = "NUM"
-    # width = "800"
-    # height = "800"
-    # cca_scatter_size = "10"
-    # draw_mesh = True
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
-    # template = "seaborn"
-
     import pandas as pd
     import numpy as np
     from skbio.diversity import beta_diversity
@@ -20,7 +10,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
     import plotly.express as px
     from pathlib import Path
     import PySimpleGUI as sg
-    import os
+    import os, webbrowser
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -146,23 +136,27 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                     fig.update_xaxes(title=axis_to_plot[1])
                     fig.update_yaxes(title=axis_to_plot[0])
 
-                    # finish script
-                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-                    if answer == "Yes":
-                        fig.show()
-
                     ## define output files
-                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + ".pdf")
-                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + ".html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + ".pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + ".html")
                     output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + ".xlsx")
 
-                    fig.write_image(str(bar_pdf))
-                    fig.write_html(str(bar_html))
+                    fig.write_image(str(output_pdf))
+                    fig.write_html(str(output_html))
                     ordination_result.samples[[cat1, cat2]].to_excel(output_xlsx)
+
+                    ## ask to show file
+                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        webbrowser.open('file://' + str(output_html))
+
+                    ## print closing text
                     closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+                    ## write log file
                     from taxontabletools.create_log import ttt_log
-                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
                     break
 
 
@@ -201,23 +195,27 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                         fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
-                    # finish script
-                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-                    if answer == "Yes":
-                        fig.show()
-
                     ## define output files
-                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_3d.pdf")
-                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + "_3d.html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_3d.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_3d.html")
                     output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_3d.xlsx")
 
-                    fig.write_image(str(bar_pdf))
-                    fig.write_html(str(bar_html))
+                    fig.write_image(str(output_pdf))
+                    fig.write_html(str(output_html))
                     ordination_result.samples[[cat1, cat2]].to_excel(output_xlsx)
+
+                    ## ask to show file
+                    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        webbrowser.open('file://' + str(output_html))
+
+                    ## print closing text
                     closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+                    ## write to log file
                     from taxontabletools.create_log import ttt_log
-                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
                     break
 
                 else:
@@ -332,21 +330,25 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                     # finish plot matrix
                     fig.update_layout(height=1000, width=1000, title_text=textbox)
 
-                    # finish script
+                    ## define output files
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.html")
+
+                    fig.write_image(str(output_pdf))
+                    fig.write_html(str(output_html))
+
+                    ## ask to show file
                     answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
                     if answer == "Yes":
-                        fig.show()
+                        webbrowser.open('file://' + str(output_html))
 
-                    ## define output files
-                    bar_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.pdf")
-                    bar_html = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.html")
-
-                    fig.write_image(str(bar_pdf))
-                    fig.write_html(str(bar_html))
+                    ## print closing text
                     closing_text = "\n" + "CCA plots are found in: " + str(path_to_outdirs) + "/CCA_plots/"
                     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+                    ## write to log file
                     from taxontabletools.create_log import ttt_log
-                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+                    ttt_log("cca analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
                     break
                 else:
                     sg.Popup("There must be at least 4 CCA axis available to plot the matrix!")

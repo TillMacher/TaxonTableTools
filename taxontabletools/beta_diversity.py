@@ -7,6 +7,7 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
     import plotly.express as px
     from pathlib import Path
     import PySimpleGUI as sg
+    import webbrowser
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -54,19 +55,22 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
         fig.update_layout(height=int(beta_h), width=int(beta_w), template=template, showlegend=True, title=textbox)
 
         # finish script
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.html")
+        output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.xlsx")
+        fig.write_image(str(output_pdf))
+        fig.write_html(str(output_html))
+        matrix_df.to_excel(output_xlsx)
+
+        ## ask to show plot
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            fig.show()
+            webbrowser.open('file://' + str(output_html))
 
-        bar_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.pdf")
-        bar_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.html")
-        output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_jc.xlsx")
-        fig.write_image(str(bar_pdf))
-        fig.write_html(str(bar_html))
-        matrix_df.to_excel(output_xlsx)
+        ## write to log file
         sg.Popup("Beta diversity estimate are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
-        ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+        ttt_log("beta diversity", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)

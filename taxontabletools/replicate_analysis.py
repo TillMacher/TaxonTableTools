@@ -9,7 +9,7 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     from matplotlib_venn import venn3
     from matplotlib.pyplot import plot, ion, show
     import matplotlib.gridspec as gridspec
-    import math, os
+    import math, os, webbrowser
     import plotly.express as px
 
     color1 = theme[0]
@@ -133,7 +133,7 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
             plt.close('all')
 
         except:
-            sg.Popup("Warning! No replicates found for:    " + sample)
+            print("Warning! No replicates found for:    " + sample)
 
         ############################################################################
         event, values = window_progress_bar.read(timeout=10)
@@ -156,14 +156,21 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     fig.update_layout(width=int(width), height=int(height), template=template)
     fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1.5, opacity=opacity_value)
 
+    ## write files
+    output_pdf = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.pdf"))
+    output_html = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.html"))
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
+
+    ## ask to show file
     answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        fig.show()
-    bar_pdf = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.pdf"))
-    bar_html = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.html"))
-    fig.write_image(str(bar_pdf))
-    fig.write_html(str(bar_html))
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Plots are found under:\n" + "Projects/Replicate_analysis/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    ## write log
     from taxontabletools.create_log import ttt_log
     ttt_log("replicate analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "nan", path_to_outdirs)

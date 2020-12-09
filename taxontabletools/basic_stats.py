@@ -1,6 +1,6 @@
 def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme):
 
-    import csv, glob, sys, os
+    import csv, glob, sys, os, webbrowser
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
@@ -130,14 +130,17 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     # update the layout
     fig.update_layout(height=heigth, width=width, template=template, showlegend=False)
 
-    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## finish script
     basic_stats_directory = Path(str(path_to_outdirs) + "/" + "Basic_stats" + "/" + TaXon_table_xlsx.stem)
     output_pdf = Path(str(basic_stats_directory) + "_basic_stats.pdf")
     output_html = Path(str(basic_stats_directory) + "_basic_stats.html")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
+
+    ## ask to show plot
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
 
     #####################################################################################
     output_list_1 = []
@@ -187,5 +190,6 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
             window_basic_stats.close()
             break
 
+    ## write to log file
     from taxontabletools.create_log import ttt_log
     ttt_log("basic stats", "analysis", TaXon_table_xlsx.name, basic_stats_xlsx.name, "nan", path_to_outdirs)

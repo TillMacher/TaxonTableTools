@@ -5,7 +5,7 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
     import numpy as np
     from pathlib import Path
     import numpy as np
-    import scipy.stats
+    import scipy.stats, webbrowser
     import matplotlib.pyplot as plt
     import plotly.express as px
     from plotly.subplots import make_subplots
@@ -116,14 +116,22 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         if x_zero == True:
             fig.update_xaxes(rangemode="tozero")
 
-        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-        if answer == "Yes":
-            fig.show()
+        ## write files
         output_pdf = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.pdf")
         output_html = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 
+        ## ask to show file
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+        if answer == "Yes":
+            webbrowser.open('file://' + str(output_html))
+
+        ## print closing text
+        closing_text = "Plots are found under:\n" + "Projects/Replicate_analysis/"
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        ## write to log
         from taxontabletools.create_log import ttt_log
         ttt_log("replicate correlation analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 

@@ -5,11 +5,10 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     import numpy as np
     import plotly.express as px
     from pathlib import Path
-    import os
+    import os, webbrowser
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
-    TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 
@@ -20,21 +19,24 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
         sg.Popup("Please do not use presence absence data!", title=("Error"))
         raise RuntimeError
 
+    ## check for the taxonmic level to analyse
     if taxonomic_level != "OTUs":
-        ## replace nan with the best hit
-        taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
-        value_taxonomic_level = taxon_levels_dict[taxonomic_level]
-        best_hit_list = []
-        for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
-            ## human readable range => e.g. from 5 to 0 for species level
-            for test in range(value_taxonomic_level-1,-1,-1):
-                if taxon[test] != "nan":
-                    best_hit_list.append(taxon[test])
-                    break
-        TaXon_table_df[taxonomic_level] = best_hit_list
+        # ask how the to handle missing taxonomy
+        answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
+        if answer == "Yes":
+            ## replace nan with the best hit
+            taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
+            value_taxonomic_level = taxon_levels_dict[taxonomic_level]
+            best_hit_list = []
+            for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
+                ## human readable range => e.g. from 5 to 0 for species level
+                for test in range(value_taxonomic_level-1,-1,-1):
+                    if taxon[test] != "unidentified":
+                        best_hit_list.append(taxon[test])
+                        break
+            TaXon_table_df[taxonomic_level] = best_hit_list
     else:
         taxonomic_level = "IDs"
-
 
     ##############################################################################
     ## create a subfolder for better sorting and overview
@@ -93,16 +95,20 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     fig.update_traces(showlegend=False)
     fig.update_layout(width=int(width_value), height=int(height_value), template=template)
 
-    # finish script
-    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## write files
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 
-    closing_text = "\n" + "Read proportion plots are found in: " + str(path_to_outdirs) + "/Read_proportion_plots/"
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
+    closing_text = "Read proportion plots are found in: " + str(path_to_outdirs) + "/Read_proportion_plots/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+    ## write log
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions heatmap", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
@@ -113,11 +119,10 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     import numpy as np
     import plotly.express as px
     from pathlib import Path
-    import os
+    import os, webbrowser
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
-    TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 
@@ -128,18 +133,22 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         sg.Popup("Please do not use presence absence data!", title=("Error"))
         raise RuntimeError
 
+    ## check for the taxonmic level to analyse
     if taxonomic_level != "OTUs":
-        ## replace nan with the best hit
-        taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
-        value_taxonomic_level = taxon_levels_dict[taxonomic_level]
-        best_hit_list = []
-        for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
-            ## human readable range => e.g. from 5 to 0 for species level
-            for test in range(value_taxonomic_level-1,-1,-1):
-                if taxon[test] != "nan":
-                    best_hit_list.append(taxon[test])
-                    break
-        TaXon_table_df[taxonomic_level] = best_hit_list
+        # ask how the to handle missing taxonomy
+        answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
+        if answer == "Yes":
+            ## replace nan with the best hit
+            taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
+            value_taxonomic_level = taxon_levels_dict[taxonomic_level]
+            best_hit_list = []
+            for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
+                ## human readable range => e.g. from 5 to 0 for species level
+                for test in range(value_taxonomic_level-1,-1,-1):
+                    if taxon[test] != "unidentified":
+                        best_hit_list.append(taxon[test])
+                        break
+            TaXon_table_df[taxonomic_level] = best_hit_list
     else:
         taxonomic_level = "IDs"
 
@@ -208,13 +217,20 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     fig.update_yaxes(title_text="Reads (%)")
     fig.update_xaxes(title_text="")
 
-    answer = sg.PopupYesNo('Open html?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## write files
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
+
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Read proportion plot is found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    ## print closing text
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions bar plot", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
@@ -225,11 +241,10 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     import numpy as np
     import plotly.graph_objects as go
     from pathlib import Path
-    import os
+    import os, webbrowser
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
-    TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 
@@ -240,18 +255,22 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         sg.Popup("Please do not use presence absence data!", title=("Error"))
         raise RuntimeError
 
+    ## check for the taxonmic level to analyse
     if taxonomic_level != "OTUs":
-        ## replace nan with the best hit
-        taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
-        value_taxonomic_level = taxon_levels_dict[taxonomic_level]
-        best_hit_list = []
-        for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
-            ## human readable range => e.g. from 5 to 0 for species level
-            for test in range(value_taxonomic_level-1,-1,-1):
-                if taxon[test] != "nan":
-                    best_hit_list.append(taxon[test])
-                    break
-        TaXon_table_df[taxonomic_level] = best_hit_list
+        # ask how the to handle missing taxonomy
+        answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
+        if answer == "Yes":
+            ## replace nan with the best hit
+            taxon_levels_dict = {"Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5, "Species": 6}
+            value_taxonomic_level = taxon_levels_dict[taxonomic_level]
+            best_hit_list = []
+            for taxon in TaXon_table_df[list(taxon_levels_dict.keys())].values.tolist():
+                ## human readable range => e.g. from 5 to 0 for species level
+                for test in range(value_taxonomic_level-1,-1,-1):
+                    if taxon[test] != "unidentified":
+                        best_hit_list.append(taxon[test])
+                        break
+            TaXon_table_df[taxonomic_level] = best_hit_list
     else:
         taxonomic_level = "IDs"
 
@@ -333,17 +352,22 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     fig.update_layout(annotations=[dict(text=taxonomic_level, x=0.5, y=0.5, showarrow=False)])
     fig.update_layout(width=int(width_value), height=int(height_value), template=template)
 
+    ## write files
     output_pdf = Path(str(dirName) + "/" + taxonomic_level + "_pie.pdf")
     output_html = Path(str(dirName) + "/" + taxonomic_level + "_pie.html")
     output_xlsx = Path(str(dirName) + "/" + taxonomic_level + "_pie.xlsx")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 
-    ## finish script
-    answer = sg.PopupYesNo('Open html?', keep_on_top=True)
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        fig.show()
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Read proportion plot is found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+    ## write log
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions pie chart", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)

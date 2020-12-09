@@ -22,7 +22,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
         count = 0
 
-        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species"]
+        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", "G_OTUs"]
 
         venn_dict = {}
 
@@ -40,6 +40,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
             output_name = taxon
             taxon = taxon[2:]
+
+            if taxon == "OTUs":
+                taxon="IDs"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
             data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)
@@ -95,7 +98,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
                 os.mkdir(dirName)
 
             output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
-            plt.title(taxon)
+            plt.title(output_name[2:])
             plt.savefig(output_pdf, bbox_inches='tight')
 
             if taxon == "Species":
@@ -140,7 +143,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
         count = 0
 
-        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species"]
+        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", "G_OTUs"]
 
         venn_dict = {}
 
@@ -158,6 +161,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
             output_name = taxon
             taxon = taxon[2:]
+
+            if taxon == "OTUs":
+                taxon="IDs"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
             data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)
@@ -238,7 +244,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
                 os.mkdir(dirName)
 
             output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
-            plt.title(taxon)
+            plt.title(output_name[2:])
             plt.savefig(output_pdf, bbox_inches='tight')
 
             if taxon == "Species":

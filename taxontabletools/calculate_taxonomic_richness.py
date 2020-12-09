@@ -6,6 +6,7 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     import numpy as np
     import plotly.graph_objects as go
     from pathlib import Path
+    import webbrowser
 
     color1 = theme[0]
     color2 = theme[1]
@@ -42,16 +43,21 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     fig.update_layout(title_text='Taxonomic richness', yaxis_title="# OTUs")
     fig.update_layout(height=int(y_tax_rich), width=int(x_tax_rich), template=template)
 
+    ## finish script
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.html")
+    fig.write_image(str(output_pdf))
+    fig.write_html(str(output_html))
+
+    ## ask to show file
     answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        fig.show()
-    bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.pdf")
-    bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.html")
-    fig.write_image(str(bar_pdf))
-    fig.write_html(str(bar_html))
+        webbrowser.open('file://' + str(output_html))
 
+    ## print closing text
     closing_text = "\n" + "Taxonomic richness plots are found in: " + str(path_to_outdirs) + "/taxonomic_richness_plots/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+    ## write to log
     from taxontabletools.create_log import ttt_log
-    ttt_log("taxonomic richness", "analysis", TaXon_table_file.name, bar_pdf.name, "nan", path_to_outdirs)
+    ttt_log("taxonomic richness", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)

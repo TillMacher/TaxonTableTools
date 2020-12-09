@@ -7,7 +7,7 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
     import numpy as np
     from pathlib import Path
     import plotly.graph_objects as go
-    import os
+    import os, webbrowser
 
     ## dictionary with all country codes of the Earth
     country_codes_dict = {'Andorra': ['AD', 'Europe'],
@@ -378,9 +378,6 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
 
         fig.add_trace(go.Scatter(x=list(taxa), y=[105]*len(taxa), text=n_occurrences, name="countries", mode="text"))
 
-        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-        if answer == "Yes":
-            fig.show()
         ## define output files
         output_pdf = Path(str(dirName) + "/" + '_'.join(continents_to_check) + ".pdf")
         output_html = Path(str(dirName) + "/" + '_'.join(continents_to_check) + ".html")
@@ -395,6 +392,16 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 
+        ## ask to show file
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+        if answer == "Yes":
+            webbrowser.open('file://' + str(output_html))
+
+        ## print closing text
+        closing_text = "GBIF occurrence plots and tables are found under: " + str(path_to_outdirs) + "/Occurrence_analysis/"
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        ## write log file
         from taxontabletools.create_log import ttt_log
         ttt_log("occurrence analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
@@ -407,7 +414,7 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
     import numpy as np
     from pathlib import Path
     import plotly.graph_objects as go
-    import os
+    import os, webbrowser
 
     # slice function for lists to split up lists
     def slices(list, slice):
@@ -418,7 +425,10 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
     input_files = sorted(glob.glob(str(path_to_outdirs) + "/Occurrence_analysis/*/*.xlsx"))
     input_files_short = []
     for file in input_files:
-        input_files_short.append(str(Path(file).parent).split("/")[-1] + "/" + Path(file).name)
+        if "\\" in file:
+            input_files_short.append(str(Path(file).parent).split("\\")[-1] + "/" + Path(file).name)
+        else:
+            input_files_short.append(str(Path(file).parent).split("/")[-1] + "/" + Path(file).name)
 
     ##################################################
     # start a second window to ask for the read tables to process
@@ -466,16 +476,19 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
 
                 fig.add_trace(go.Scatter(x=taxa, y=[105]*len(taxa), text=n_occurrences, name="countries", mode="text"))
 
-                answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-                if answer == "Yes":
-                    fig.show()
                 ## define output files
                 output_pdf = Path(str(file).replace(".xlsx", ".pdf"))
                 output_html = Path(str(file).replace(".xlsx", ".html"))
                 fig.write_image(str(output_pdf))
                 fig.write_html(str(output_html))
 
-                closing_text = "Occurrence plots and tables are found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
+                ## ask to show file
+                answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+                if answer == "Yes":
+                    webbrowser.open('file://' + str(output_html))
+
+                ## print closing text
+                closing_text = "GBIF occurrence plots and tables are found under: " + str(path_to_outdirs) + "/Occurrence_analysis/"
                 sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
                 win2.Close()

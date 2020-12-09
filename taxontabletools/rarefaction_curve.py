@@ -1,11 +1,12 @@
 def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme):
 
-    import random
+    import random, webbrowser
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
     import plotly.graph_objects as go
     from pathlib import Path
+    import webbrowser
 
     color1 = theme[0]
     color2 = theme[1]
@@ -117,17 +118,22 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
     fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
     fig.update_layout(height=800, width=1200, template=template, showlegend=False)
 
-    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_OTUs.pdf")
     output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_OTUs.html")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+    ## write to log file
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve OTUs", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
@@ -139,6 +145,7 @@ def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, te
     import numpy as np
     import plotly.graph_objects as go
     from pathlib import Path
+    import webbrowser
 
     color1 = theme[0]
     color2 = theme[1]
@@ -245,17 +252,22 @@ def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, te
     fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
     fig.update_layout(height=800, width=1200, template=template, showlegend=False)
 
-    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.pdf")
     output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.html")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+    ## write log
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve species", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
@@ -268,7 +280,7 @@ def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_t
     from pathlib import Path
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
-    import math
+    import math, webbrowser
 
     TaXon_table_file = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("")
@@ -373,16 +385,21 @@ def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_t
     fig.update_yaxes(rangemode="tozero")
     fig.update_xaxes(rangemode="tozero")
 
-    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-    if answer == "Yes":
-        fig.show()
+    ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_reads.pdf")
     output_html = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_reads.html")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 
+    ## ask to show file
+    answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+    if answer == "Yes":
+        webbrowser.open('file://' + str(output_html))
+
+    ## print closing text
     closing_text = "Rarefaction curves are found in: " + str(path_to_outdirs) + "/rarefaction_curves/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+    ## write log
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve reads", "analysis", TaXon_table_file.name, output_pdf.name, repetitions, path_to_outdirs)

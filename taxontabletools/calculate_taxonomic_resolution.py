@@ -1,13 +1,5 @@
 def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme):
 
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/TTT_cons_derep_arthropoda_no_NC.xlsx"
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
-    # x_tax_res = "1000"
-    # y_tax_res = "1000"
-    # figure_type = "a"
-    # template= "seaborn"
-    # theme = ["Blue", "Black", 1]
-
     import glob
     import PySimpleGUI as sg
     import pandas as pd
@@ -15,6 +7,7 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
     import numpy as np
     import plotly.graph_objects as go
     from pathlib import Path
+    import webbrowser
 
     color1 = theme[0]
     color2 = theme[1]
@@ -56,16 +49,20 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
         fig.update_layout(title_text='Taxonomic resolution (highest taxonomic level)', yaxis_title="# OTUs")
         fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template)
 
+        ## finish script
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.html")
+        fig.write_image(str(output_pdf))
+        fig.write_html(str(output_html))
+
+        ## ask to show file
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            fig.show()
-        bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.pdf")
-        bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_a.html")
-        fig.write_image(str(bar_pdf))
-        fig.write_html(str(bar_html))
+            webbrowser.open('file://' + str(output_html))
 
+        ## write log file
         from taxontabletools.create_log import ttt_log
-        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, bar_pdf.name, "plot a", path_to_outdirs)
+        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_pdf.name, "plot a", path_to_outdirs)
 
     # option B: bar plot
     else:
@@ -75,16 +72,20 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
         fig.update_layout(title_text='Taxonomic resolution (total number of OTUs)', yaxis_title="# OTUs")
         fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template)
 
+        ## finish script
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.html")
+        fig.write_image(str(output_pdf))
+        fig.write_html(str(output_html))
+
+        ## show plot
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            fig.show()
-        bar_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.pdf")
-        bar_html = Path(str(path_to_outdirs) + "/" + "Taxonomic_resolution_plots" + "/" + TaXon_table_file.stem + "_taxonomic_resolution_b.html")
-        fig.write_image(str(bar_pdf))
-        fig.write_html(str(bar_html))
+            webbrowser.open('file://' + str(output_html))
 
+        ## write log file
         from taxontabletools.create_log import ttt_log
-        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, bar_pdf.name, "plot b", path_to_outdirs)
+        ttt_log("taxonomic resolution", "analysis", TaXon_table_file.name, output_pdf.name, "plot b", path_to_outdirs)
 
     closing_text = "\n" + "Taxonomic resolution plots are found in: " + str(path_to_outdirs) + "/taxonomic_resolution_plots/"
     sg.Popup(closing_text, title="Finished", keep_on_top=True)

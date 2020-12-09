@@ -1,20 +1,12 @@
 def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme):
 
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Dessau_Vertebrates/TaXon_tables/Dessau_eDNA_3_taxon_table_cons_derep_no_NC_chordata.xlsx"
-    # height = "500"
-    # width = "800"
-    # taxonomic_level = "Class"
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/"
-    # template = "simple_white"
-    # theme = ["Teal", "Black", 0.6]
-
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
     from pathlib import Path
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
-    import itertools
+    import itertools, webbrowser
 
     ## collect plot variables
     color1 = theme[0]
@@ -80,13 +72,21 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
         ## update the layout
         fig.update_layout(barmode='stack', height=int(height), width=int(width), template=template, showlegend=True)
 
-        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
-        if answer == "Yes":
-            fig.show()
+        ## write ouput files
         output_pdf = Path(str(path_to_outdirs) + "/Per_taxon_statistics/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + ".pdf")
         output_html = Path(str(path_to_outdirs) + "/Per_taxon_statistics/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + ".html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 
+        ## ask to show file
+        answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+        if answer == "Yes":
+            webbrowser.open('file://' + str(output_html))
+
+        ## print closing text
+        closing_text = "Plots are found under: " + str(path_to_outdirs) + "/Per_taxon_statistics/"
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+        ## write to log
         from taxontabletools.create_log import ttt_log
         ttt_log("Per taxon statistics", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)

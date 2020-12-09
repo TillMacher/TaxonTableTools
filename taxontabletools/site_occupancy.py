@@ -1,6 +1,6 @@
 def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme):
 
-    import os
+    import os, webbrowser
     import pandas as pd
     from pandas import DataFrame
     from pathlib import Path
@@ -103,11 +103,11 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     fig.update_layout(height=int(y_site_occ), width=int(x_site_occ), template=template)
                     fig.update_yaxes(range=[0,100])
 
-                    occupancy_plot_pdf = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".pdf")
-                    occupancy_plot_html = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".html")
+                    output_pdf = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".pdf")
+                    output_html = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".html")
                     occupancy_table = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".xlsx")
-                    fig.write_image(str(occupancy_plot_pdf))
-                    fig.write_html(str(occupancy_plot_html))
+                    fig.write_image(str(output_pdf))
+                    fig.write_html(str(output_html))
                     occupancy_df = pd.DataFrame(occupancy_list, species_list)
                     occupancy_df.columns = ["Occupancy"]
                     occupancy_df.index.name = "Taxon"
@@ -122,13 +122,16 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                         occupancy_df = occupancy_df.drop("sort", axis=1)
                     occupancy_df.to_excel(occupancy_table)
 
-                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                ## ask to show file
+                answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
                 if answer == "Yes":
-                    fig.show()
+                    webbrowser.open('file://' + str(output_html))
 
-                closing_text = "Site occupancy plots are found under:\n" + '/'.join(str(occupancy_plot_pdf).split("/")[-4:])
+                ## print closing text
+                closing_text = "Site occupancy plots are found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
                 sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
+                ## write to log
                 from taxontabletools.create_log import ttt_log
                 placeholder = TaXon_table_xlsx.name + " (multiple site occupancy plots)"
                 ttt_log("site occupancy", "analysis", TaXon_table_xlsx.name, placeholder, meta_data_to_test, path_to_outdirs)

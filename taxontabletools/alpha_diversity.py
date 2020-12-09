@@ -4,6 +4,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     import pandas as pd
     import numpy as np
     from pathlib import Path
+    import webbrowser
     import plotly.graph_objects as go
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
@@ -54,19 +55,19 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
             fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(size=int(scatter_size))))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=True)
 
-        # finish script
+        ## finish script
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.html")
+        fig.write_image(str(output_pdf))
+        fig.write_html(str(output_html))
+
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            fig.show()
-
-        bar_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.pdf")
-        bar_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.html")
-        fig.write_image(str(bar_pdf))
-        fig.write_html(str(bar_html))
+            webbrowser.open('file://' + str(output_html))
 
         sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
-        ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+        ttt_log("alpha diversity scatter", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
@@ -77,6 +78,7 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
     import pandas as pd
     import numpy as np
     from pathlib import Path
+    import webbrowser
     import plotly.graph_objects as go
 
     color1 = theme[0]
@@ -128,19 +130,19 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
             fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color1, marker_line_color=color2, marker_line_width=0.2, opacity=opacity_value))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=False)
 
-        # finish script
+        ## finish script
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.html")
+        fig.write_image(str(output_pdf))
+        fig.write_html(str(output_html))
+
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
         if answer == "Yes":
-            fig.show()
-
-        bar_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.pdf")
-        bar_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.html")
-        fig.write_image(str(bar_pdf))
-        fig.write_html(str(bar_html))
+            webbrowser.open('file://' + str(output_html))
 
         sg.Popup("Alpha diversity estimate are found in", path_to_outdirs, "/Alpha_diversity/", title="Finished", keep_on_top=True)
         from taxontabletools.create_log import ttt_log
-        ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, bar_pdf.name, meta_data_to_test, path_to_outdirs)
+        ttt_log("alpha diversity boxplot", "analysis", TaXon_table_xlsx.name, output_pdf.name, meta_data_to_test, path_to_outdirs)
 
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
