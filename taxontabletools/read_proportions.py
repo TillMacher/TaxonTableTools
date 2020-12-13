@@ -4,6 +4,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     import pandas as pd
     import numpy as np
     import plotly.express as px
+    import plotly.graph_objects as go
     from pathlib import Path
     import os, webbrowser
 
@@ -64,7 +65,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     for sample in samples_list:
         df = TaXon_table_df[['IDs', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
         df_2 = df[[sample]]/df[[sample]].sum()
-        df = df.assign(perc=df_2.values)
+        df = df.assign(perc=df_2.values * 100)
         df["perc"] = df.groupby([taxonomic_level])['perc'].transform('sum')
         df_3 = df.drop_duplicates(subset=[taxonomic_level, 'perc'])
         df_3 = df_3.drop([sample], axis=1)
@@ -87,13 +88,84 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     window_progress_bar.Close()
 
     ## create plot
-    ## ask if as subplot shall be generated
+    ## ask if a subplot shall be generated
     plot_df = TaXon_table_df_2[samples_list]
     plot_df.index = TaXon_table_df_2[taxonomic_level]
 
-    fig = px.imshow(plot_df)
-    fig.update_traces(showlegend=False)
-    fig.update_layout(width=int(width_value), height=int(height_value), template=template)
+    ## custom colorscale
+    cs=[
+    [0, "rgb(220,220,220)"],
+
+    [0.00001, "rgb(255,255,255)"],
+    [0.05, "rgb(255,255,255)"],
+
+    [0.05, "rgb(242,242,255)"],
+    [0.1, "rgb(242,242,255)"],
+
+    [0.1, "rgb(229,229,255)"],
+    [0.15, "rgb(229,229,255)"],
+
+    [0.15, "rgb(216,216,255)"],
+    [0.2, "rgb(216,216,255)"],
+
+    [0.2, "rgb(203,203,255)"],
+    [0.25, "rgb(203,203,255)"],
+
+    [0.25, "rgb(190,190,255)"],
+    [0.3, "rgb(190,190,255)"],
+
+    [0.3, "rgb(177,177,255)"],
+    [0.35, "rgb(177,177,255)"],
+
+    [0.35, "rgb(164,164,255)"],
+    [0.4, "rgb(164,164,255)"],
+
+    [0.4, "rgb(155,155,255)"],
+    [0.45, "rgb(155,155,255)"],
+
+    [0.45, "rgb(138,138,255)"],
+    [0.5, "rgb(138,138,255)"],
+
+    [0.5,"rgb(125,125,255)"],
+    [0.55,"rgb(125,125,255)"],
+
+    [0.55, "rgb(112,112,255)"],
+    [0.6, "rgb(112,112,255)"],
+
+    [0.6, "rgb(99,99,255)"],
+    [0.65, "rgb(99,99,255)"],
+
+    [0.65, "rgb(86,86,255)"],
+    [0.7, "rgb(86,86,255)"],
+
+    [0.7, "rgb(73,73,255)"],
+    [0.75, "rgb(73,73,255)"],
+
+    [0.75, "rgb(60,60,255)"],
+    [0.8, "rgb(60,60,255)"],
+
+    [0.8, "rgb(47,47,255)"],
+    [0.85, "rgb(47,47,255)"],
+
+    [0.85, "rgb(34,34,255)"],
+    [0.9, "rgb(34,34,255)"],
+
+    [0.9, "rgb(21,21,255)"],
+    [0.95, "rgb(21,21,255)"],
+
+    [0.95, "rgb(8,8,255)"],
+    [1, "rgb(8,8,255)"],
+
+    ]
+
+    ## v2 heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=plot_df.values.tolist()[::-1],
+        x=plot_df.columns.tolist(),
+        y=plot_df.index.tolist()[::-1],
+        colorscale=cs))
+
+    fig.update_layout(width=int(width_value), height=int(height_value), template=template, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='Reads (%)')
 
     ## write files
     fig.write_image(str(output_pdf))

@@ -80,15 +80,15 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         # spearman's rho
         # reads
         spearman = scipy.stats.spearmanr(x1, y1)
-        spearman_p = spearman[1]
-        if spearman_p <= 0.05:
+        spearman_p_reads = spearman[1]
+        if spearman_p_reads <= 0.05:
             spearman_rho_reads = str(round(spearman[0], 3)) + "*"
         else:
             spearman_rho_reads = str(round(spearman[0], 3))
         # OTUs
         spearman = scipy.stats.spearmanr(x2, y2)
-        spearman_p = spearman[1]
-        if spearman_p <= 0.05:
+        spearman_p_OTUs = spearman[1]
+        if spearman_p_OTUs <= 0.05:
             spearman_rho_OTUs = str(round(spearman[0], 3)) + "*"
         else:
             spearman_rho_OTUs = str(round(spearman[0], 3))
@@ -99,14 +99,14 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         df = pd.DataFrame({'X':x1, 'Y':y1})
         df['bestfit'] = sm.OLS(df['Y'],sm.add_constant(df['X'])).fit().fittedvalues
         fig.add_trace(go.Scatter(name="Reads",x=x1, y=y1, mode='markers', marker=dict(color=color1), showlegend=False),row=1, col=1)
-        fig.add_trace(go.Scatter(name="Reads (rho) = " + spearman_rho_reads, x=x1, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=1)
+        fig.add_trace(go.Scatter(name="rho(reads)=" + spearman_rho_reads, x=x1, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=1)
         fig.update_xaxes(title_text = "# reads (rep2)", row=1, col=1)
         fig.update_yaxes(title_text = "# reads (rep1)", row=1, col=1)
         # calculate line if best fit for OTUs and add the scatter plot
         df = pd.DataFrame({'X':x2, 'Y':y2})
         df['bestfit'] = sm.OLS(df['Y'],sm.add_constant(df['X'])).fit().fittedvalues
         fig.add_trace(go.Scatter(name='OTUs', x=x2, y=y2, mode='markers', marker=dict(color=color1), showlegend=False),row=1, col=2)
-        fig.add_trace(go.Scatter(name="OTUs (rho) = " + spearman_rho_OTUs, x=x2, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=2)
+        fig.add_trace(go.Scatter(name="rho(OTUs)=" + spearman_rho_OTUs, x=x2, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=2)
         fig.update_xaxes(title_text = "# OTUs (rep2)", row=1, col=2)
         fig.update_yaxes(title_text = "# OTUs (rep1)", row=1, col=2)
         # update the layouts
@@ -119,8 +119,14 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         ## write files
         output_pdf = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.pdf")
         output_html = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.html")
+        output_text = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.txt")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
+        f = open(output_text, "w")
+        f.write("Spearman correlation results\n")
+        f.write("Reads\n" + "rho = " + str(spearman_rho_reads) + "\np = " + str(spearman_p_reads) + "\n")
+        f.write("OTUs\n" + "rho = " + str(spearman_rho_OTUs) + "\np = " + str(spearman_p_OTUs) + "\n")
+        f.close()
 
         ## ask to show file
         answer = sg.PopupYesNo('Show plot?', keep_on_top=True)

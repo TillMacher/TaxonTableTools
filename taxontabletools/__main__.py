@@ -11,7 +11,7 @@ except:
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
 # Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.1.4"
+taxon_tools_version = "Version 1.1.5"
 
 ##########################################################################################################################
 # general functions
@@ -345,9 +345,9 @@ def main():
     					[sg.Text('')],
     					]
 
-    replicate_analysis_layout = [
+    replicate_analyses_layout = [
     					[sg.Text('',size=(1,1))],
-    					[sg.Text('Replicate processing', size=(50,2), font=('Arial', 11, "bold"))],
+    					[sg.Text('Replicate analyses', size=(50,2), font=('Arial', 11, "bold"))],
     					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_table_processing_1_table')],
     					[sg.Text('_'*105)],
     					[sg.Text('Replicates',size=(40,2), font=('Arial', 11, "bold"))],
@@ -521,7 +521,7 @@ def main():
                         sg.Button("Help", key = 'run_beta_diversity_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_beta"),
                         sg.Input("1000", size=(4,1), key="height_beta")],
-                        [sg.Text("Cmap:"), sg.Input("beta_cmap", size=(15,1), key="beta_cmap")]], title="Settings")],
+                        [sg.Text("Color map:"), sg.Input("Viridis", size=(15,1), key="beta_cmap")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
 
     					[sg.Text('Ordination analyses',size=(40,2), font=('Arial', 11, "bold"))],
@@ -583,7 +583,7 @@ def main():
     			[sg.Text('',size=(1,1))],
     			[sg.TabGroup([[
                 sg.Tab('Getting started\n', getting_started_layout),
-                sg.Tab('Replicate\nanalysis', replicate_analysis_layout),
+                sg.Tab('Replicate\nanalyses', replicate_analyses_layout),
                 sg.Tab('TaXon table\nfiltering', taxon_table_filtering_layout),
                 sg.Tab('Data\nconversion', data_conversion_layout),
                 sg.Tab('Basic\nstatistics', basic_statistics_layout),

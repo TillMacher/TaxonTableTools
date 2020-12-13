@@ -51,7 +51,7 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
         matrix_df.index = samples
 
         # create plot
-        fig = px.imshow(matrix, x=samples,y=samples, labels=dict(color="Jaccard distance"))
+        fig = px.imshow(matrix, x=samples,y=samples, color_continuous_scale=beta_cmap, labels=dict(color="Jaccard distance"))
         fig.update_layout(height=int(beta_h), width=int(beta_w), template=template, showlegend=True, title=textbox)
 
         # finish script

@@ -157,8 +157,8 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1.5, opacity=opacity_value)
 
     ## write files
-    output_pdf = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.pdf"))
-    output_html = Path(str(dirName) + "/" + TaXon_table_xlsx.name.replace(".xlsx", "_replicate_analysis.html"))
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_shared_OTUs.pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_shared_OTUs.html")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
 

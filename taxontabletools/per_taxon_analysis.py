@@ -89,4 +89,4 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
 
         ## write to log
         from taxontabletools.create_log import ttt_log
-        ttt_log("Per taxon statistics", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
+        ttt_log("per taxon statistics", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)

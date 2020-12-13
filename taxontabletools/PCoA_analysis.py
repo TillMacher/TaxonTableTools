@@ -159,7 +159,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                     else:
                         fig = px.scatter_3d(df_pcoa, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
                         fig.update_traces(marker_size=int(pcoa_s), mode="markers")
-                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, title=textbox)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
                     ## define output files
