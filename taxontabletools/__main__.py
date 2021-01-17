@@ -8,7 +8,7 @@ import webbrowser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = "Version 1.2.0"
+taxon_tools_version = "Version 1.2.1"
 
 ##########################################################################################################################
 # general functions
