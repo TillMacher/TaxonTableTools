@@ -1,4 +1,4 @@
-def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme):
+def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size):
 
     import csv, glob, sys, os, webbrowser
     import PySimpleGUI as sg
@@ -21,7 +21,7 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     n_samples = len(TaXon_table_df.columns[10:].tolist())
 
     # number of OTUs
-    n_OTUs_total = len(TaXon_table_df['IDs'].tolist())
+    n_OTUs_total = len(TaXon_table_df['ID'].tolist())
 
     # number of taxa per taxon level
     n_Phyla = list(set(TaXon_table_df['Phylum'].tolist()))
@@ -128,7 +128,7 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=3, col=1)
     fig.update_yaxes(range=[0, max_otus], title_text="# OTUs", row=3, col=1)
     # update the layout
-    fig.update_layout(height=heigth, width=width, template=template, showlegend=False)
+    fig.update_layout(height=heigth, width=width, template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
 
     ## finish script
     basic_stats_directory = Path(str(path_to_outdirs) + "/" + "Basic_stats" + "/" + TaXon_table_xlsx.stem)

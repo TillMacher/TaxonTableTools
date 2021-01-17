@@ -1,4 +1,4 @@
-def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme):
+def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme, font_size):
 
     import random, webbrowser
     import PySimpleGUI as sg
@@ -116,7 +116,7 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
     fig = go.Figure(data=[go.Scatter(x=draws, y=n_OTUs, error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True))])
     fig.update_layout(title_text="repetitions = " + str(n_reps+1), yaxis_title="# OTUs", xaxis_title="# samples")
     fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
-    fig.update_layout(height=800, width=1200, template=template, showlegend=False)
+    fig.update_layout(height=800, width=1200, template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
 
     ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_OTUs.pdf")
@@ -137,7 +137,7 @@ def rarefaction_curve_OTUs(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve OTUs", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
-def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme):
+def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme, font_size):
 
     import random
     import PySimpleGUI as sg
@@ -250,7 +250,7 @@ def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, te
     fig = go.Figure(data=[go.Scatter(x=draws, y=n_species, error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True))])
     fig.update_layout(title_text="repetitions = " + str(n_reps+1), yaxis_title="# species", xaxis_title="# samples")
     fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
-    fig.update_layout(height=800, width=1200, template=template, showlegend=False)
+    fig.update_layout(height=800, width=1200, template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
 
     ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_species.pdf")
@@ -271,7 +271,7 @@ def rarefaction_curve_species(TaXon_table_xlsx, repetitions, path_to_outdirs, te
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve species", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
-def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_to_outdirs, template, theme):
+def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_to_outdirs, template, theme, font_size):
 
     import pandas as pd
     import PySimpleGUI as sg
@@ -330,11 +330,11 @@ def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_t
     for sample in samples:
 
         ## filter sample from data
-        read_df = TaXon_table_df[[sample, "IDs"]]
+        read_df = TaXon_table_df[[sample, "ID"]]
         ## drop empty OTUs
         read_df = read_df[read_df[sample] != 0]
         ## create read list to draw the subsamples from
-        read_list = pd.Series(np.repeat(read_df['IDs'].to_list(), read_df[sample].to_list()))
+        read_list = pd.Series(np.repeat(read_df['ID'].to_list(), read_df[sample].to_list()))
 
         output = []
 
@@ -381,7 +381,7 @@ def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_t
 
     window_progress_bar.Close()
 
-    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=False)
+    fig.update_layout(height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size, showlegend=False)
     fig.update_yaxes(rangemode="tozero")
     fig.update_xaxes(rangemode="tozero")
 

@@ -1,4 +1,4 @@
-def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme):
+def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -25,7 +25,7 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
 
     sample_names = TaXon_table_df.columns[10:].tolist()
-    OTUs = TaXon_table_df["IDs"].values.tolist()
+    OTUs = TaXon_table_df["ID"].values.tolist()
 
     derep_sample_names_dict =  {}
     unique_sample_names_list = []
@@ -110,7 +110,7 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         fig.update_xaxes(title_text = "# OTUs (rep2)", row=1, col=2)
         fig.update_yaxes(title_text = "# OTUs (rep1)", row=1, col=2)
         # update the layouts
-        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+        fig.update_layout(height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size, showlegend=True)
         if y_zero == True:
             fig.update_yaxes(rangemode="tozero")
         if x_zero == True:

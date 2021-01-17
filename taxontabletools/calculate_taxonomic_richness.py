@@ -1,4 +1,4 @@
-def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme):
+def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -41,7 +41,7 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     fig = go.Figure(data=[go.Bar(x=taxon_levels, y=number_of_taxa_per_level, name="Taxon", textposition="outside", text=number_of_taxa_per_level)])
     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
     fig.update_layout(title_text='Taxonomic richness', yaxis_title="# OTUs")
-    fig.update_layout(height=int(y_tax_rich), width=int(x_tax_rich), template=template)
+    fig.update_layout(height=int(y_tax_rich), width=int(x_tax_rich), template=template, font_size=font_size, title_font_size=font_size)
 
     ## finish script
     output_pdf = Path(str(path_to_outdirs) + "/" + "Taxonomic_richness_plots" + "/" + TaXon_table_file.stem + "_taxonomic_richness_bar.pdf")

@@ -9,7 +9,7 @@ def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
 
     sample_names = TaXon_table_df.columns[10:].tolist()
-    OTUs = TaXon_table_df["IDs"].values.tolist()
+    OTUs = TaXon_table_df["ID"].values.tolist()
 
     derep_sample_names_dict =  {}
     unique_sample_names_list = []

@@ -1,4 +1,4 @@
-def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template):
+def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -37,7 +37,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
-        taxonomic_level = "IDs"
+        taxonomic_level = "ID"
 
     ##############################################################################
     ## create a subfolder for better sorting and overview
@@ -63,7 +63,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     TaXon_table_df_2 = ""
 
     for sample in samples_list:
-        df = TaXon_table_df[['IDs', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
+        df = TaXon_table_df[['ID', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
         df_2 = df[[sample]]/df[[sample]].sum()
         df = df.assign(perc=df_2.values * 100)
         df["perc"] = df.groupby([taxonomic_level])['perc'].transform('sum')
@@ -165,7 +165,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
         y=plot_df.index.tolist()[::-1],
         colorscale=cs))
 
-    fig.update_layout(width=int(width_value), height=int(height_value), template=template, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='Reads (%)')
+    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='Reads (%)')
 
     ## write files
     fig.write_image(str(output_pdf))
@@ -184,7 +184,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions heatmap", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
-def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template):
+def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -222,7 +222,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
-        taxonomic_level = "IDs"
+        taxonomic_level = "ID"
 
     ##############################################################################
     ## create a subfolder for better sorting and overview
@@ -248,7 +248,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     TaXon_table_df_2 = ""
 
     for sample in samples_list:
-        df = TaXon_table_df[['IDs', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
+        df = TaXon_table_df[['ID', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
         df_2 = df[[sample]]/df[[sample]].sum()
         df = df.assign(perc=df_2.values*100)
         df["perc"] = df.groupby([taxonomic_level])['perc'].transform('sum')
@@ -285,7 +285,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     plot_df["Color"] = list(np.linspace(0,100,n_taxa)) * len(samples_list)
 
     fig = px.bar(plot_df, x="Sample", y="Reads", color="Taxon", color_continuous_scale='Cividis_r', labels={"Color": "Taxon"})
-    fig.update_layout(barmode='stack', width=int(width_value), height=int(height_value), template=template)
+    fig.update_layout(barmode='stack', width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
     fig.update_yaxes(title_text="Reads (%)")
     fig.update_xaxes(title_text="")
 
@@ -306,7 +306,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions bar plot", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
-def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template):
+def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -344,7 +344,7 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
-        taxonomic_level = "IDs"
+        taxonomic_level = "ID"
 
     ############################################################################
     ## create the progress bar window
@@ -360,7 +360,7 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     TaXon_table_df_2 = ""
 
     for sample in samples_list:
-        df = TaXon_table_df[['IDs', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
+        df = TaXon_table_df[['ID', "Phylum", "Class", "Order", "Family", "Genus", "Species", sample]]
         df_2 = df[[sample]]/df[[sample]].sum()
         df = df.assign(perc=df_2.values)
         df["perc"] = df.groupby([taxonomic_level])['perc'].transform('sum')
@@ -403,9 +403,9 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         labels = sample_df.index.tolist()
         values = sample_df[sample].values.tolist()
         fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
-        fig.update_layout(template=template, title=sample, annotations=[dict(text=taxonomic_level, x=0.5, y=0.5, showarrow=False)])
+        fig.update_layout(title=sample, annotations=[dict(text=taxonomic_level, x=0.5, y=0.5, showarrow=False)])
         fig.update_traces(textposition='inside')
-        fig.update_layout(width=int(width_value), height=int(height_value), template=template)
+        fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
 
         output_pdf = Path(str(dirName_samples) + "/" + sample + "_" + taxonomic_level + "_pie.pdf")
         output_html = Path(str(dirName_samples) + "/" + sample + "_" + taxonomic_level + "_pie.html")
@@ -422,7 +422,7 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     fig = go.Figure(data=[go.Pie(labels=main_df["Taxon"], values=main_df["perc"], hole=.3)])
     fig.update_traces(textposition='inside')
     fig.update_layout(annotations=[dict(text=taxonomic_level, x=0.5, y=0.5, showarrow=False)])
-    fig.update_layout(width=int(width_value), height=int(height_value), template=template)
+    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
 
     ## write files
     output_pdf = Path(str(dirName) + "/" + taxonomic_level + "_pie.pdf")

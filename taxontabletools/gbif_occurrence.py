@@ -1,4 +1,4 @@
-def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, template, theme, path_to_outdirs):
+def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, template, theme, font_size, path_to_outdirs):
 
     import requests_html, json
     import PySimpleGUI as sg
@@ -369,7 +369,7 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
             occurrences = row[1:]
             country = row[0]
             fig.add_trace(go.Bar(x=list(taxa), y=list(occurrences), text=country, name=country, textposition='auto'))
-        fig.update_layout(barmode='stack', width=int(width), height=int(height), template=template)
+        fig.update_layout(barmode='stack', width=int(width), height=int(height), template=template, font_size=font_size, title_font_size=font_size)
         fig.update_yaxes(title="GBIF occurrence references (%)")
 
         n_occurrences = []
@@ -405,7 +405,7 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
         from taxontabletools.create_log import ttt_log
         ttt_log("occurrence analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
-def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
+def gbif_occurrence_plot(width, height, template, theme, font_size, path_to_outdirs):
 
     import requests_html, json, glob
     import PySimpleGUI as sg
@@ -475,6 +475,8 @@ def gbif_occurrence_plot(width, height, template, theme, path_to_outdirs):
                     n_occurrences.append(len([value for value in occurrence_df_filtered[taxon].values.tolist() if value != 0]))
 
                 fig.add_trace(go.Scatter(x=taxa, y=[105]*len(taxa), text=n_occurrences, name="countries", mode="text"))
+
+                fig.update_layout(font_size=font_size, title_font_size=font_size)
 
                 ## define output files
                 output_pdf = Path(str(file).replace(".xlsx", ".pdf"))

@@ -1,4 +1,4 @@
-def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, path_to_outdirs, template):
+def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -10,7 +10,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
 
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
@@ -22,9 +22,25 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
 
+        ## define variables
         samples = Meta_data_table_samples
         OTU_abundances_dict = {}
         samples_metadata_list = []
+
+        ## extract the relevant data
+        TaXon_table_df = TaXon_table_df[[taxonomic_level] + samples]
+        ## define an aggregation function to combine multiple hit of one taxonimic level
+        aggregation_functions = {}
+        ## define samples functions
+        for sample in samples:
+            ## 'sum' will calculate the sum of p/a data
+            aggregation_functions[sample] = 'sum'
+        ## define taxon level function
+        aggregation_functions[taxonomic_level] = 'first'
+        ## create condensed dataframe
+        TaXon_table_df = TaXon_table_df.groupby(TaXon_table_df[taxonomic_level]).aggregate(aggregation_functions)
+        if 'unidentified' in TaXon_table_df.index:
+            TaXon_table_df = TaXon_table_df.drop('unidentified')
 
         # remove samples that do not fit the format
         for i, sample in enumerate(samples):
@@ -50,14 +66,17 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
         ########################################
         # create the plot
 
+        title_dict = {'OTUs': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
+        title = title_dict[taxonomic_level]
+
         fig = go.Figure()
         for category in set(categories):
             fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(size=int(scatter_size))))
-        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=True)
+        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=True, font_size=font_size, title_font_size=font_size)
 
         ## finish script
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_scatter_plot.html")
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_scatter_plot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_scatter_plot.html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 
@@ -72,7 +91,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
 
-def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, path_to_outdirs, template, theme):
+def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, taxonomic_level, path_to_outdirs, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -88,7 +107,10 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
 
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
+    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
+
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
@@ -100,9 +122,25 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
 
+        ## define variables
         samples = Meta_data_table_samples
         OTU_abundances_dict = {}
         samples_metadata_list = []
+
+        ## extract the relevant data
+        TaXon_table_df = TaXon_table_df[[taxonomic_level] + samples]
+        ## define an aggregation function to combine multiple hit of one taxonimic level
+        aggregation_functions = {}
+        ## define samples functions
+        for sample in samples:
+            ## 'sum' will calculate the sum of p/a data
+            aggregation_functions[sample] = 'sum'
+        ## define taxon level function
+        aggregation_functions[taxonomic_level] = 'first'
+        ## create condensed dataframe
+        TaXon_table_df = TaXon_table_df.groupby(TaXon_table_df[taxonomic_level]).aggregate(aggregation_functions)
+        if 'unidentified' in TaXon_table_df.index:
+            TaXon_table_df = TaXon_table_df.drop('unidentified')
 
         # remove samples that do not fit the format
         for i, sample in enumerate(samples):
@@ -125,14 +163,17 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
         ########################################
         # create the plot
 
+        title_dict = {'OTUs': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
+        title = title_dict[taxonomic_level]
+
         fig = go.Figure()
         for category in set(categories):
             fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color1, marker_line_color=color2, marker_line_width=0.2, opacity=opacity_value))
-        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title="# OTUs", showlegend=False)
+        fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=False, font_size=font_size, title_font_size=font_size)
 
         ## finish script
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_boxplot.html")
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_boxplot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_boxplot.html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 

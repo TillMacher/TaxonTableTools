@@ -58,7 +58,7 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
     taxon_levels = ["Phylum","Class","Order","Family","Genus","Species"]
-    OTUs_list = TaXon_table_df["IDs"].values.tolist()
+    OTUs_list = TaXon_table_df["ID"].values.tolist()
 
     taxonomy_check_dict = {}
 

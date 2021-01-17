@@ -13,7 +13,7 @@ def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
     samples_to_process = TaXon_datasheet.columns[10:]
     first_ten_columns_header = TaXon_datasheet.columns[:10].values.tolist()
     first_ten_columns = TaXon_datasheet.iloc[:,[0,1,2,3,4,5,6,7,8,9]].values.tolist()
-    OTU_list = TaXon_datasheet['IDs'].values.tolist()
+    OTU_list = TaXon_datasheet['ID'].values.tolist()
 
     ############################################################################
     ## create the progress bar window

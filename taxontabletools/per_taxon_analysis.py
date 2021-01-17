@@ -1,4 +1,4 @@
-def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme):
+def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -30,7 +30,7 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
 
     if answer == "Yes":
         ## collect the OTUs
-        OTUs = TaXon_table_df["IDs"].values.tolist()
+        OTUs = TaXon_table_df["ID"].values.tolist()
 
         ## count the number of OTUs per taxon
         n_OTUs = [TaXon_table_df[taxonomic_level].values.tolist().count(taxon) for taxon in taxa]
@@ -46,6 +46,10 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
         n_reads = []
         for taxon in taxa:
             n_reads.append(sum([sum(OTU[10:]) for OTU in TaXon_table_df[TaXon_table_df[taxonomic_level]==taxon].values.tolist()]))
+
+        ## calculate the read proportions
+        reads_sum = sum(n_reads)
+        n_reads = [round(reads / reads_sum * 100, 2) for reads in n_reads]
 
         ## create subplots
         fig = make_subplots(rows=1, cols=2, subplot_titles=("A)", "B)"))
@@ -70,7 +74,7 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
         ## fig.add_annotation( text='─ Species', align='left', showarrow=False, xref='paper', yref='paper', x=1.05, y=0.5, bordercolor='black', borderwidth=1)
 
         ## update the layout
-        fig.update_layout(barmode='stack', height=int(height), width=int(width), template=template, showlegend=True)
+        fig.update_layout(barmode='stack', height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
 
         ## write ouput files
         output_pdf = Path(str(path_to_outdirs) + "/Per_taxon_statistics/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + ".pdf")

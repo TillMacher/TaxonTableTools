@@ -16,8 +16,8 @@ def check_taxononomy_table_format(taxonomy_results_xlsx, sheet_name):
     ###################################
     # A) header prompt
     taxonomy_table_df_header = taxonomy_table_df.columns.tolist()
-    header_prompt_1 = ["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status"]
-    header_prompt_2 = ["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status", "Flags"]
+    header_prompt_1 = ["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status"]
+    header_prompt_2 = ["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status", "Flags"]
 
     if sheet_name == "First hit":
         if taxonomy_table_df_header != header_prompt_1:
@@ -37,35 +37,7 @@ def check_taxononomy_table_format(taxonomy_results_xlsx, sheet_name):
     ###################################
     # B) OTUs prompt
 
-    OTU_list = taxonomy_table_df['IDs'].values.tolist()
-
-    # loop through all available OTUs
-    for OTU in OTU_list:
-
-        # define a variable Error message
-        ErrorMessage = "Oops! Something is wrong with the OTU ID: " + OTU
-
-        try:
-            # split the OTU, which should be containing of two elements
-            p1 = OTU.split("_")[0]
-            p2 = OTU.split("_")[1]
-
-        except:
-            sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
-            raise RuntimeError(ErrorMessage)
-
-        # check if the first part in named "OTU"
-        if p1 != "OTU":
-            sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
-            raise RuntimeError(ErrorMessage)
-
-        # check if the second part is an integer
-        # convert p2 to an integer
-        p2 = int(p2)
-        # now check if it is an integer
-        if type(int(p2)) is not int:
-            sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
-            raise RuntimeError(ErrorMessage)
+    ## removed in 1.1.6
 
     ###################################
     # C) Species prompt

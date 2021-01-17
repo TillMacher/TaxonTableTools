@@ -127,7 +127,7 @@ def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdir
 
     # write the log file file to a different dataframe
     transversion_df = pd.DataFrame(transversion_list)
-    transversion_df.columns = ["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species", "ID_ART", "TAXON_NAME"]
+    transversion_df.columns = ["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species", "ID_ART", "TAXON_NAME"]
     transversion_xlsx = Path(str(perlodes_directory) + "_perlodes_conversion_table.xlsx")
     transversion_df.to_excel(transversion_xlsx, index=False)
 

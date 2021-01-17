@@ -42,7 +42,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             taxon = taxon[2:]
 
             if taxon == "OTUs":
-                taxon="IDs"
+                taxon="ID"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
             data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)
@@ -163,7 +163,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             taxon = taxon[2:]
 
             if taxon == "OTUs":
-                taxon="IDs"
+                taxon="ID"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
             data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)

@@ -1,4 +1,4 @@
-def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme):
+def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
 
     import os, webbrowser
     import pandas as pd
@@ -48,7 +48,7 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
 
                     # create a list of all species (or the specified taxonomic level)
                     if taxonomic_level == "OTUs":
-                        taxonomic_level = "IDs"
+                        taxonomic_level = "ID"
                     overall_included_species_list = TaXon_table_df[taxonomic_level].values.tolist()
                     # make the list unique
                     overall_included_species_set = set(overall_included_species_list)
@@ -100,7 +100,7 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     fig = go.Figure(data=[go.Bar(x=species_list, y=occupancy_list)])
                     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=0.6, opacity=opacity_value)
                     fig.update_layout(title_text=site + " (" + taxonomic_level + ")", yaxis_title="occupancy (%)")
-                    fig.update_layout(height=int(y_site_occ), width=int(x_site_occ), template=template)
+                    fig.update_layout(height=int(y_site_occ), width=int(x_site_occ), template=template, font_size=font_size, title_font_size=font_size)
                     fig.update_yaxes(range=[0,100])
 
                     output_pdf = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".pdf")
@@ -113,7 +113,7 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     occupancy_df.index.name = "Taxon"
                     occupancy_df = occupancy_df.sort_values("Occupancy")
                     # sort the table numerical if OTUs were chosen
-                    if taxonomic_level == "IDs":
+                    if taxonomic_level == "ID":
                         sort_list = []
                         for OTU in occupancy_df.index.tolist():
                             sort_list.append(int(OTU.split("_")[1]))

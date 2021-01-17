@@ -1,4 +1,4 @@
-def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme):
+def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme, font_size):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -23,7 +23,7 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
 
     sample_names = TaXon_table_df.columns[10:].tolist()
-    OTUs = TaXon_table_df["IDs"].values.tolist()
+    OTUs = TaXon_table_df["ID"].values.tolist()
 
     derep_sample_names_dict =  {}
     unique_sample_names_list = []
@@ -54,7 +54,6 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
         os.mkdir(dirName)
 
     for sample in unique_sample_names_set:
-
         for i, suffix in enumerate(suffix_list):
             replicates_dict["rep_" + str(i)] = sample + "_" + suffix_list[i]
 
@@ -65,12 +64,13 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
             replicate_comparison_dict = {}
             for replicate in replicate_names_list:
                 replicate_comparison_list = []
-                for OTU in TaXon_table_df[["IDs", replicate]].values.tolist():
+                for OTU in TaXon_table_df[["ID", replicate]].values.tolist():
                     if OTU[1] != 0:
                         replicate_comparison_list.append(OTU[0])
                 replicate_comparison_dict[replicate] = replicate_comparison_list
 
-            # now compare them
+            ## now compare the individual replicates if there are 2 or 3 replicates
+            ## venn diagrams are not available for more than 3 replicates
             if len(replicate_comparison_dict.keys()) == 2:
                 replicate_a = list(replicate_comparison_dict.keys())[0]
                 replicate_b = list(replicate_comparison_dict.keys())[1]
@@ -91,6 +91,8 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
                 venn2(subsets = (len_a_only, len_b_only, len_shared), set_labels = (replicate_a, replicate_b))
                 output_pdf = Path(str(dirName) + "/" + sample + ".pdf")
                 plt.savefig(output_pdf, bbox_inches='tight')
+
+
 
             elif len(replicate_comparison_dict.keys()) == 3:
 
@@ -128,7 +130,15 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
                 plt.close()
 
             else:
-                sg.Popup("Warning! More than 3 replicates are not supported for Venn diagrams:    " + sample)
+                shared_OTUs_list = []
+                present_OTUs_list = [item for sublist in list(replicate_comparison_dict.values()) for item in sublist]
+                for OTU in set(present_OTUs_list):
+                    n_occurences = present_OTUs_list.count(OTU)
+                    if n_occurences == len(suffix_list):
+                        shared_OTUs_list.append(OTU)
+
+                perc_shared = round(len(shared_OTUs_list) / len(list(set(present_OTUs_list))) * 100, 2)
+                replicate_perc_shared_dict[sample] = perc_shared
 
             plt.close('all')
 
@@ -153,7 +163,7 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     fig = px.bar(x=samples, y=shared_otus, labels={"y": "Shared OTUs", "x": "Sample", "text": "Shared OTUs"}, text=shared_otus)
     fig.update_yaxes(title='Shared OTUs (%)', range=[0, 100], dtick=10, autorange=False)
     fig.update_xaxes(title='')
-    fig.update_layout(width=int(width), height=int(height), template=template)
+    fig.update_layout(width=int(width), height=int(height), template=template, font_size=font_size, title_font_size=font_size)
     fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1.5, opacity=opacity_value)
 
     ## write files

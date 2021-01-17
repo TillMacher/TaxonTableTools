@@ -52,3 +52,19 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
 
     from taxontabletools.create_log import ttt_log
     ttt_log("meta data table", "analysis", TaXon_table_xlsx.name, Meta_data_table_xlsx.name, "nan", path_to_outdirs)
+
+def modify_metadata_table(path_to_outdirs):
+    import PySimpleGUI as sg
+    from pathlib import Path
+    import os, subprocess, sys
+
+    metadata_tables_dir = Path(str(path_to_outdirs) + "/Meta_data_table")
+
+    metadata_table = sg.PopupGetFile(initial_folder = metadata_tables_dir, message="Select a metadata table:")
+
+    if metadata_table != None and metadata_table != '':
+        if sys.platform == "win32":
+            os.startfile(metadata_table)
+        else:
+            opener = "open" if sys.platform == 'darwin' else 'xdg-open'
+            subprocess.call([opener, metadata_table])

@@ -17,7 +17,7 @@ def check_taXon_table_format(taXon_table):
     ###################################
     # A) header prompt
     taXon_table_df_header = taXon_table_df.columns.tolist()[0:9]
-    header_prompt = ["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status"]
+    header_prompt = ["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status"]
 
     if taXon_table_df_header != header_prompt:
         sg.PopupError("Oops! Something is wrong with the header!", title="Error", keep_on_top=True)
@@ -26,30 +26,7 @@ def check_taXon_table_format(taXon_table):
     ###################################
     # B) OTUs prompt
 
-    OTU_list = taXon_table_df['IDs'].values.tolist()
-
-    # loop through all available OTUs
-    for OTU in OTU_list:
-
-        # define a variable Error message
-        ErrorMessage = "Oops! Something is wrong with the OTU ID: " + OTU
-
-        try:
-            # split the OTU, which should be containing of two elements
-            p1 = OTU.split("_")[0]
-            p2 = OTU.split("_")[1]
-
-        except:
-            sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
-            raise RuntimeError(ErrorMessage)
-
-        # check if the second part is an integer
-        # convert p2 to an integer
-        try:
-            p2 = int(p2)
-        except :
-            sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
-            raise RuntimeError(ErrorMessage)
+    ## removed in 1.1.6
 
     ###################################
     # C) Species prompt
@@ -101,7 +78,7 @@ def check_taXon_table_format(taXon_table):
     ###################################
     # F) Taxonomy consistency
 
-    taxonomy_list = taXon_table_df[["IDs", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
+    taxonomy_list = taXon_table_df[["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
     for entry in taxonomy_list:
         if "nan" in entry:
             taxonomy = entry[1:]

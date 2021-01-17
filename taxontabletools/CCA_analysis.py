@@ -1,4 +1,4 @@
-def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter_size, draw_mesh, path_to_outdirs, template):
+def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, draw_mesh, path_to_outdirs, template, font_size):
 
     import pandas as pd
     import numpy as np
@@ -14,19 +14,10 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna('unidentified')
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
-    IDs_list = TaXon_table_df["IDs"].values.tolist()
+    IDs_list = TaXon_table_df["ID"].values.tolist()
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
-    output_pdf = Path(str(path_to_outdirs) + "/" + "CCA_plots" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + ".pdf")
-    output_xlsx = Path(str(path_to_outdirs) + "/" + "CCA_plots" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + ".xlsx")
-
-    # check for presence absence data
-    # otherwise abort and print error message
-    pa_test = set([val for sublist in TaXon_table_df[TaXon_table_samples].values.tolist() for val in sublist])
-    if pa_test != {1,0}:
-        sg.Popup("Please use presence absence data!", title=("Error"))
-        raise RuntimeError
 
     # check for presence absence data
     # otherwise abort and print error message
@@ -61,22 +52,40 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
         ## create title
-        textbox = meta_data_to_test
+        textbox = meta_data_to_test + ", " + taxonomic_level
+
+        ## collect samples
+        samples = Meta_data_table_samples
 
         ## create metadata list
         metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
 
+        ## extract the relevant data
+        TaXon_table_df = TaXon_table_df[[taxonomic_level] + samples]
+        ## define an aggregation function to combine multiple hit of one taxonimic level
+        aggregation_functions = {}
+        ## define samples functions
+        for sample in samples:
+            ## 'sum' will calculate the sum of p/a data
+            aggregation_functions[sample] = 'sum'
+        ## define taxon level function
+        aggregation_functions[taxonomic_level] = 'first'
+        ## create condensed dataframe
+        TaXon_table_df = TaXon_table_df.groupby(TaXon_table_df[taxonomic_level]).aggregate(aggregation_functions)
+        if 'unidentified' in TaXon_table_df.index:
+            TaXon_table_df = TaXon_table_df.drop('unidentified')
+
         # transpose the pa table
-        df_features = TaXon_table_df[TaXon_table_samples].transpose()
-        df_features.index = Meta_data_table_samples
+        df_features = TaXon_table_df[samples].transpose()
+        df_features.index = samples
         df_features = df_features.rename_axis("a")
 
         # create a constrains table from the metadata table
         constrains_list = []
         for col in Meta_data_table_df[["Samples", meta_data_to_test]].values.tolist():
             constrains_list.append(float(col[1]))
-        df_constrains = pd.DataFrame(constrains_list, Meta_data_table_samples, [meta_data_to_test])
-        df_constrains.index = Meta_data_table_samples
+        df_constrains = pd.DataFrame(constrains_list, samples, [meta_data_to_test])
+        df_constrains.index = samples
         df_constrains = df_constrains.rename_axis("a")
 
         ordination_result = cca(df_features, df_constrains)
@@ -132,14 +141,14 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
 
                     fig = px.scatter(df_cca, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox)
                     fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
-                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
                     fig.update_xaxes(title=axis_to_plot[1])
                     fig.update_yaxes(title=axis_to_plot[0])
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + ".pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + ".html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + ".xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".xlsx")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))
@@ -187,18 +196,18 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                         ## draw the plot
                         fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox)
                         fig.update_traces(marker_size=int(cca_scatter_size), mode="markers+lines", line=dict(width=0.5))
-                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(height=int(height), width=int(width), title=textbox, template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
                     else:
                         fig = px.scatter_3d(df_cca, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
                         fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
-                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(height=int(height), width=int(width), template=template, title=textbox, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_3d.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_3d.html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_3d.xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.xlsx")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))
@@ -236,7 +245,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                     fig = make_subplots(rows=4, cols=4)
                     ########### 1 ###########
                     fig.add_trace(go.Scatter(),row=1, col=1)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "CCA1 (" + str(round(ordination_result.proportion_explained["CCA1"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False)
                     fig.update_xaxes(showticklabels=False, showgrid=False)
@@ -277,7 +286,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                         fig.update_yaxes(showgrid=False,row=1, col=4)
                     ########### 5 ###########
                     fig.add_trace(go.Scatter(),row=2, col=2)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "CCA2 (" + str(round(ordination_result.proportion_explained["CCA2"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=2, col=2)
                     ########### 6 ###########
@@ -303,7 +312,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                                                     text=df_metadata["Sample"].values.tolist()),row=2, col=4)
                     ########### 8 ###########
                     fig.add_trace(go.Scatter(),row=3, col=3)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "CCA3 (" + str(round(ordination_result.proportion_explained["CCA3"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=3, col=3)
                     ########### 9 ###########
@@ -319,7 +328,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                                                     text=df_metadata["Sample"].values.tolist()),row=3, col=4)
                     ########### 5 ###########
                     fig.add_trace(go.Scatter(),row=4, col=4)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "CCA4 (" + str(round(ordination_result.proportion_explained["CCA4"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=4, col=4)
 
@@ -331,8 +340,8 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, cca_scatter
                     fig.update_layout(height=1000, width=1000, title_text=textbox)
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.html")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))

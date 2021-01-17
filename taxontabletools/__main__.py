@@ -1,17 +1,14 @@
-try:
-    import glob, sys, os, pkgutil, ast
-    import PySimpleGUI as sg
-    import matplotlib.pyplot as plt
-    from pathlib import Path
-    import webbrowser
-except:
-    print("\nError: You need to install the required packages first!\n")
-    exit()
+import glob, sys, os, pkgutil, ast, subprocess
+import PySimpleGUI as sg
+import numpy as np
+import matplotlib.pyplot as plt
+import plotly.express as px
+from pathlib import Path
+import webbrowser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-# Support for: u = ubuntu, w = windows, m = macintosh
-taxon_tools_version = "Version 1.1.5"
+taxon_tools_version = "Version 1.2.0"
 
 ##########################################################################################################################
 # general functions
@@ -21,8 +18,46 @@ def slices(list, slice):
     for i in range(0, len(list), slice):
         yield list[i : i + slice]
 
+def open_taxon_table(taxon_table):
+    if sys.platform == "win32":
+        os.startfile(taxon_table)
+    else:
+        opener = "open" if sys.platform == 'darwin' else 'xdg-open'
+        subprocess.call([opener, taxon_table])
+
 ##########################################################################################################################
 ##########################################################################################################################
+
+def change_log_text():
+    change_log_text = """
+    TTT change log
+    ____________________________________________________________________________
+
+    v. 1.2.0
+        Major update:
+        - The identifier "IDs" was changed to "ID" in the TaXon table header!
+            >> Please adjust old TaXon tables accordingly!
+            >> Otherwise TTT will crash!
+
+        New features:
+        - Metadatables can now directly be adjusted from within TTT.
+        - Browsing TaXon tables will directly show the current project folder.
+        - The OTU prompt is more relaxed. Hash OTUs are accepted now.
+        - Qiime2 feature tables can now be converted to the TTT format.
+        - Additional options for customizing colors have been added.
+        - Font sizes can now be adjusted.
+        - Diversity and ordiniation analyses can now be performed on different taxonomic levels.
+        - Diversity and ordiniation analyses automatically transform data to boolean values.
+          Thus, also non presence/absence converted tables can be used.
+        - Moved various options to drop down menus.
+
+        Bug fixes:
+        - Fixed "shared OTUs" tool. More than 3 replicates are now supported.
+        - Changed x-axis value to read proportions in the per taxon analysis.
+        - Added missing package 'statsmodels' to installation.
+
+    """
+    return change_log_text
 
 def metadata_table_help_text():
     metadata_table_help_text = """
@@ -45,7 +80,7 @@ def alpha_diversity_help_text():
     alpha_diversity_help_text = """
 
     Alpha diversity is calculated with the python package scikit-bio (http://scikit-bio.org/)
-    and is based on the number of OTUs per sample, which are displayed as scatter or bar plot.
+    and is based on the number of taxa (user choice) per sample, which are displayed as scatter or bar plot.
 
     """
     return alpha_diversity_help_text
@@ -54,14 +89,25 @@ def beta_diversity_help_text():
     beta_diversity_help_text = """
 
     Beta diversity is calculated with the python package scikit-bio (http://scikit-bio.org/)
-    and is calculated as jaccard-distances, which are illustrated in a distance matrix.
+    and is calculated as jaccard distances, which are illustrated in a distance matrix.
     An R-square test for reliability and validity is conducted.
-    Check out matplotlib colormaps to customize the plot.
 
-    The TaXon table must be converted to incidence data.
+    The TaXon table data will be automatically converted to incidence (boolean) values.
 
     """
     return beta_diversity_help_text
+
+def cluster_dendrogram_help_text():
+    cluster_dendrogram_help_text = """
+
+    The cluster dendrogram is calculated with the python package scikit-bio (http://scikit-bio.org/)
+    and is based on jaccard distances.
+    The group threshold can be used to highlight groupings in the dendrogram.
+
+    The TaXon table data will be automatically converted to incidence (boolean) values.
+
+    """
+    return cluster_dendrogram_help_text
 
 def cca_analysis_help_text():
     cca_analysis_help_text = """
@@ -71,7 +117,7 @@ def cca_analysis_help_text():
     The meta data must be a vector of random variables (X = X1...,Xn) and must differ between samples!
     All eigenvalues are saved as an Excel sheet.
 
-    The TaXon table must be converted to incidence data.
+    The TaXon table data will be automatically converted to incidence (boolean) values.
 
     """
     return cca_analysis_help_text
@@ -86,7 +132,7 @@ def pcoa_analysis_help_text():
     The two axes to plot can be chosen from all available axes.
     All eigenvalues are saved as an Excel sheet.
 
-    The TaXon table must be converted to incidence data.
+    The TaXon table data will be automatically converted to incidence (boolean) values.
 
     """
     return pcoa_analysis_help_text
@@ -146,8 +192,8 @@ def read_proportions_help_text():
     1. Choosing a higher taxonomic taxonomic level
         -> On lower taxonomic levels (e.g. species) too many taxa are presented at once!
     2. Filter the data
-        -> Removing of not required samples
-        -> Removing of for the study irrelevant taxa groups
+        -> Removal of not required samples
+        -> Removal of for the study irrelevant taxa groups
         -> Keep only species level hits (see Tutorial how to do that)
 
     """
@@ -174,7 +220,7 @@ def main():
     projects_main_path = f.read()
 
     crash = Path(str(path_to_ttt) + "/_source/crash.png")
-    fließgewaesserbewertungde = Path(str(path_to_ttt) + "/_source/fließgewässerbewertung_de.png")
+    fliessgewaesserbewertungde = Path(str(path_to_ttt) + "/_source/fliessgewaesserbewertung_de.png")
     github = Path(str(path_to_ttt) + "/_source/github.png")
     ttt_main = Path(str(path_to_ttt) + "/_source/main.png")
     ttt_logo = Path(str(path_to_ttt) + "/_source/taxontabletools.png")
@@ -185,6 +231,7 @@ def main():
     # stay open until a path was defined
     # then write it the user_data file to reload
     while projects_main_path == "":
+        sg.Popup(change_log_text(), title = "TTT change log")
         projects_main_path = sg.PopupGetFolder("Enter path to ouput directory:", title="Output directory")
         if projects_main_path == None:
             sys.exit()
@@ -271,6 +318,8 @@ def main():
     if not os.path.exists(path_to_outdirs):
         os.mkdir(path_to_outdirs)
 
+    taXon_table_dir_path = Path(str(path_to_outdirs) + "/TaXon_tables/")
+
     directories_to_create = ["Venn_diagrams","TaXon_tables", "TaXon_tables_per_sample", "Taxon_lists", "Rarefaction_curves",
     "Taxonomic_richness_plots", "CCA_plots", "Taxonomic_resolution_plots", "Meta_data_table", "Site_occupancy_plots", "Read_proportions_plots", "Basic_stats",
     "Krona_charts", "Perlodes", "Alpha_diversity", "Beta_diversity", "PCoA_plots", "Replicate_analysis", "GBIF", "Occurrence_analysis", "Per_taxon_statistics"]
@@ -281,9 +330,7 @@ def main():
             os.mkdir(Path(dirName))
 
     available_templates_list = ['seaborn', 'ggplot2', 'simple_white', 'plotly', 'plotly_dark', 'presentation', 'plotly_white']
-    available_templates_radio = list(slices([sg.Radio(name, "template_radio", key=name, default=True) for name in available_templates_list], 7))
-    available_color1_list = ["Dark", "Light", "Green", "Python", "Teal", "Blue"]
-    available_color1_radio = list(slices([sg.Radio(name, "theme_radio", key=name, default=True) for name in available_color1_list], 6))
+    available_color1_list = ["Dark", "Light", "Green", "Blue"]
 
     plotly_colors = ["aliceblue", "antiquewhite", "aqua", "aquamarine", "azure",
     "beige", "bisque", "black", "blanchedalmond", "blue",
@@ -321,9 +368,21 @@ def main():
     "violet", "wheat", "white", "whitesmoke", "yellow",
     "yellowgreen"]
 
+    available_taxonomic_levels_list = ['OTUs', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']
+
     ##########################################################################################################################
     ##########################################################################################################################
     ##########################################################################################################################
+
+    ## define colum layouts for the layout options
+    ## column1
+    column1 = [[sg.Text('Layout:')], [sg.Combo(available_templates_list, default_value='plotly_white', key="template", size=(10,1))]]
+    ## column2
+    column2 = [[sg.Radio('Predefined Theme:', 'theme_radio',key="select_theme", default=True)], [sg.Combo(available_color1_list, default_value='Blue', key="theme", size=(12,1))]]
+    ## column3
+    column3 = [[sg.Radio('Custom theme:', 'theme_radio', key="select_custom_theme")], [sg.Combo(plotly_colors, default_value='Blue', key="color1", size=(12,1))], [sg.Combo(plotly_colors, default_value='Black', key="color2", size=(12,1))]]
+    ##column4
+    column4 = [[sg.Text('Options:')], [sg.Text("Transparent theme:"), sg.CB("", key="transparent_theme", default=False)], [sg.Text("Font size:"), sg.Combo([i for i in range(6, 22, 2)], default_value='14', key="font_size", size=(12,1))]]
 
     getting_started_layout = [
     					[sg.Text('',size=(1,1))],
@@ -332,23 +391,21 @@ def main():
     					[sg.Text('Taxonomy table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxonomy_table_path'), sg.Button("Check table", key = 'run_taxonomy_table_check', button_color=('black', 'white'))],
                         [sg.Text('Sorting method:', size=(20, 1)),  sg.Radio('First hit', "sorting_method", key='sorting_method_fh'), sg.Radio('JAMP', "sorting_method", default=True, key='sorting_method_jamp'), sg.Radio('BOLDigger', "sorting_method", key='sorting_method_boldigger')],
     					[sg.Text('Read table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'Read_table_path'), sg.Button("Check table", key = 'run_read_table_check', button_color=('black', 'white'))],
-                        [sg.Text('Format:', size=(20, 1)), sg.Radio('TTT', "read_table_format", key='read_table_format_TTT', default=True),  sg.Radio('JAMP', "read_table_format", key='read_table_format_jamp'), sg.Radio('QIIME2', "read_table_format", key='read_table_format_qiime')],
+                        [sg.Text('Format:', size=(20, 1)), sg.Radio('TTT', "read_table_format", key='read_table_format_TTT', default=True),  sg.Radio('Qiime2', "read_table_format", key='read_table_format_qiime')],
                         [sg.Text('Name of TaXon table:', size=(20, 1)), sg.Input(project_folder + "_taxon_table", key = 'TaXon_table_name'), sg.Text('.xlsx'), sg.Button("Convert", key = 'run_taxon_converter')],
     					[sg.Text('')],
-                        [sg.Text('Check TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taXon_table_to_check'), sg.Button("Check table", key = 'run_taXon_table_check', button_color=('black', 'white'))],
+                        [sg.Text('Check TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_0_path'), sg.Button("Check table", key = 'run_taXon_table_check', button_color=('black', 'white')), sg.Button("Open", key = 'open0')],
                         [sg.Text('_'*105)],
     					[sg.Text('')],
     					[sg.Text('Graphic layout options', size=(50,2), font=('Arial', 11, "bold"))],
-                        [sg.Frame(layout = available_templates_radio, title = 'Choose template')],
-                        [sg.Frame(layout = available_color1_radio, title = 'Choose theme'), sg.CB("Transparent", key="transparent_theme", default=False)],
-                        [sg.Frame(layout=[[sg.Text("Color 1:"), sg.Input("", key="custom_color1", size=(10,1)), sg.Text("Color 2:"), sg.Input("", key="custom_color2", size=(10,1)), sg.Radio("Custom", "theme_radio", key="custom_color")]], title="Or choose custom colors")],
+                        [sg.Column(column1), sg.Column(column2), sg.Column(column3), sg.Column(column4)],
     					[sg.Text('')],
     					]
 
     replicate_analyses_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Replicate analyses', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_table_processing_1_table')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_1_path'), sg.Button("Open", key="open1")],
     					[sg.Text('_'*105)],
     					[sg.Text('Replicates',size=(40,2), font=('Arial', 11, "bold"))],
                         [sg.Text("Replicate suffixes:", size=(30, 1)), sg.Input("a, b", size=(15,1), key="replicate_suffix_entry"),
@@ -374,7 +431,7 @@ def main():
     taxon_table_filtering_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('TaXon table filtering', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_table_processing_2_table')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_2_path'), sg.Button("Open", key="open2")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxon-based filter',size=(40,2), font=('Arial', 11, "bold"))],
@@ -401,7 +458,7 @@ def main():
     data_conversion_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Data conversion', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_table_processing_3_table')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_3_path'), sg.Button("Open", key="open3")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('TaXon table per sample', size=(50,2), font=('Arial', 11, "bold"))],
@@ -414,7 +471,7 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Metadata table', size=(50,2), font=('Arial', 11, "bold")), sg.Text("", size=(2,1))],
     					[sg.Text("Create metadata table", size=(25,1)), sg.Button("Run", key = 'run_create_meta_data_table'), sg.Text("", size=(1,1)),
-                        sg.Button("How does it work?", button_color=('black', 'white'), key="run_metadata_table_help" )],
+                        sg.Button("How does it work?", button_color=('black', 'white'), key="run_metadata_table_help" ), sg.Button("Modify metadata tables", key = 'run_modify_metadata_table')],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('GBIF taxonomy check', size=(50,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Check TaXon table:", size=(25, 1)), sg.Button("Run", key = 'run_gbif_check_taxonomy'), sg.Text("", size=(1,1)),
@@ -425,12 +482,12 @@ def main():
     basic_statistics_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Basic statistics', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'statistics_1_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_4_path'), sg.Button("Open", key="open4")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Basic statistics',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate basic statistics", size=(25,1)), sg.Button("Run", key = 'run_basic_stats'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("800", size=(4,1), key="width_bstats"),
-                        sg.Input("900", size=(4,1), key="height_bstats"), sg.Text("", size=(1,1))]], title="Settings")],
+                        sg.Input("1100", size=(4,1), key="height_bstats"), sg.Text("", size=(1,1))]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxonomic resolution',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Taxonomic resolution plot", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_resolution'), sg.Text("", size=(1,1)),
@@ -445,18 +502,18 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Per taxon statistics',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Reads, OTUs and species", size=(25,1)), sg.Button("Run", key = 'run_per_taxon_analysis'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h,ylim):"), sg.Input("900", size=(4,1), key="width_per_taxon_stats"),
-                        sg.Input("600", size=(4,1), key="height_per_taxon_stats")]], title="Settings")],
+                        sg.Input("600", size=(4,1), key="height_per_taxon_stats"), sg.Text('Taxonomic level:'), sg.Combo(available_taxonomic_levels_list, default_value="Class", key="per_taxon_stats_taxonomic_level")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					]
 
     sample_comparison_layout =  [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Sample comparison', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'statistics_2_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_5_path'), sg.Button("Open", key="open5")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Venn diagrams',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('Compare to table(s):', size=(16, 1)), sg.Input("", size=(10,1)), sg.FileBrowse(key = 'venn_taxon_table_2_path'), sg.Input("", size=(10,1)), sg.FileBrowse(key = 'venn_taxon_table_3_path'),
+    					[sg.Text('Compare to table(s):', size=(16, 1)), sg.Input("", size=(10,1)), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'venn_taxon_table_2_path'), sg.Input("", size=(10,1)), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'venn_taxon_table_3_path'),
                         sg.Text("", size=(1,1)), sg.Text("Output file:"), sg.Input("venn_diagram", size=(15,1), key="venn_diagram_name")],
     					[sg.Text("", size=(1,1))],
     					[sg.Text("Compare TaXon tables", size=(20,1)), sg.Button("venn2", key = 'run_venn2_diagram'), sg.Button("venn3", key = 'run_venn3_diagram'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Text("1000", size=(4,1)),
@@ -478,14 +535,12 @@ def main():
     read_proportions_layout =  [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Read proportions', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'statistics_3_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_6_path'), sg.Button("Open", key="open6")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
 
     					[sg.Text('Read proportions',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Taxonomic level: "), sg.Radio('OTUs', "ra_filter", key='ra_OTUs'), sg.Radio('Phylum', "ra_filter", key='ra_phylum'), sg.Radio('Class', "ra_filter", key='ra_class'),
-    					sg.Radio('Order', "ra_filter", key='ra_order'), sg.Radio('Family', "ra_filter", key='ra_family'),
-    					sg.Radio('Genus', "ra_filter", key='ra_genus'), sg.Radio('Species', "ra_filter", default=True, key='ra_species')],
+                        [sg.Text('Taxonomic level:', size=(25,1)), sg.Combo(available_taxonomic_levels_list, default_value='OTUs', key="ra_taxonomic_level")],
     					[sg.Text("", size=(20, 1))],
 
     					[sg.Text("Calculate heatmap", size=(25,1)), sg.Button("Run", key = 'run_read_proportions_heatmap'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("1000", size=(4,1), key="width_read_props_heatmap"),
@@ -502,34 +557,44 @@ def main():
     					[sg.Text('',size=(1,1))],
     					]
 
+    ## load available colorscales
+    heatmap_colorscale_list = px.colors.named_colorscales()
+
     diversity_analysis_layout =  [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Diversity and Ordination Analyses', size=(50,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'statistics_4_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_7_path'), sg.Button("Open", key="open7")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
-
     					[sg.Text('Diversity analyses',size=(40,2), font=('Arial', 11, "bold"))],
+
+                        [sg.Text('Taxonomic level:', size=(23,1)), sg.Combo(available_taxonomic_levels_list, default_value='OTUs', key="diversity_analyses_taxonomic_level")],
+    					[sg.Text('',size=(1,1))],
+
     					[sg.Text("Calculate alpha diversity", size=(23,1)), sg.Button("Run", key = 'run_alpha_diversity'),
                         sg.Button("Help", key = 'run_alpha_diversity_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_alpha"),
-                        sg.Input("1000", size=(4,1), key="height_alpha")],
-                        [sg.Radio("Scatter plot", "alpha_plot", key="alpha_scatter_plot"), sg.Text("Scatter size:"), sg.Input("40", size=(3,1), key="alpha_scatter_size")],
-                        [sg.Radio("Box plot", "alpha_plot", key="alpha_box_plot", default=True)]], title="Settings")],
+                        sg.Input("1000", size=(4,1), key="height_alpha"), sg.Radio("Scatter plot", "alpha_plot", key="alpha_scatter_plot"), sg.Radio("Box plot", "alpha_plot", key="alpha_box_plot", default=True)]], title="Settings")],
+
+                        [sg.Text("Cluster dendrogram", size=(23,1)), sg.Button("Run", key = 'run_jaccard_clustering'), sg.Button("Help", key = 'run_cluster_dendrogram_help_text', button_color=('black', 'white')), sg.Text("", size=(1,1)),
+                        sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_jaccard_clustering"),
+                        sg.Input("1000", size=(4,1), key="height_jaccard_clustering"), sg.Text("Group threshold:"), sg.Combo([str(round(i,1)) for i in np.arange(0.1, 1.0, 0.1)], default_value='0.3', size=(5,1), key="jaccard_clustering_threshold")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
+
     					[sg.Text("Calculate beta diversity", size=(23,1)), sg.Button("Run", key = 'run_beta_diversity'),
                         sg.Button("Help", key = 'run_beta_diversity_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_beta"),
-                        sg.Input("1000", size=(4,1), key="height_beta")],
-                        [sg.Text("Color map:"), sg.Input("Viridis", size=(15,1), key="beta_cmap")]], title="Settings")],
+                        sg.Input("1000", size=(4,1), key="height_beta"), sg.Text("Color map:"), sg.Combo(heatmap_colorscale_list, default_value='viridis', size=(10,1), key="beta_cmap")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
 
-    					[sg.Text('Ordination analyses',size=(40,2), font=('Arial', 11, "bold"))],
+                        [sg.Text('Ordination analyses',size=(40,2), font=('Arial', 11, "bold"))],
+
     					[sg.Text("Calculate CCA", size=(23,1)), sg.Button("Run", key = 'run_CCA_analysis'),
                         sg.Button("Help", key = 'run_cca_analysis_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_cca"),
                         sg.Input("1000", size=(4,1), key="height_cca"), sg.Text("Scatter size:"), sg.Input("10", size=(3,1), key="cca_scatter_size"), sg.CB("Draw mesh", default=False, key="draw_mesh_cca")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
+
     					[sg.Text("Calculate PCoA", size=(23,1)), sg.Button("Run", key = 'run_PCoA_analysis'),
                         sg.Button("Help", key = 'run_pcoa_analysis_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_pcoa"),
@@ -541,7 +606,7 @@ def main():
     taxon_list_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxon list',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxon_list_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_8_path'), sg.Button("Open", key="open8")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Convert to taxon list',size=(40,2), font=('Arial', 11, "bold"))],
@@ -563,11 +628,10 @@ def main():
     					[sg.Text('',size=(1,1))]
                         ]
 
-
     create_perlodes_input_layout = [
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Water Framework Directive (WFD)',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'perlodes_taxon_table_path')],
+    					[sg.Text('TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_9_path'), sg.Button("Open", key="open9")],
     					[sg.Text('_'*105)],
     					[sg.Text('',size=(1,1))],
         				[sg.Text('Create Perlodes input file',size=(40,2), font=('Arial', 11, "bold"))],
@@ -576,7 +640,7 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text("Create Perlodes input file: "), sg.Button("Run", key = 'run_create_perlodes_input_file')],
     					[sg.Text('',size=(1,2))],
-    					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=fließgewaesserbewertungde)],
+    					[sg.Button(key = 'open_fgbewertung', button_color=('white', 'white'), image_filename=fliessgewaesserbewertungde)],
                         ]
 
     layout = [  [sg.Image(ttt_logo), sg.Text("", size=(9,1)), sg.Text('Project:', font=('Arial', 12, "bold")), sg.Text(project_folder, font=('Arial', 12, "bold"))],
@@ -616,64 +680,50 @@ def main():
                 break
 
             i = 0
-            # collect plotly template
-            template = [template for template in available_templates_list if values[template] == True][0]
-            theme = [theme for theme in available_color1_list + ["custom_color"] if values[theme] == True][0]
-            transparent_theme = values['transparent_theme']
-            if transparent_theme != True:
+            ## collect plotly template
+            template = values["template"]
+            ## collect opactity value (transparent theme)
+            if values['transparent_theme'] != True:
                 opacity_value = 1
             else:
                 opacity_value = 0.5
-            if theme == 'Dark':
+            ## collect plotly theme (2 colors)
+            if values["select_custom_theme"] == True:
+                theme = [values["color1"], values["color2"], opacity_value]
+            elif values["theme"] == "Dark":
                 theme = ["Grey", "Black", opacity_value]
-            if theme == 'Light':
+            elif values["theme"] == "Light":
                 theme = ["White", "Grey", opacity_value]
-            if theme == 'Green':
-                theme = ["darkcyan", "Black", opacity_value]
-            if theme == 'Teal':
-                theme = ["teal", "Black", opacity_value]
-            if theme == 'Python':
-                theme = ["rgb(54,108,153)", "rgb(255,204,59)", opacity_value]
-            if theme == 'Blue':
+            elif values["theme"] == "Green":
+                theme = ["Teal", "Black", opacity_value]
+            elif values["theme"] == "Blue":
                 theme = ["royalblue", "Black", opacity_value]
-            if theme == "custom_color":
-                color1 = values["custom_color1"]
-                color2 = values["custom_color2"]
-                if (color1.lower() in plotly_colors and color2.lower() in plotly_colors):
-                    theme = [color1, color2, opacity_value]
-                else:
-                    sg.Popup("Warning: Colors not available. Choosing default theme.")
-                    theme = ["royalblue", "Black", opacity_value]
+            ## collect font size
+            font_size = values["font_size"]
 
             # define variables
             TaXon_table_name = values['TaXon_table_name']
-            taxon_table_processing_1_table = values['taxon_table_processing_1_table']
+            taxon_table_1_path = values['taxon_table_1_path']
             replicate_suffix_entry = values['replicate_suffix_entry']
             taxonomy_table_path = values['taxonomy_table_path']
             Read_table_path = values['Read_table_path']
             venn_taxon_table_2_path = values['venn_taxon_table_2_path']
             venn_taxon_table_3_path = values['venn_taxon_table_3_path']
             venn_diagram_name = values['venn_diagram_name']
-            taxon_list_taxon_table_path = values['taxon_list_taxon_table_path']
-            taxon_table_processing_2_table = values['taxon_table_processing_2_table']
-            taxon_table_processing_3_table = values['taxon_table_processing_3_table']
+            taxon_table_8_path = values['taxon_table_8_path']
+            taxon_table_2_path = values['taxon_table_2_path']
+            taxon_table_3_path = values['taxon_table_3_path']
             filter_phylum = values['filter_phylum']
             filter_order = values['filter_order']
             filter_genus = values['filter_genus']
             filter_class = values['filter_class']
             filter_family = values['filter_family']
             filter_species = values['filter_species']
-            ra_OTUs = values['ra_OTUs']
-            ra_phylum = values['ra_phylum']
-            ra_order = values['ra_order']
-            ra_genus = values['ra_genus']
-            ra_class = values['ra_class']
-            ra_family = values['ra_family']
-            ra_species = values['ra_species']
-            statistics_1_taxon_table_path = values['statistics_1_taxon_table_path']
-            statistics_2_taxon_table_path = values['statistics_2_taxon_table_path']
-            statistics_3_taxon_table_path = values['statistics_3_taxon_table_path']
-            statistics_4_taxon_table_path = values['statistics_4_taxon_table_path']
+            ra_taxonomic_level = values['ra_taxonomic_level']
+            taxon_table_4_path = values['taxon_table_4_path']
+            taxon_table_5_path = values['taxon_table_5_path']
+            taxon_table_6_path = values['taxon_table_6_path']
+            taxon_table_7_path = values['taxon_table_7_path']
             taxon_list_output_file_name = values['taxon_list_output_file_name']
             sample_repetitions = values['sample_repetitions']
             read_repetitions = values['read_repetitions']
@@ -690,10 +740,10 @@ def main():
             width_site_occ = values["width_site_occ"]
             height_site_occ = values["height_site_occ"]
             operational_taxon_list_path = values["operational_taxon_list_path"]
-            perlodes_taxon_table_path = values["perlodes_taxon_table_path"]
+            taxon_table_9_path = values["taxon_table_9_path"]
             width_alpha = values["width_alpha"]
             height_alpha = values["height_alpha"]
-            alpha_scatter_size = values["alpha_scatter_size"]
+            alpha_scatter_size = 30
             width_beta = values["width_beta"]
             height_beta = values["height_beta"]
             tres_type_a = values["tres_type_a"]
@@ -722,9 +772,8 @@ def main():
             scatter_size_pcoa = values['scatter_size_pcoa']
             height_bstats = values["height_bstats"]
             width_bstats = values["width_bstats"]
-            taXon_table_to_check = values["taXon_table_to_check"]
+            taxon_table_0_path = values["taxon_table_0_path"]
             read_table_format_TTT = values["read_table_format_TTT"]
-            read_table_format_jamp = values["read_table_format_jamp"]
             read_table_format_qiime = values["read_table_format_qiime"]
             alpha_box_plot = values["alpha_box_plot"]
             alpha_scatter_plot = values["alpha_scatter_plot"]
@@ -734,6 +783,7 @@ def main():
             height_repcorr = values["height_repcorr"]
             height_per_taxon_stats = values["height_per_taxon_stats"]
             width_per_taxon_stats = values["width_per_taxon_stats"]
+            per_taxon_stats_taxonomic_level = values["per_taxon_stats_taxonomic_level"]
             beta_cmap = values["beta_cmap"]
             absolute_filtering = values["absolute_filtering"]
             absolute_filter_threshold = values["absolute_filter_threshold"]
@@ -754,22 +804,32 @@ def main():
             south_america_occurrence = values["south_america_occurrence"]
             height_occurrence = values["height_occurrence"]
             width_occurrence = values["width_occurrence"]
+            height_jaccard_clustering = values["height_jaccard_clustering"]
+            width_jaccard_clustering = values["width_jaccard_clustering"]
+            jaccard_clustering_threshold = values["jaccard_clustering_threshold"]
+            diversity_analyses_taxonomic_level = values["diversity_analyses_taxonomic_level"]
 
-            print("########", "\n")
+            if diversity_analyses_taxonomic_level == "OTUs":
+                diversity_analyses_taxonomic_level = "ID"
 
             if event == 'run_taxon_converter':
 
                 if (taxonomy_table_path == '' or Read_table_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    from taxontabletools.taxon_converter import taxon_converter
                     if sorting_method_fh == True:
                         sheet_name = "First hit"
                     elif sorting_method_jamp == True:
                         sheet_name = "JAMP hit"
                     else:
                         sheet_name = "BOLDigger hit"
-                    taxon_converter(Read_table_path, taxonomy_table_path, TaXon_table_name, sheet_name, path_to_outdirs)
+
+                    if read_table_format_TTT == True:
+                        from taxontabletools.taxon_table_converter import taxon_table_converter_ttt
+                        taxon_table_converter_ttt(Read_table_path, taxonomy_table_path, TaXon_table_name, sheet_name, path_to_outdirs)
+                    elif read_table_format_qiime == True:
+                        from taxontabletools.taxon_table_converter import taxon_table_converter_qiime2
+                        taxon_table_converter_qiime2(Read_table_path, taxonomy_table_path, TaXon_table_name, sheet_name, path_to_outdirs)
 
             if event == 'run_taxonomy_table_check':
                 if (taxonomy_table_path == ''):
@@ -790,97 +850,96 @@ def main():
                 elif read_table_format_TTT == True:
                     from taxontabletools.check_read_table_format import check_read_table_format_TTT
                     check_read_table_format_TTT(Read_table_path)
-                elif read_table_format_jamp == True:
-                    sg.Popup("Not supported yet!")
                 elif read_table_format_qiime == True:
-                    sg.Popup("Not supported yet!")
+                    from taxontabletools.check_read_table_format import check_read_table_format_qiime2
+                    check_read_table_format_qiime2(Read_table_path)
 
             if event == 'run_taXon_table_check':
-                if (taXon_table_to_check == ''):
+                if (taxon_table_0_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.check_taXon_table_format import check_taXon_table_format
-                    check_taXon_table_format(taXon_table_to_check)
+                    check_taXon_table_format(taxon_table_0_path)
 
             if event == "run_taxon_table_per_sample":
-                if taxon_table_processing_3_table == '':
+                if taxon_table_3_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.create_taxon_table_per_sample import create_taxon_table_per_sample
-                    create_taxon_table_per_sample(taxon_table_processing_3_table, path_to_outdirs)
+                    create_taxon_table_per_sample(taxon_table_3_path, path_to_outdirs)
 
             if event == "run_convert_to_pa":
-                if taxon_table_processing_3_table == '':
+                if taxon_table_3_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.convert_to_presence_absence import convert_to_presence_absence
-                    convert_to_presence_absence(taxon_table_processing_3_table, path_to_outdirs)
+                    convert_to_presence_absence(taxon_table_3_path, path_to_outdirs)
 
             if event == 'run_replicate_analysis':
-                if taxon_table_processing_1_table == '':
+                if taxon_table_1_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
                     from taxontabletools.replicate_analysis import replicate_analysis
-                    replicate_analysis(taxon_table_processing_1_table, height_repicates, width_repicates, replicate_suffix_list, path_to_outdirs, template, theme)
+                    replicate_analysis(taxon_table_1_path, height_repicates, width_repicates, replicate_suffix_list, path_to_outdirs, template, theme, font_size)
 
             if event == 'run_replicate_correlation':
-                if taxon_table_processing_1_table == '':
+                if taxon_table_1_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     repcorr_options = [x_zero_repcorr, y_zero_repcorr]
                     replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
                     from taxontabletools.replicate_correlation_analysis import replicate_correlation_analysis
-                    replicate_correlation_analysis(taxon_table_processing_1_table, replicate_suffix_list, path_to_outdirs, width_repcorr, height_repcorr, repcorr_options, template, theme)
+                    replicate_correlation_analysis(taxon_table_1_path, replicate_suffix_list, path_to_outdirs, width_repcorr, height_repcorr, repcorr_options, template, theme, font_size)
 
             if event == 'run_venn2_diagram':
                 if os.path.exists(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name):
                     sg.PopupError("Error: Venn directory already exists", keep_on_top=True)
-                elif (statistics_2_taxon_table_path == '' or venn_taxon_table_2_path == ''):
+                elif (taxon_table_5_path == '' or venn_taxon_table_2_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.venn_diagram import venn_diagram
                     venn_taxon_table_3_path = False
-                    venn_diagram(statistics_2_taxon_table_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
+                    venn_diagram(taxon_table_5_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
 
             if event == 'run_venn3_diagram':
                 if os.path.exists(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name):
                     sg.PopupError("Error: Venn directory already exists", keep_on_top=True)
-                elif (statistics_2_taxon_table_path == '' or venn_taxon_table_2_path == ''):
+                elif (taxon_table_5_path == '' or venn_taxon_table_2_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.venn_diagram import venn_diagram
-                    venn_diagram(statistics_2_taxon_table_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
+                    venn_diagram(taxon_table_5_path, venn_taxon_table_2_path, venn_taxon_table_3_path, venn_diagram_name, path_to_outdirs)
 
             if event == 'run_rarefaction_curve_OTUs':
-                if statistics_2_taxon_table_path == '':
+                if taxon_table_5_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.rarefaction_curve import rarefaction_curve_OTUs
-                    rarefaction_curve_OTUs(statistics_2_taxon_table_path, int(sample_repetitions), path_to_outdirs, template, theme)
+                    rarefaction_curve_OTUs(taxon_table_5_path, int(sample_repetitions), path_to_outdirs, template, theme, font_size)
 
             if event == 'run_rarefaction_curve_species':
-                if statistics_2_taxon_table_path == '':
+                if taxon_table_5_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.rarefaction_curve import rarefaction_curve_species
-                    rarefaction_curve_species(statistics_2_taxon_table_path, int(sample_repetitions), path_to_outdirs, template, theme)
+                    rarefaction_curve_species(taxon_table_5_path, int(sample_repetitions), path_to_outdirs, template, theme, font_size)
 
             if event == 'run_rarefaction_curve_reads':
-                if statistics_2_taxon_table_path == '':
+                if taxon_table_5_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     answer = sg.PopupOKCancel("This analysis can take very long. Continue?", title="Runtime")
                     if answer == "OK":
                         from taxontabletools.rarefaction_curve import rarefaction_curve_reads
-                        rarefaction_curve_reads(statistics_2_taxon_table_path, int(read_repetitions), width_rarefaction_reads, height_rarefaction_reads, path_to_outdirs, template, theme)
+                        rarefaction_curve_reads(taxon_table_5_path, int(read_repetitions), width_rarefaction_reads, height_rarefaction_reads, path_to_outdirs, template, theme, font_size)
 
             if event == 'run_create_taxon_list':
-                if taxon_list_taxon_table_path == '':
+                if taxon_table_8_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.create_taxon_list import create_taxon_list
-                    create_taxon_list(taxon_list_taxon_table_path, taxon_list_output_file_name, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs)
+                    create_taxon_list(taxon_table_8_path, taxon_list_output_file_name, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs)
 
             if event == 'run_taxon_filtering' and not win2_active:
                 if filter_phylum == True:
@@ -896,11 +955,11 @@ def main():
                 elif filter_species == True:
                     mask = "Species"
 
-                if taxon_table_processing_2_table == '':
+                if taxon_table_2_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.taxon_table_filtering import create_taxa_mask
-                    available_taxa = create_taxa_mask(taxon_table_processing_2_table, mask, taxon_filter_method_criterion)
+                    available_taxa = create_taxa_mask(taxon_table_2_path, mask, taxon_filter_method_criterion)
                     win2_active = True
                     window.Hide()
                     if cm_taxon_based_filter_all == True:
@@ -943,9 +1002,9 @@ def main():
                                 taxon_filter_method = "exclude"
                             if check_list == []:
                                 check_list = ['no taxa to filter']
-                                taxon_filter(taxon_table_processing_2_table, check_list, mask, appendix_name, threshold, path_to_outdirs, taxon_filter_method)
+                                taxon_filter(taxon_table_2_path, check_list, mask, appendix_name, threshold, path_to_outdirs, taxon_filter_method)
                             else:
-                                taxon_filter(taxon_table_processing_2_table, check_list, mask, appendix_name, threshold, path_to_outdirs, taxon_filter_method)
+                                taxon_filter(taxon_table_2_path, check_list, mask, appendix_name, threshold, path_to_outdirs, taxon_filter_method)
 
                             win2.Close()
                             win2_active = False
@@ -959,11 +1018,11 @@ def main():
                             break
 
             if event == 'run_sample_filtering' and not win2_active:
-                if taxon_table_processing_2_table == '':
+                if taxon_table_2_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.taxon_table_filtering import create_sample_mask
-                    available_samples = sorted(create_sample_mask(taxon_table_processing_2_table, sample_filter_method_criterion))
+                    available_samples = sorted(create_sample_mask(taxon_table_2_path, sample_filter_method_criterion))
                     win2_active = True
                     window.Hide()
                     if cm_sample_based_filter_all == True:
@@ -999,7 +1058,7 @@ def main():
                                 sample_filter_method = "keep"
                             else:
                                 sample_filter_method = "exclude"
-                            filter_samples(taxon_table_processing_2_table, check_list, appendix_name, path_to_outdirs, sample_filter_method)
+                            filter_samples(taxon_table_2_path, check_list, appendix_name, path_to_outdirs, sample_filter_method)
 
                             win2.Close()
                             win2_active = False
@@ -1013,21 +1072,21 @@ def main():
                             break
 
             if event == 'run_gbif_check_taxonomy':
-                if taxon_table_processing_3_table == '':
+                if taxon_table_3_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.gbif_check_taxonomy import gbif_check_taxonomy
-                    gbif_check_taxonomy(taxon_table_processing_3_table, path_to_outdirs)
+                    gbif_check_taxonomy(taxon_table_3_path, path_to_outdirs)
 
             if event == 'run_combine_replicates':
 
                 replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
 
-                if taxon_table_processing_1_table == '':
+                if taxon_table_1_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.combine_replicates import combine_replicates
-                    combine_replicates(taxon_table_processing_1_table, replicate_suffix_list, path_to_outdirs)
+                    combine_replicates(taxon_table_1_path, replicate_suffix_list, path_to_outdirs)
 
             if event == 'run_preview_suffix':
                 replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
@@ -1035,14 +1094,14 @@ def main():
                 sg.Popup(text, title='Suffix preview')
 
             if event == 'run_taxonomic_richness':
-                if statistics_1_taxon_table_path == '':
+                if taxon_table_4_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.calculate_taxonomic_richness import calculate_taxonomic_richness
-                    calculate_taxonomic_richness(statistics_1_taxon_table_path, path_to_outdirs, width_tax_rich, height_tax_rich, template, theme)
+                    calculate_taxonomic_richness(taxon_table_4_path, path_to_outdirs, width_tax_rich, height_tax_rich, template, theme, font_size)
 
             if event == 'run_taxonomic_resolution':
-                if statistics_1_taxon_table_path == '':
+                if taxon_table_4_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     if tres_type_a == True:
@@ -1050,25 +1109,28 @@ def main():
                     if tres_type_b == True:
                         figure_type = "b"
                     from taxontabletools.calculate_taxonomic_resolution import calculate_taxonomic_resolution
-                    calculate_taxonomic_resolution(statistics_1_taxon_table_path, path_to_outdirs, width_tax_res, height_tax_res, figure_type, template, theme)
+                    calculate_taxonomic_resolution(taxon_table_4_path, path_to_outdirs, width_tax_res, height_tax_res, figure_type, template, theme, font_size)
 
             if event == 'run_create_meta_data_table':
-                if taxon_table_processing_3_table == '':
+                if taxon_table_3_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.create_metadata_table import create_metadata_table
-                    create_metadata_table(taxon_table_processing_3_table, path_to_outdirs)
+                    create_metadata_table(taxon_table_3_path, path_to_outdirs)
+
+            if event == "run_modify_metadata_table":
+                    from taxontabletools.create_metadata_table import modify_metadata_table
+                    modify_metadata_table(path_to_outdirs)
 
             if event == 'run_site_occupancy':
-                if statistics_2_taxon_table_path == '':
+                if taxon_table_5_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.get_available_meta_data import get_available_meta_data
-                    meta_data_to_test = get_available_meta_data(statistics_2_taxon_table_path, path_to_outdirs)
+                    meta_data_to_test = get_available_meta_data(taxon_table_5_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
                                  sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!", keep_on_top=True)
-                                 print("\n" + "########")
                     else:
                                  win2_active = True
                                  window.Hide()
@@ -1095,7 +1157,7 @@ def main():
                                                                if (test == True and input_value in taxonmic_levels_to_choose):
                                                                    taxon_level = input_value
                                                            from taxontabletools.site_occupancy import site_occupancy
-                                                           site_occupancy(statistics_2_taxon_table_path, meta_data_to_test, taxon_level, path_to_outdirs, width_site_occ, height_site_occ, template, theme)
+                                                           site_occupancy(taxon_table_5_path, meta_data_to_test, taxon_level, path_to_outdirs, width_site_occ, height_site_occ, template, theme, font_size)
                                                            win2.Close()
                                                            win2_active = False
                                                            window.UnHide()
@@ -1106,98 +1168,50 @@ def main():
                                                            window.UnHide()
                                                            break
 
-                                 print("\n" + "########")
-
             if event == 'run_read_proportions_heatmap':
-                if statistics_3_taxon_table_path == '':
+                if taxon_table_6_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    if ra_OTUs == True:
-                        taxonomic_level = "OTUs"
-                    if ra_phylum == True:
-                        taxonomic_level = "Phylum"
-                    elif ra_class == True:
-                        taxonomic_level = "Class"
-                    elif ra_order == True:
-                        taxonomic_level = "Order"
-                    elif ra_family == True:
-                        taxonomic_level = "Family"
-                    elif ra_genus == True:
-                        taxonomic_level = "Genus"
-                    elif ra_species == True:
-                        taxonomic_level = "Species"
-
                     from taxontabletools.read_proportions import read_proportions_heatmap
-                    read_proportions_heatmap(statistics_3_taxon_table_path, taxonomic_level, path_to_outdirs, width_read_props_heatmap, heigth_read_props_heatmap, template)
+                    read_proportions_heatmap(taxon_table_6_path, ra_taxonomic_level, path_to_outdirs, width_read_props_heatmap, heigth_read_props_heatmap, template, font_size)
 
             if event == 'run_read_proportions_bar':
-                if statistics_3_taxon_table_path == '':
+                if taxon_table_6_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    if ra_OTUs == True:
-                        taxonomic_level = "OTUs"
-                    if ra_phylum == True:
-                        taxonomic_level = "Phylum"
-                    elif ra_class == True:
-                        taxonomic_level = "Class"
-                    elif ra_order == True:
-                        taxonomic_level = "Order"
-                    elif ra_family == True:
-                        taxonomic_level = "Family"
-                    elif ra_genus == True:
-                        taxonomic_level = "Genus"
-                    elif ra_species == True:
-                        taxonomic_level = "Species"
-
                     from taxontabletools.read_proportions import read_proportions_bar
-                    read_proportions_bar(statistics_3_taxon_table_path, taxonomic_level, path_to_outdirs, width_read_props_bar, heigth_read_props_bar, template)
+                    read_proportions_bar(taxon_table_6_path, ra_taxonomic_level, path_to_outdirs, width_read_props_bar, heigth_read_props_bar, template, font_size)
 
             if event == 'run_read_proportions_pie':
-                if statistics_3_taxon_table_path == '':
+                if taxon_table_6_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    if ra_OTUs == True:
-                        taxonomic_level = "OTUs"
-                    if ra_phylum == True:
-                        taxonomic_level = "Phylum"
-                    elif ra_class == True:
-                        taxonomic_level = "Class"
-                    elif ra_order == True:
-                        taxonomic_level = "Order"
-                    elif ra_family == True:
-                        taxonomic_level = "Family"
-                    elif ra_genus == True:
-                        taxonomic_level = "Genus"
-                    elif ra_species == True:
-                        taxonomic_level = "Species"
-
                     from taxontabletools.read_proportions import read_proportions_pie
-                    read_proportions_pie(statistics_3_taxon_table_path, taxonomic_level, path_to_outdirs, width_read_props_pie, heigth_read_props_pie, template)
+                    read_proportions_pie(taxon_table_6_path, ra_taxonomic_level, path_to_outdirs, width_read_props_pie, heigth_read_props_pie, template, font_size)
 
             if event == 'run_basic_stats':
-                if statistics_1_taxon_table_path == '':
+                if taxon_table_4_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.basic_stats import basic_stats
-                    basic_stats(statistics_1_taxon_table_path, height_bstats, width_bstats, path_to_outdirs, template, theme)
+                    basic_stats(taxon_table_4_path, height_bstats, width_bstats, path_to_outdirs, template, theme, font_size)
 
             if event == 'run_create_krona_chart':
-                if statistics_3_taxon_table_path == '':
+                if taxon_table_6_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.create_krona_chart import create_krona_chart
-                    create_krona_chart(statistics_3_taxon_table_path, path_to_outdirs)
+                    create_krona_chart(taxon_table_6_path, path_to_outdirs)
 
             if event == 'run_CCA_analysis':
-                if statistics_4_taxon_table_path == '':
+                if taxon_table_7_path == '':
                     sg.PopupError("Please provide a file")
                 else:
                     from taxontabletools.get_available_meta_data import get_available_meta_data
-                    meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
+                    meta_data_to_test = get_available_meta_data(taxon_table_7_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
                             sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!")
-                            print("\n" + "########")
                     else:
                             win2_active = True
                             window.Hide()
@@ -1217,7 +1231,7 @@ def main():
                                                 if test == True:
                                                         meta_data_to_test = input_value
                                                         from taxontabletools.CCA_analysis import CCA_analysis
-                                                        CCA_analysis(statistics_4_taxon_table_path, meta_data_to_test, width_cca, height_cca, cca_scatter_size, draw_mesh_cca, path_to_outdirs, template)
+                                                        CCA_analysis(taxon_table_7_path, meta_data_to_test, diversity_analyses_taxonomic_level, width_cca, height_cca, cca_scatter_size, draw_mesh_cca, path_to_outdirs, template, font_size)
                                                         win2.Close()
                                                         win2_active = False
                                                         window.UnHide()
@@ -1231,15 +1245,14 @@ def main():
 
             if event == 'run_PCoA_analysis':
 
-                if statistics_4_taxon_table_path == '':
+                if taxon_table_7_path == '':
                     sg.PopupError("Please provide a file")
                 else:
                     from taxontabletools.get_available_meta_data import get_available_meta_data
-                    meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
+                    meta_data_to_test = get_available_meta_data(taxon_table_7_path, path_to_outdirs)
 
                     if meta_data_to_test == False:
                             sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!")
-                            print("\n" + "########")
                     else:
                             win2_active = True
                             window.Hide()
@@ -1259,7 +1272,7 @@ def main():
                                                 if test == True:
                                                         meta_data_to_test = input_value
                                                         from taxontabletools.PCoA_analysis import PCoA_analysis
-                                                        PCoA_analysis(statistics_4_taxon_table_path, meta_data_to_test, width_pcoa, height_pcoa, scatter_size_pcoa, draw_mesh_pcoa, path_to_outdirs, template)
+                                                        PCoA_analysis(taxon_table_7_path, meta_data_to_test, diversity_analyses_taxonomic_level, width_pcoa, height_pcoa, scatter_size_pcoa, draw_mesh_pcoa, path_to_outdirs, template, font_size)
                                                         win2.Close()
                                                         win2_active = False
                                                         window.UnHide()
@@ -1272,74 +1285,73 @@ def main():
                                         break
 
             if event == 'run_replicate_consistency_filter':
-                if taxon_table_processing_1_table == '':
+                if taxon_table_1_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     replicate_suffix_list = replicate_suffix_entry.replace(" ", "").split(",")
                     from taxontabletools.replicate_consistency_filter import replicate_consistency_filter
-                    replicate_consistency_filter(taxon_table_processing_1_table, replicate_suffix_list, path_to_outdirs)
+                    replicate_consistency_filter(taxon_table_1_path, replicate_suffix_list, path_to_outdirs)
 
             if event == 'run_create_perlodes_input_file':
-                if perlodes_taxon_table_path == '':
+                if taxon_table_9_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.convert_to_perlodes import convert_to_perlodes
-                    convert_to_perlodes(perlodes_taxon_table_path, operational_taxon_list_path, path_to_outdirs)
+                    convert_to_perlodes(taxon_table_9_path, operational_taxon_list_path, path_to_outdirs)
 
             if event == 'run_alpha_diversity':
 
-                    if statistics_4_taxon_table_path == '':
-                        sg.PopupError("Please provide a file")
+                if taxon_table_7_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    from taxontabletools.get_available_meta_data import get_available_meta_data
+                    meta_data_to_test = get_available_meta_data(taxon_table_7_path, path_to_outdirs)
+
+                    if meta_data_to_test == False:
+                            sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!")
                     else:
-                        from taxontabletools.get_available_meta_data import get_available_meta_data
-                        meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
+                            win2_active = True
+                            window.Hide()
+                            meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
-                        if meta_data_to_test == False:
-                                sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!")
-                                print("\n" + "########")
-                        else:
-                                win2_active = True
-                                window.Hide()
-                                meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
+                            layout2 = [[sg.Text("Alpha diversity", size=(20,1))],
+                            [sg.Frame(layout = meta_data_to_test_list, title = 'Check meta data to test')],
+                            [sg.Button('Calculate')],
+                            [sg.Button('Back')]]
 
-                                layout2 = [[sg.Text("Alpha diversity", size=(20,1))],
-                                [sg.Frame(layout = meta_data_to_test_list, title = 'Check meta data to test')],
-                                [sg.Button('Calculate')],
-                                [sg.Button('Back')]]
+                            win2 = sg.Window('Alpha diversity estimates', layout2, keep_on_top=False)
 
-                                win2 = sg.Window('Alpha diversity estimates', layout2, keep_on_top=False)
-
-                                while True:
-                                    event2, values2 = win2.Read()
-                                    if event2 == 'Calculate':
-                                            for meta_data_to_test, test in values2.items():
-                                                if test == True:
-                                                    if alpha_box_plot == True:
-                                                            from taxontabletools.alpha_diversity import alpha_diversity_boxplot
-                                                            alpha_diversity_boxplot(statistics_4_taxon_table_path, meta_data_to_test, width_alpha, height_alpha, alpha_scatter_size, path_to_outdirs, template, theme)
-                                                            win2.Close()
-                                                            win2_active = False
-                                                            window.UnHide()
-                                                            break
-                                                    if alpha_scatter_plot == True:
-                                                            from taxontabletools.alpha_diversity import alpha_diversity_scatter_plot
-                                                            alpha_diversity_scatter_plot(statistics_4_taxon_table_path, meta_data_to_test, width_alpha, height_alpha, alpha_scatter_size, path_to_outdirs, template)
-                                                            win2.Close()
-                                                            win2_active = False
-                                                            window.UnHide()
-                                                            break
-                                    if event2 is None or event2 == 'Back':
-                                            win2.Close()
-                                            win2_active = False
-                                            window.UnHide()
-                                            break
+                            while True:
+                                event2, values2 = win2.Read()
+                                if event2 == 'Calculate':
+                                        for meta_data_to_test, test in values2.items():
+                                            if test == True:
+                                                if alpha_box_plot == True:
+                                                        from taxontabletools.alpha_diversity import alpha_diversity_boxplot
+                                                        alpha_diversity_boxplot(taxon_table_7_path, meta_data_to_test, width_alpha, height_alpha, diversity_analyses_taxonomic_level, path_to_outdirs, template, theme, font_size)
+                                                        win2.Close()
+                                                        win2_active = False
+                                                        window.UnHide()
+                                                        break
+                                                if alpha_scatter_plot == True:
+                                                        from taxontabletools.alpha_diversity import alpha_diversity_scatter_plot
+                                                        alpha_diversity_scatter_plot(taxon_table_7_path, meta_data_to_test, width_alpha, height_alpha, alpha_scatter_size, diversity_analyses_taxonomic_level, path_to_outdirs, template, theme, font_size)
+                                                        win2.Close()
+                                                        win2_active = False
+                                                        window.UnHide()
+                                                        break
+                                if event2 is None or event2 == 'Back':
+                                        win2.Close()
+                                        win2_active = False
+                                        window.UnHide()
+                                        break
 
             if event == 'run_beta_diversity':
-                    if statistics_4_taxon_table_path == '':
+                    if taxon_table_7_path == '':
                         sg.PopupError("Please provide a file")
                     else:
                         from taxontabletools.get_available_meta_data import get_available_meta_data
-                        meta_data_to_test = get_available_meta_data(statistics_4_taxon_table_path, path_to_outdirs)
+                        meta_data_to_test = get_available_meta_data(taxon_table_7_path, path_to_outdirs)
 
                         if meta_data_to_test == False:
                                 sg.PopupError("Metadata table not found for the loaded TaXon table!\nPlease first create a metadata table!")
@@ -1361,7 +1373,7 @@ def main():
                                             for meta_data_to_test, test in values2.items():
                                                 if test == True:
                                                     from taxontabletools.beta_diversity import beta_diversity
-                                                    beta_diversity(statistics_4_taxon_table_path, width_beta, height_beta, beta_cmap, meta_data_to_test, path_to_outdirs, template)
+                                                    beta_diversity(taxon_table_7_path, width_beta, height_beta, beta_cmap, meta_data_to_test, diversity_analyses_taxonomic_level, path_to_outdirs, template, font_size)
                                                     win2.Close()
                                                     win2_active = False
                                                     window.UnHide()
@@ -1371,6 +1383,13 @@ def main():
                                             win2_active = False
                                             window.UnHide()
                                             break
+
+            if event == 'run_jaccard_clustering':
+                if taxon_table_7_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    from taxontabletools.beta_diversity import jaccard_clustering
+                    jaccard_clustering(taxon_table_7_path, height_jaccard_clustering, width_jaccard_clustering, jaccard_clustering_threshold, diversity_analyses_taxonomic_level, path_to_outdirs, template, font_size)
 
             if event == 'run_log_network':
                 from taxontabletools.create_log import ttt_log_network
@@ -1406,6 +1425,9 @@ def main():
             if event == 'run_beta_diversity_help_text':
                 sg.Popup(beta_diversity_help_text(), title = "Beta diversity")
 
+            if event == 'run_cluster_dendrogram_help_text':
+                sg.Popup(cluster_dendrogram_help_text(), title = "Dendrogram clustering")
+
             if event == 'run_cca_analysis_help_text':
                 sg.Popup(cca_analysis_help_text(), title = "CCA analysis")
 
@@ -1419,41 +1441,16 @@ def main():
                 sg.Popup(read_proportions_help_text(), title = "How to optimize read proportion plots")
 
             if event == 'run_per_taxon_analysis':
-                if statistics_1_taxon_table_path == '':
+                if taxon_table_4_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    win2_active = True
-                    window.Hide()
-                    taxonmic_levels_to_choose = ['Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']
-                    taxonmic_levels_list = list(slices([sg.Radio(name, "taxa", key=name, default=True) for name in taxonmic_levels_to_choose], 6))
-                    layout2 = [[sg.Text("Per taxon statistics", size=(20,1))],
-                    [sg.Text('',size=(1,1))],
-                    [sg.Frame(layout = taxonmic_levels_list, title = 'Check taxonomic level to use')],
-                    [sg.Text('',size=(1,1))],
-                    [sg.Button('Calculate')],
-                    [sg.Button('Back')]] # test = True
-
-                    win2 = sg.Window('Per taxon statistics', layout2, keep_on_top=True)
-
-                    while True:
-                        event2, values2 = win2.Read()
-                        if event2 == 'Calculate':
-                            for input_value, test in values2.items():
-                                if (test == True and input_value in taxonmic_levels_to_choose):
-                                    taxonomic_level = input_value
-                            win2_active = False
-                            window.UnHide()
-                            win2.Close()
-                            from taxontabletools.per_taxon_analysis import per_taxon_analysis
-                            per_taxon_analysis(statistics_1_taxon_table_path, height_per_taxon_stats, width_per_taxon_stats, taxonomic_level, path_to_outdirs, template, theme)
-                        if event2 is None or event2 == 'Back':
-                            win2.Close()
-                            win2_active = False
-                            window.UnHide()
-                            break
+                    if per_taxon_stats_taxonomic_level == "OTUs":
+                        per_taxon_stats_taxonomic_level = "ID"
+                    from taxontabletools.per_taxon_analysis import per_taxon_analysis
+                    per_taxon_analysis(taxon_table_4_path, height_per_taxon_stats, width_per_taxon_stats, per_taxon_stats_taxonomic_level, path_to_outdirs, template, theme, font_size)
 
             if event == "run_read_filter":
-                if taxon_table_processing_2_table == '':
+                if taxon_table_2_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     if absolute_filtering == True:
@@ -1464,10 +1461,10 @@ def main():
                         read_filter_treshold = relative_filter_threshold
 
                     from taxontabletools.taxon_table_filtering import read_filter
-                    read_filter(taxon_table_processing_2_table, path_to_outdirs, read_filter_method, read_filter_treshold)
+                    read_filter(taxon_table_2_path, path_to_outdirs, read_filter_method, read_filter_treshold)
 
             if event == "run_species_occurrence":
-                if taxon_list_taxon_table_path == '':
+                if taxon_table_8_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     continents_to_check = []
@@ -1488,20 +1485,79 @@ def main():
 
                     if continents_to_check != []:
                         from taxontabletools.gbif_occurrence import gbif_occurrence
-                        gbif_occurrence(taxon_list_taxon_table_path, width_occurrence, height_occurrence, continents_to_check, template, theme, path_to_outdirs)
+                        gbif_occurrence(taxon_table_8_path, width_occurrence, height_occurrence, continents_to_check, template, theme, font_size, path_to_outdirs)
                     else:
                         sg.Popup("Please choose at least one continent", title="Error")
 
             if event == "run_species_occurrence_plot":
                 from taxontabletools.gbif_occurrence import gbif_occurrence_plot
-                gbif_occurrence_plot(width_occurrence, height_occurrence, template, theme, path_to_outdirs)
+                gbif_occurrence_plot(width_occurrence, height_occurrence, template, theme, font_size, path_to_outdirs)
+
+            if event == "open0":
+                if taxon_table_0_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_0_path)
+
+            if event == "open1":
+                if taxon_table_1_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_1_path)
+
+            if event == "open2":
+                if taxon_table_2_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_2_path)
+
+            if event == "open3":
+                if taxon_table_3_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_3_path)
+
+            if event == "open4":
+                if taxon_table_4_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_4_path)
+
+            if event == "open5":
+                if taxon_table_5_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_5_path)
+
+            if event == "open6":
+                if taxon_table_6_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_6_path)
+
+            if event == "open7":
+                if taxon_table_7_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_7_path)
+
+            if event == "open8":
+                if taxon_table_8_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_8_path)
+
+            if event == "open9":
+                if taxon_table_9_path == '':
+                    sg.PopupError("Please provide a file")
+                else:
+                    open_taxon_table(taxon_table_9_path)
+
 
             # close all windows to prevent crazy overlaps
             # only counts for matplotlib, but keep as long as venn is matplotlib-based
             if plt.get_fignums():
                 plt.close()
-
-            print("\n" + "########")
 
         ###############################################################################################
         # exception collection area
@@ -1518,12 +1574,10 @@ def main():
                 window.UnHide()
 
             sg.PopupError("Error: Please install all required modules.", keep_on_top=True)
-            print("\n" + "########")
 
         # Raised when an error is detected that doesn’t fall in any of the other categories. The associated value is a string indicating what precisely went wrong.
         # CHANGE TO CUSTOM ERROR and not RuntimeError!!!
         except RuntimeError:
-            print("\n" + "########")
             try:
                 window.UnHide()
             except:
@@ -1536,7 +1590,6 @@ def main():
 
         # if there are unexpected errors print a message and continue the script!
         except:
-            print("\n" + "########")
             # UnHide the main window if neccessary
             try:
                 window.UnHide()
@@ -1571,8 +1624,6 @@ def main():
                     raise
 
             window_error.Close()
-
-            print("\n" + "########")
 
         ###############################################################################################
 

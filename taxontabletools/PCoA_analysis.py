@@ -1,4 +1,4 @@
-def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, draw_mesh, path_to_outdirs, template):
+def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, pcoa_s, draw_mesh, path_to_outdirs, template, font_size):
     import pandas as pd
     import numpy as np
     from skbio.diversity import beta_diversity
@@ -13,17 +13,10 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
-
-    # check for presence absence data
-    # otherwise abort and print error message
-    pa_test = set([val for sublist in TaXon_table_df[TaXon_table_samples].values.tolist() for val in sublist])
-    if pa_test != {1,0}:
-        sg.Popup("Please use presence absence data!", title=("Error"))
-        raise RuntimeError
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == len(Meta_data_table_df['Samples'].tolist()):
@@ -38,7 +31,23 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
 
         samples = Meta_data_table_samples
-        data = TaXon_table_df[TaXon_table_samples].transpose().values.tolist()
+
+        ## extract the relevant data
+        TaXon_table_df = TaXon_table_df[[taxonomic_level] + samples]
+        ## define an aggregation function to combine multiple hit of one taxonimic level
+        aggregation_functions = {}
+        ## define samples functions
+        for sample in samples:
+            ## 'sum' will calculate the sum of p/a data
+            aggregation_functions[sample] = 'sum'
+        ## define taxon level function
+        aggregation_functions[taxonomic_level] = 'first'
+        ## create condensed dataframe
+        TaXon_table_df = TaXon_table_df.groupby(TaXon_table_df[taxonomic_level]).aggregate(aggregation_functions)
+        if 'unidentified' in TaXon_table_df.index:
+            TaXon_table_df = TaXon_table_df.drop('unidentified')
+
+        data = TaXon_table_df[samples].transpose().values.tolist()
         jc_dm = beta_diversity("jaccard", data, samples)
         ordination_result = pcoa(jc_dm)
         metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
@@ -46,7 +55,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
         anosim_results = anosim(jc_dm, metadata_list, permutations=999)
         anosim_r = round(anosim_results['test statistic'], 5)
         anosim_p = anosim_results['p-value']
-        textbox = meta_data_to_test + "\nAnosim " + "R = " + str(anosim_r) + " " + "p = " + str(anosim_p)
+        textbox = meta_data_to_test + ", " + taxonomic_level + "<br>Anosim " + "R = " + str(anosim_r) + " " + "p = " + str(anosim_p)
 
         #######################################################################################
         # create window to ask for PCoA axis to test
@@ -99,14 +108,14 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
 
                     fig = px.scatter(df_pcoa, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox)
                     fig.update_traces(marker_size=int(pcoa_s), mode="markers")
-                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
                     fig.update_xaxes(title=axis_to_plot[1])
                     fig.update_yaxes(title=axis_to_plot[0])
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + ".pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + ".html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + ".xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".xlsx")
 
                     ## write files
                     fig.write_image(str(output_pdf))
@@ -154,18 +163,18 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                         ## draw the plot
                         fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox)
                         fig.update_traces(marker_size=int(pcoa_s), mode="markers+lines", line=dict(width=0.5))
-                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True)
+                        fig.update_layout(height=int(height), width=int(width), template=template, title=textbox, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
                     else:
                         fig = px.scatter_3d(df_pcoa, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
                         fig.update_traces(marker_size=int(pcoa_s), mode="markers")
-                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, title=textbox)
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, title=textbox, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_3d.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_3d.html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_3d.xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.xlsx")
 
                     ## write output files
                     fig.write_image(str(output_pdf))
@@ -204,7 +213,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                     fig = make_subplots(rows=4, cols=4)
                     ########### 1 ###########
                     fig.add_trace(go.Scatter(),row=1, col=1)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "PC1 (" + str(round(ordination_result.proportion_explained["PC1"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False)
                     fig.update_xaxes(showticklabels=False, showgrid=False)
@@ -245,7 +254,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                         fig.update_yaxes(showgrid=False,row=1, col=4)
                     ########### 5 ###########
                     fig.add_trace(go.Scatter(),row=2, col=2)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "PC2 (" + str(round(ordination_result.proportion_explained["PC2"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=2, col=2)
                     ########### 6 ###########
@@ -271,7 +280,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                                                     text=df_metadata["Sample"].values.tolist()),row=2, col=4)
                     ########### 8 ###########
                     fig.add_trace(go.Scatter(),row=3, col=3)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "PC3 (" + str(round(ordination_result.proportion_explained["PC3"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=3, col=3)
                     ########### 9 ###########
@@ -287,7 +296,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                                                     text=df_metadata["Sample"].values.tolist()),row=3, col=4)
                     ########### 5 ###########
                     fig.add_trace(go.Scatter(),row=4, col=4)
-                    fig.update_layout(template=template)
+                    fig.update_layout(template=template, font_size=font_size, title_font_size=font_size)
                     text = "PC4 (" + str(round(ordination_result.proportion_explained["PC4"]* 100, 2)) + " %)"
                     fig.add_annotation(text=text, showarrow=False, row=4, col=4)
 
@@ -299,8 +308,8 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, width, height, pcoa_s, dr
                     fig.update_layout(height=1000, width=1000, title_text=textbox)
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_matrix.html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.html")
 
                     ## write output files
                     fig.write_image(str(output_pdf))

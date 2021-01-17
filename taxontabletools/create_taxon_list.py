@@ -144,8 +144,8 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
             read_abundace_list = TaXon_table_df[sample].values.tolist()
             # enumerate the read abundaces for each sample and collect all lines that have more than one read
             for i, read_abundance in enumerate(read_abundace_list):
-                OTU = TaXon_table_df["IDs"][i]
-                taxonomy = ' '.join(TaXon_table_df[TaXon_table_df['IDs'].str.contains(OTU + "$", regex=True)].values.tolist()[0][1:7])
+                OTU = TaXon_table_df["ID"][i]
+                taxonomy = ' '.join(TaXon_table_df[TaXon_table_df['ID'].str.contains(OTU + "$", regex=True)].values.tolist()[0][1:7])
                 # if reads are present, collect the species name (or the specified taxonomic level) from the TaXon table
                 if read_abundance != 0:
                     OTUs_per_species_list.append(taxonomy)
