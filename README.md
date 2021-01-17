@@ -66,7 +66,7 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
  New features:
  * Metadatables can now directly be adjusted from within TTT.
  * Browsing TaXon tables will directly show the current project folder.
- *The OTU prompt is more relaxed. Hash OTUs are accepted now.
+ * The OTU prompt is more relaxed. Hash OTUs are accepted now.
  * Qiime2 feature tables can now be converted to the TTT format.
  * Additional options for customizing colors have been added.
  * Font sizes can now be adjusted.
