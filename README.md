@@ -55,6 +55,30 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 ## Examples
 ![](/_data/ttt_figure_1.png "figure-1") ![](/_data/ttt_figure_2.png "figure-2")
 
+## Change log
+
+ ### v. 1.2.0
+ Major update:
+ * The identifier "IDs" was changed to "ID" in the TaXon table header!
+  * Please adjust old TaXon tables accordingly!
+  * Otherwise TTT will crash!
+
+ New features:
+ * Metadatables can now directly be adjusted from within TTT.
+ * Browsing TaXon tables will directly show the current project folder.
+ *The OTU prompt is more relaxed. Hash OTUs are accepted now.
+ * Qiime2 feature tables can now be converted to the TTT format.
+ * Additional options for customizing colors have been added.
+ * Font sizes can now be adjusted.
+ * Diversity and ordiniation analyses can now be performed on different taxonomic levels.
+ * Diversity and ordiniation analyses automatically transform data to boolean values. Thus, also non presence/absence converted tables can be used.
+ * Moved various options to drop down menus.
+
+ Bug fixes:
+ * Fixed "shared OTUs" tool. More than 3 replicates are now supported.
+ * Changed x-axis value to read proportions in the per taxon analysis.
+ * Added missing package 'statsmodels' to installation.
+
 ## How to cite
 
 If you use TTT (preprint as of now):
