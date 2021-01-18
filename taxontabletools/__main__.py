@@ -8,7 +8,7 @@ import webbrowser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = "Version 1.2.1"
+taxon_tools_version = "Version 1.2.2"
 
 ##########################################################################################################################
 # general functions
@@ -32,6 +32,10 @@ def change_log_text():
     change_log_text = """
     TTT change log
     ____________________________________________________________________________
+
+    v. 1.2.1 & 1.2.2
+        - Missing file in installation path fixed
+        - Corrected minor spelling and layout mistakes
 
     v. 1.2.0
         Major update:
@@ -378,7 +382,7 @@ def main():
     ## column1
     column1 = [[sg.Text('Layout:')], [sg.Combo(available_templates_list, default_value='plotly_white', key="template", size=(10,1))]]
     ## column2
-    column2 = [[sg.Radio('Predefined Theme:', 'theme_radio',key="select_theme", default=True)], [sg.Combo(available_color1_list, default_value='Blue', key="theme", size=(12,1))]]
+    column2 = [[sg.Radio('Predefined theme:', 'theme_radio',key="select_theme", default=True)], [sg.Combo(available_color1_list, default_value='Blue', key="theme", size=(12,1))]]
     ## column3
     column3 = [[sg.Radio('Custom theme:', 'theme_radio', key="select_custom_theme")], [sg.Combo(plotly_colors, default_value='Blue', key="color1", size=(12,1))], [sg.Combo(plotly_colors, default_value='Black', key="color2", size=(12,1))]]
     ##column4
@@ -575,6 +579,7 @@ def main():
                         sg.Button("Help", key = 'run_alpha_diversity_help_text', button_color=('black', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_alpha"),
                         sg.Input("1000", size=(4,1), key="height_alpha"), sg.Radio("Scatter plot", "alpha_plot", key="alpha_scatter_plot"), sg.Radio("Box plot", "alpha_plot", key="alpha_box_plot", default=True)]], title="Settings")],
+    					[sg.Text('',size=(1,1))],
 
                         [sg.Text("Cluster dendrogram", size=(23,1)), sg.Button("Run", key = 'run_jaccard_clustering'), sg.Button("Help", key = 'run_cluster_dendrogram_help_text', button_color=('black', 'white')), sg.Text("", size=(1,1)),
                         sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_jaccard_clustering"),
