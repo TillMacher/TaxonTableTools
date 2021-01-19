@@ -66,7 +66,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
         ########################################
         # create the plot
 
-        title_dict = {'OTUs': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
+        title_dict = {'ID': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
         title = title_dict[taxonomic_level]
 
         fig = go.Figure()
@@ -163,7 +163,7 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
         ########################################
         # create the plot
 
-        title_dict = {'OTUs': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
+        title_dict = {'ID': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
         title = title_dict[taxonomic_level]
 
         fig = go.Figure()

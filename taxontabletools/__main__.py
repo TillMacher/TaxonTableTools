@@ -8,7 +8,7 @@ import webbrowser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = "Version 1.2.2"
+taxon_tools_version = "Version 1.2.3"
 
 ##########################################################################################################################
 # general functions
@@ -33,11 +33,12 @@ def change_log_text():
     TTT change log
     ____________________________________________________________________________
 
-    v. 1.2.1 & 1.2.2
-        - Missing file in installation path fixed
-        - Corrected minor spelling and layout mistakes
+    v. 1.2.3
+        - Fixed alpha diversity bug
+        - Missing file in installation path fixed.
+        - Corrected minor spelling and layout mistakes.
 
-    v. 1.2.0
+    v. 1.2
         Major update:
         - The identifier "IDs" was changed to "ID" in the TaXon table header!
             >> Please adjust old TaXon tables accordingly!
@@ -54,11 +55,6 @@ def change_log_text():
         - Diversity and ordiniation analyses automatically transform data to boolean values.
           Thus, also non presence/absence converted tables can be used.
         - Moved various options to drop down menus.
-
-        Bug fixes:
-        - Fixed "shared OTUs" tool. More than 3 replicates are now supported.
-        - Changed x-axis value to read proportions in the per taxon analysis.
-        - Added missing package 'statsmodels' to installation.
 
     """
     return change_log_text
