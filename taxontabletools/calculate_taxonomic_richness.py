@@ -13,16 +13,16 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     opacity_value = theme[2]
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
+    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
 
-    TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
-    df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
     statistics_list, statistics_set, statistics_dict, highest_level_dict = [], [], {}, {}
-    writer = pd.ExcelWriter(TaXon_table_xlsx, engine = 'xlsxwriter')
 
     for taxon_to_evaluate in taxonomic_levels:
-        taxa_list = [x for x in df[taxon_to_evaluate].values.tolist() if str(x) != 'nan']
+        taxa_list = [x for x in TaXon_table_df[taxon_to_evaluate].values.tolist() if str(x) != 'nan']
         statistics = taxon_to_evaluate, len(taxa_list)
         statistics_set.append(len(set(taxa_list)))
         statistics_list.append(list(statistics))

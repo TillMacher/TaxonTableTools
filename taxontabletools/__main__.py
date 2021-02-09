@@ -8,7 +8,7 @@ import webbrowser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = "Version 1.2.3"
+taxon_tools_version = "Version 1.2.4"
 
 ##########################################################################################################################
 # general functions
@@ -33,10 +33,8 @@ def change_log_text():
     TTT change log
     ____________________________________________________________________________
 
-    v. 1.2.3
-        - Fixed alpha diversity bug
-        - Missing file in installation path fixed.
-        - Corrected minor spelling and layout mistakes.
+    v. 1.2.4
+        - Fixed "TaXon table consuming" bug on some Windows 10 machines.
 
     v. 1.2
         Major update:
