@@ -15,7 +15,7 @@ TaxonTableTools is an evolving software and there will be bugs and issues at few
 
 ## Installation
 
-TaxonTableTools requires Python version 3.6 and 3.7 and can be easily installed using pip.
+TaxonTableTools requires Python version 3.6 or 3.7 and can be easily installed using pip.
 
 First, make sure you run the correct pip version via:
 
