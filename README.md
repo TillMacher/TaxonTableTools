@@ -89,8 +89,8 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 
 ## How to cite
 
-If you use TTT (preprint as of now):
-* Macher, T.-H., Beermann, A. J., & Leese, F. (2020). TaxonTableTools - A comprehensive, platform-independent graphical user interface software to explore and visualise DNA metabarcoding data. BioRxiv, 2020.08.24.264317. doi: 10.1101/2020.08.24.264317
+If you use TTT:
+* Macher, T.-H., Beermann, A. J., & Leese, F. (2021). TaxonTableTools—A comprehensive, platform-independent graphical user interface software to explore and visualise DNA metabarcoding data. Molecular Ecology Resources. doi: https://doi.org/10.1111/1755-0998.13358
 
 If you create Krona charts, please also cite:
 * Ondov, B. D., Bergman, N. H., & Phillippy, A. M. (2011). Interactive metagenomic visualization in a Web browser. BMC Bioinformatics, 12(1), 385. doi: 10.1186/1471-2105-12-385
