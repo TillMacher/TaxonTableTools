@@ -1,5 +1,7 @@
 # TaxonTableTools
 
+[![Downloads](https://pepy.tech/badge/taxontabletools)](https://pepy.tech/project/taxontabletools)
+
 ## Background
 
 TaxonTableTools (TTT) aims to provide easy-to-use tools for biologists and non-bioinformaticians to analyse and visualize their metabarcoding data quickly and reproducible via a graphical user interface.
