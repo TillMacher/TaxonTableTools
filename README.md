@@ -10,8 +10,8 @@ TaxonTableTools is an evolving software and there will be bugs and issues at few
 
 ## Requirements
 
-* Python version 3.6 or 3.7
-* Pip
+* Python version 3.6 or 3.7 (should also work with 3.8 and 3.9)
+* Pip python package installer
 * OS independent (tested on Windows 10, Ubuntu 16 & 18 and MacOS Catalina)
   * Some issues were reported during the [installation on Windows](https://github.com/TillMacher/TaxonTableTools/issues/1)
 
@@ -39,6 +39,10 @@ Updates can be installed via:
 
 The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is optional and needs to be done separately. Note that Krona tools is currently not supported on Windows.
 
+## Tutorial
+
+The easiest way to learn to how to use TaxonTableTools is to check out the [tutorial](_data/TaxonTableTools_tutorial.pdf)!
+
 ## Quick start
 
 * When first launched TTT will ask to define an output directory. This is where all your projects and respective output files will be stored. A new folder "Projects" will be created in this directory.
@@ -47,9 +51,7 @@ The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is option
 
 * Create a new project by typing the desired name or leave blank to create a "Default_project". Click on "Create new" to proceed.
 
-* Initially, the taxonomy table and read table must be converted to a TaXon table, the standard input format for TTT (see [manual](_data/TaxonTableTools_manual.pdf) for definitions and requirements). A template TaXon table is available [here](_data/template_taxon_table.xlsx).
-
-* Check out the [tutorial](_data/TaxonTableTools_tutorial.pdf) to get a more detailed impression of the TTT workflow.
+* A blank template TaXon table is available [here](_data/template_taxon_table.xlsx).
 
 ## Graphical user interface
 ![](/_data/ttt_gui.png "figure-1")
