@@ -21,7 +21,9 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
         raise RuntimeError
 
     ## check for the taxonmic level to analyse
-    if taxonomic_level != "OTUs":
+    if taxonomic_level not in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        ## create a y axis title text
+        taxon_title = taxonomic_level.lower()
         # ask how the to handle missing taxonomy
         answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
         if answer == "Yes":
@@ -37,7 +39,9 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
+        taxon_title = taxonomic_level
         taxonomic_level = "ID"
+
 
     ##############################################################################
     ## create a subfolder for better sorting and overview
@@ -165,7 +169,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
         y=plot_df.index.tolist()[::-1],
         colorscale=cs))
 
-    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='Reads (%)')
+    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='reads (%)')
 
     ## write files
     fig.write_image(str(output_pdf))
@@ -184,7 +188,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions heatmap", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
-def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
+def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -206,7 +210,9 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         raise RuntimeError
 
     ## check for the taxonmic level to analyse
-    if taxonomic_level != "OTUs":
+    if taxonomic_level not in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        ## create a y axis title text
+        taxon_title = taxonomic_level.lower()
         # ask how the to handle missing taxonomy
         answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
         if answer == "Yes":
@@ -222,6 +228,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
+        taxon_title = taxonomic_level
         taxonomic_level = "ID"
 
     ##############################################################################
@@ -230,9 +237,9 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     if not os.path.exists(dirName):
         os.mkdir(dirName)
 
-    output_pdf = Path(str(dirName) + "/" + taxonomic_level + "_bar.pdf")
-    output_html = Path(str(dirName) + "/" + taxonomic_level + "_bar.html")
-    output_xlsx = Path(str(dirName) + "/" + taxonomic_level + "_bar.xlsx")
+    output_pdf = Path(str(dirName) + "/" + taxon_title + "_bar.pdf")
+    output_html = Path(str(dirName) + "/" + taxon_title + "_bar.html")
+    output_xlsx = Path(str(dirName) + "/" + taxon_title + "_bar.xlsx")
 
     ############################################################################
     ## create the progress bar window
@@ -284,9 +291,9 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     n_taxa = len(TaXon_table_df_2[taxonomic_level].values.tolist())
     plot_df["Color"] = list(np.linspace(0,100,n_taxa)) * len(samples_list)
 
-    fig = px.bar(plot_df, x="Sample", y="Reads", color="Taxon", color_continuous_scale='Cividis_r', labels={"Color": "Taxon"})
+    fig = px.bar(plot_df, x="Sample", y="Reads", color="Taxon", color_discrete_sequence=color_discrete_sequence, labels={"Color": "Taxon"})
     fig.update_layout(barmode='stack', width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
-    fig.update_yaxes(title_text="Reads (%)")
+    fig.update_yaxes(title_text="reads (%)")
     fig.update_xaxes(title_text="")
 
     ## write files
@@ -306,7 +313,7 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     from taxontabletools.create_log import ttt_log
     ttt_log("read proportions bar plot", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
-def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
+def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -328,8 +335,9 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         raise RuntimeError
 
     ## check for the taxonmic level to analyse
-    if taxonomic_level != "OTUs":
-        # ask how the to handle missing taxonomy
+    if taxonomic_level not in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        ## create a y axis title text
+        taxon_title = taxonomic_level
         answer = sg.PopupYesNo("Shall missing taxonomy be replaced by the best hit?\n\nYes => Replace missing taxonomy with the best available hit.\nNo  => Display missing taxonomy as \'unidentified\'.", title="Plotting strategy")
         if answer == "Yes":
             ## replace nan with the best hit
@@ -344,6 +352,7 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
                         break
             TaXon_table_df[taxonomic_level] = best_hit_list
     else:
+        taxon_title = taxonomic_level
         taxonomic_level = "ID"
 
     ############################################################################
@@ -407,8 +416,8 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
         fig.update_traces(textposition='inside')
         fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
 
-        output_pdf = Path(str(dirName_samples) + "/" + sample + "_" + taxonomic_level + "_pie.pdf")
-        output_html = Path(str(dirName_samples) + "/" + sample + "_" + taxonomic_level + "_pie.html")
+        output_pdf = Path(str(dirName_samples) + "/" + sample + "_" + taxon_title + "_pie.pdf")
+        output_html = Path(str(dirName_samples) + "/" + sample + "_" + taxon_title + "_pie.html")
 
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
@@ -419,9 +428,9 @@ def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     df_2 = main_df["Reads"]/main_df["Reads"].sum()
     main_df = main_df.assign(perc=df_2.values*100)
 
-    fig = go.Figure(data=[go.Pie(labels=main_df["Taxon"], values=main_df["perc"], hole=.3)])
+    fig = go.Figure(data=[go.Pie(labels=main_df["Taxon"], values=main_df["perc"], marker_colors=color_discrete_sequence, hole=.3)])
     fig.update_traces(textposition='inside')
-    fig.update_layout(annotations=[dict(text=taxonomic_level, x=0.5, y=0.5, showarrow=False)])
+    fig.update_layout(annotations=[dict(text=taxon_title, x=0.5, y=0.5, showarrow=False)])
     fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size)
 
     ## write files

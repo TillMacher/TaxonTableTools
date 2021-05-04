@@ -1,4 +1,4 @@
-def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, pcoa_s, draw_mesh, path_to_outdirs, template, font_size):
+def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, pcoa_s, path_to_outdirs, template, font_size, color_discrete_sequence, pcoa_dissimilarity):
     import pandas as pd
     import numpy as np
     from skbio.diversity import beta_diversity
@@ -10,6 +10,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
     from pathlib import Path
     import PySimpleGUI as sg
     import os, webbrowser
+    from itertools import combinations
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -17,6 +18,14 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == len(Meta_data_table_df['Samples'].tolist()):
@@ -48,14 +57,14 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
             TaXon_table_df = TaXon_table_df.drop('unidentified')
 
         data = TaXon_table_df[samples].transpose().values.tolist()
-        jc_dm = beta_diversity("jaccard", data, samples)
+        jc_dm = beta_diversity(pcoa_dissimilarity, data, samples)
         ordination_result = pcoa(jc_dm)
         metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
 
         anosim_results = anosim(jc_dm, metadata_list, permutations=999)
         anosim_r = round(anosim_results['test statistic'], 5)
         anosim_p = anosim_results['p-value']
-        textbox = meta_data_to_test + ", " + taxonomic_level + "<br>Anosim " + "R = " + str(anosim_r) + " " + "p = " + str(anosim_p)
+        textbox = meta_data_to_test + ", " + taxon_title + "<br>Anosim " + "R = " + str(anosim_r) + " " + "p = " + str(anosim_p)
 
         #######################################################################################
         # create window to ask for PCoA axis to test
@@ -72,11 +81,12 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
         pcoa_axis_checkboxes = list(slices([sg.Checkbox(name, key=name, size=(15,1)) for name in proportion_explained_list], 10))
 
         pcoa_window_layout = [
-                    [sg.Text('Check two axis to be displayed')],
+                    [sg.Text('Check up to four axes to be displayed')],
                     [sg.Frame(layout = pcoa_axis_checkboxes, title = '')],
                     [sg.Text('Only axes >= 1 % explained variance are shown')],
+                    [sg.CB("Connect categories", default=True, key="draw_mesh")],
                     [sg.Text('')],
-                    [sg.Button('Plot', key='Plot'), sg.Text(''), sg.Button('Plot matrix')],
+                    [sg.Button('Plot', key='Plot')],
                     [sg.Button('Back')],
                     ]
 
@@ -84,6 +94,8 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
 
         while True:
             event, values = pcoa_window.read()
+
+            draw_mesh = values["draw_mesh"]
 
             if event is None or event == 'Back':
                 break
@@ -106,16 +118,36 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                     df_pcoa.insert(2, "Metadata", Meta_data_table_df[meta_data_to_test].values.tolist(), True)
                     df_pcoa.insert(3, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
 
-                    fig = px.scatter(df_pcoa, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox)
-                    fig.update_traces(marker_size=int(pcoa_s), mode="markers")
-                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
-                    fig.update_xaxes(title=axis_to_plot[1])
-                    fig.update_yaxes(title=axis_to_plot[0])
+                    if draw_mesh == True:
+                        combinations_list =[]
+                        for metadata in df_pcoa["Metadata"]:
+                            ## collect all entries for the respective metadata
+                            arr = df_pcoa.loc[df_pcoa['Metadata'] == metadata][[cat1, cat2, "Metadata", "Samples"]].to_numpy()
+                            ## create a df for all possible combinations using itertools combinations
+                            for entry in list(combinations(arr, 2)):
+                                combinations_list.append(list(entry[0]))
+                                combinations_list.append(list(entry[1]))
+                        ## create a dataframe to draw the plot from
+                        df = pd.DataFrame(combinations_list)
+                        df.columns = [cat1, cat2, "Metadata", "Samples"]
+
+                        fig = px.scatter(df, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
+                        fig.update_traces(marker_size=int(pcoa_s), mode="markers+lines")
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
+                        fig.update_xaxes(title=axis_to_plot[1])
+                        fig.update_yaxes(title=axis_to_plot[0])
+
+                    else:
+                        fig = px.scatter(df_pcoa, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
+                        fig.update_traces(marker_size=int(pcoa_s), mode="markers")
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
+                        fig.update_xaxes(title=axis_to_plot[1])
+                        fig.update_yaxes(title=axis_to_plot[0])
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".xlsx")
 
                     ## write files
                     fig.write_image(str(output_pdf))
@@ -145,8 +177,6 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                     df_pcoa.insert(3, "Metadata", Meta_data_table_df[meta_data_to_test].values.tolist(), True)
                     df_pcoa.insert(4, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
 
-                    from itertools import combinations
-
                     ## check if lines are to be drawn between the dots
                     if draw_mesh == True:
                         combinations_list =[]
@@ -161,20 +191,20 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                         df = pd.DataFrame(combinations_list)
                         df.columns = [cat1, cat2, cat3, "Metadata", "Samples"]
                         ## draw the plot
-                        fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox)
+                        fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
                         fig.update_traces(marker_size=int(pcoa_s), mode="markers+lines", line=dict(width=0.5))
                         fig.update_layout(height=int(height), width=int(width), template=template, title=textbox, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
                     else:
-                        fig = px.scatter_3d(df_pcoa, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
+                        fig = px.scatter_3d(df_pcoa, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", color_discrete_sequence=color_discrete_sequence)
                         fig.update_traces(marker_size=int(pcoa_s), mode="markers")
                         fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, title=textbox, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.xlsx")
 
                     ## write output files
                     fig.write_image(str(output_pdf))
@@ -308,8 +338,8 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                     fig.update_layout(height=1000, width=1000, title_text=textbox)
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_matrix.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_matrix.html")
 
                     ## write output files
                     fig.write_image(str(output_pdf))

@@ -1,4 +1,4 @@
-def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme, font_size):
+def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme, font_size, clustering_unit):
 
     import glob
     import PySimpleGUI as sg
@@ -20,6 +20,8 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
     statistics_list, statistics_set, statistics_dict, highest_level_dict = [], [], {}, {}
+
+    title = "# " + clustering_unit
 
     for taxon_to_evaluate in taxonomic_levels:
         taxa_list = [x for x in TaXon_table_df[taxon_to_evaluate].values.tolist() if str(x) != 'nan']
@@ -45,7 +47,7 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
 
         fig = go.Figure(data=[go.Bar(x=taxon_levels, y=highest_level_OTUs, name="Taxon", textposition="outside", text=highest_level_OTUs)])
         fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
-        fig.update_layout(title_text='Taxonomic resolution (highest taxonomic level)', yaxis_title="# OTUs")
+        fig.update_layout(title_text='Taxonomic resolution (highest taxonomic level)', yaxis_title=title)
         fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template, font_size=font_size, title_font_size=font_size)
 
         ## finish script
@@ -68,7 +70,7 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
 
         fig = go.Figure(data=[go.Bar(x=taxon_levels, y=total_OTUs, name="Taxon", textposition="outside", text=total_OTUs)])
         fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1, opacity=opacity_value)
-        fig.update_layout(title_text='Taxonomic resolution (total number of OTUs)', yaxis_title="# OTUs")
+        fig.update_layout(title_text='Taxonomic resolution (total number of OTUs)', yaxis_title=title)
         fig.update_layout(height=int(y_tax_res), width=int(x_tax_res), template=template, font_size=font_size, title_font_size=font_size)
 
         ## finish script

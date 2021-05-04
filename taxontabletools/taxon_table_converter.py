@@ -1,127 +1,78 @@
 def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
 
+    # read_table_xlsx = "/Users/tillmacher/Documents/GitHub/TaxonTableTools/_tutorial_files/tutorial_read_table_TTT.xlsx"
+    # taxonomy_results_xlsx = "/Users/tillmacher/Documents/GitHub/TaxonTableTools/_tutorial_files/tutorial_taxonomy_table_2.xlsx"
+    # TaXon_table_name = "NEW_TABLE"
+    # sheet_name = "JAMP hit"
+    # path_to_outdirs = Path("/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Robo_Test_2/TaXon_tables")
+
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
     import numpy as np
     from pathlib import Path
 
+    ## collect both input files
     taxonomy_results_xlsx =  Path(taxonomy_results_xlsx)
     read_table_xlsx = Path(read_table_xlsx)
-    # create filename and path for output file
+
+    #ä create filename and path for output file
     Output_name = TaXon_table_name + ".xlsx"
     Output_file = path_to_outdirs / "TaXon_tables" / Output_name
 
-    # store the file name for later use
+    ## store the file name for later use
     file_name = taxonomy_results_xlsx.name
 
-    # create datafrmes for both files
-    taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0).set_index('ID')
+    ## create dataframes for both files
+    taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0)
     if sheet_name == "BOLDigger hit":
         taxonomy_df = taxonomy_df.drop(columns=['Flags'])
-    read_table_df = pd.read_excel(read_table_xlsx, header=0).set_index('ID')
-    # extract OTU names
-    OTU_names_taxonomy_df = taxonomy_df.index.values
-    OTU_names_Read_df = read_table_df.index.values
-    # create a sorting column -> important to match the input files
-    taxonomy_df_sorting_col = [OTU.replace("OTU_", "") for OTU in OTU_names_taxonomy_df]
-    Read_df_sorting_col = [OTU.replace("OTU_", "") for OTU in OTU_names_Read_df]
-    taxonomy_df["sort"] = taxonomy_df_sorting_col
-    taxonomy_df = taxonomy_df.fillna("")
-    read_table_df["sort"] = Read_df_sorting_col
-    # sort both dataframes by the sorting column
-    taxonomy_df = taxonomy_df.sort_values(by=['sort'])
-    read_table_df = read_table_df.sort_values(by=['sort'])
+    read_table_df = pd.read_excel(read_table_xlsx, header=0)
 
-    # check if the sorting columns match each other -> if not break the and give an error message
-    if taxonomy_df["sort"].values.tolist() != read_table_df["sort"].values.tolist():
-        error_message = "Fatal crash: Your files do not match!"
-        sg.PopupError(error_message, title="Error")
-        raise Exception()
+    ## create a new dataframe
+    TaXon_table_df = taxonomy_df
 
-    # create an empty list that will be used to create the output dataFrame
-    dataframe_list = []
-    # create a list of available OTUs (does not matter from which dataframe, because they have to be the same at this point)
-    OTU_list = taxonomy_df.index.values
+    # check if all OTU are correctly sorted and present in both files
+    if taxonomy_df["ID"].to_list() == read_table_df["ID"].to_list():
 
-    ############################################################################
-    ## create the progress bar window
-    layout = [[sg.Text('Progress bar')],
-              [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-              [sg.Cancel()]]
-    window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
-    progress_bar = window_progress_bar['progressbar']
-    progress_update = 0
-    progress_increase = 1000 / len(OTU_list) + 1
-    ############################################################################
+        ## append the sequences to the TaXon stable
+        TaXon_table_df["seq"] = read_table_df["Sequences"]
 
-    ############################################################################
-    event, values = window_progress_bar.read(timeout=10)
-    if event == 'Cancel'  or event is None:
-        window_progress_bar.Close()
-        raise RuntimeError
-    # update bar with loop value +1 so that bar eventually reaches the maximum
-    progress_update += 0
-    progress_bar.UpdateBar(progress_update)
-    ############################################################################
+        ## remove the sequence column from the read table
+        read_table_df.drop('Sequences', axis='columns', inplace=True)
 
-    # iterate through the OTUs (=row of dataframe) and increase the counter with each step for visual updates
-    for i in range(len(OTU_list)):
-        # get the name of the OTU
-        OTU_name = OTU_list[i]
-        # get the taxonomy from the taxonomy file
-        taxonomy = taxonomy_df.iloc[i].values.tolist()
-        if len(taxonomy[5].split()) == 1:
-            taxonomy[5] = taxonomy[4] + " " + taxonomy[5]
-        # get all information from the Read table
-        read_table = read_table_df.iloc[i].values.tolist()
-        # get the sequence information from the Read table
-        sequence = read_table[-2]
-        # get the read numbers from the Read table
-        read_table = read_table[:-2]
-        # get the sorting row
-        sort = taxonomy_df["sort"][i]
-        # append all collected information to a list from which the final dataframe will be created
-        dataframe_list.append([OTU_name.replace(">", "")] + taxonomy[:-1] + sequence.split() + read_table + [int(sort)])
+        ## remove the ID column from the read table
+        read_table_df.drop('ID', axis='columns', inplace=True)
 
-        ############################################################################
-        event, values = window_progress_bar.read(timeout=10)
-        if event == 'Cancel'  or event is None:
-            window_progress_bar.Close()
-            raise RuntimeError
-        # update bar with loop value +1 so that bar eventually reaches the maximum
-        progress_update += progress_increase
-        progress_bar.UpdateBar(progress_update)
-        ############################################################################
+        ## add samples to the dataframe
+        TaXon_table_df = pd.concat([TaXon_table_df, read_table_df], axis=1)
 
-    window_progress_bar.Close()
+        ## check if species are present as "Genus" + "Epithet"
+        new_species_column = []
+        for OTU in TaXon_table_df[["Genus", "Species"]].fillna("nan").values.tolist():
+            if (OTU != ["nan", "nan"] and OTU[1] != 'nan'):
+                if OTU[0] not in OTU[1]:
+                    new_species_column.append(OTU[0] + " " + OTU[1])
+                else:
+                    new_species_column.append(OTU[1])
+            else:
+                new_species_column.append("")
 
-    # create the column headers for the final file
-    # get the names of the taxonomyigger file
-    taxonomy_columns = list(taxonomy_df.columns)[:-1]
-    # get the names of the Read table
-    sample_names_columns = list(read_table_df.columns)[:-2]
-    # create the column headers
-    header_row = ["ID"] + taxonomy_columns + ["seq"] + sample_names_columns + ["sort"]
+        ## add new species column to the dataframe
+        TaXon_table_df["Species"] = new_species_column
 
-    # create a new dataframe with the just created headers
-    df = pd.DataFrame(dataframe_list)
-    df.columns = header_row
-    # set the index to be the OTUs
-    df.set_index('ID')
-    # sort the dataframe by the sorting column
-    df = df.sort_values(by=["sort"])
-    # remove the sorting column as it is no longer needed
-    df = df.drop(["sort"], axis=1)
-    # save the newly created Taxon table in TaXon format as excel file
-    df.to_excel(Output_file, sheet_name='TaXon table', index=False)
+        ## save the newly created Taxon table in TaXon format as excel file
+        TaXon_table_df.to_excel(Output_file, sheet_name='TaXon table', index=False)
 
-    closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
-    sg.Popup(closing_text, title="Finished", keep_on_top=True)
+        closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-    from taxontabletools.create_log import ttt_log
-    input = taxonomy_results_xlsx.name + " + " + read_table_xlsx.name
-    ttt_log("taXon table converter", "processing", input, Output_file.name, "nan", path_to_outdirs)
+        from taxontabletools.create_log import ttt_log
+        input = taxonomy_results_xlsx.name + " + " + read_table_xlsx.name
+        ttt_log("taXon table converter", "processing", input, Output_file.name, "ttt", path_to_outdirs)
+
+    else:
+        sg.PopupError("Error: The IDs of the read table and taxonomy table do not match!")
 
 def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
 
@@ -142,114 +93,54 @@ def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_ta
     file_name = taxonomy_results_xlsx.name
 
     # create datafrmes for both files
-    taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0).set_index('ID')
+    taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0)
     if sheet_name == "BOLDigger hit":
         taxonomy_df = taxonomy_df.drop(columns=['Flags'])
 
-    read_table_df = pd.read_csv(Path(read_table_tsv), sep="\t").set_index('id')
+    read_table_df = pd.read_csv(Path(read_table_tsv), sep="\t")
     read_table_df = read_table_df.drop(['#q2:types'])
 
-    # extract OTU names
-    OTU_names_taxonomy_df = taxonomy_df.index.values
-    OTU_names_Read_df = read_table_df.index.values
+    ## create a new dataframe
+    TaXon_table_df = taxonomy_df
 
-    # create a sorting column -> important to match the input files
-    taxonomy_df_sorting_col = [OTU.replace("OTU_", "") for OTU in OTU_names_taxonomy_df]
-    Read_df_sorting_col = [OTU.replace("OTU_", "") for OTU in OTU_names_Read_df]
-    taxonomy_df["sort"] = taxonomy_df_sorting_col
-    taxonomy_df = taxonomy_df.fillna("")
-    read_table_df["sort"] = Read_df_sorting_col
+    # check if all OTU are correctly sorted and present in both files
+    if taxonomy_df["ID"].to_list() == read_table_df["ID"].to_list():
 
-    # sort both dataframes by the sorting column
-    taxonomy_df = taxonomy_df.sort_values(by=['sort'])
-    read_table_df = read_table_df.sort_values(by=['sort'])
+        ## append the sequences to the TaXon stable
+        TaXon_table_df["seq"] = read_table_df["Sequences"]
 
-    # check if the sorting columns match each other -> if not break the and give an error message
-    if taxonomy_df["sort"].values.tolist() != read_table_df["sort"].values.tolist():
-        error_message = "Error: Your files do not match!"
-        sg.PopupError(error_message, title="Error")
-        raise Exception()
+        ## remove the sequence column from the read table
+        read_table_df.drop('Sequences', axis='columns', inplace=True)
 
-    # create an empty list that will be used to create the output dataFrame
-    dataframe_list = []
-    # create a list of available OTUs (does not matter from which dataframe, because they have to be the same at this point)
-    OTU_list = taxonomy_df.index.values
+        ## remove the ID column from the read table
+        read_table_df.drop('ID', axis='columns', inplace=True)
 
-    ############################################################################
-    ## create the progress bar window
-    layout = [[sg.Text('Progress bar')],
-              [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-              [sg.Cancel()]]
-    window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
-    progress_bar = window_progress_bar['progressbar']
-    progress_update = 0
-    progress_increase = 1000 / len(OTU_list) + 1
-    ############################################################################
+        ## add samples to the dataframe
+        TaXon_table_df = pd.concat([TaXon_table_df, read_table_df], axis=1)
 
-    ############################################################################
-    event, values = window_progress_bar.read(timeout=10)
-    if event == 'Cancel'  or event is None:
-        window_progress_bar.Close()
-        raise RuntimeError
-    # update bar with loop value +1 so that bar eventually reaches the maximum
-    progress_update += 0
-    progress_bar.UpdateBar(progress_update)
-    ############################################################################
+        ## check if species are present as "Genus" + "Epithet"
+        new_species_column = []
+        for OTU in TaXon_table_df[["Genus", "Species"]].fillna("nan").values.tolist():
+            if (OTU != ["nan", "nan"] and OTU[1] != 'nan'):
+                if OTU[0] not in OTU[1]:
+                    new_species_column.append(OTU[0] + " " + OTU[1])
+                else:
+                    new_species_column.append(OTU[1])
+            else:
+                new_species_column.append("")
 
-    # iterate through the OTUs (=row of dataframe) and increase the counter with each step for visual updates
-    for i in range(len(OTU_list)):
-        # get the name of the OTU
-        OTU_name = OTU_list[i]
-        # get the taxonomy from the taxonomy file
-        taxonomy = taxonomy_df.iloc[i].values.tolist()
-        if len(taxonomy[5].split()) == 1:
-            taxonomy[5] = taxonomy[4] + " " + taxonomy[5]
-        # get all information from the Read table
-        read_table = read_table_df.iloc[i].values.tolist()
-        # get the sequence information from the Read table
-        sequence = read_table[-2]
-        # get the read numbers from the Read table
-        read_table = read_table[:-2]
-        # get the sorting row
-        sort = taxonomy_df["sort"][i]
-        # append all collected information to a list from which the final dataframe will be created
-        dataframe_list.append([OTU_name.replace(">", "")] + taxonomy[:-1] + sequence.split() + read_table + [sort])
+        ## add new species column to the dataframe
+        TaXon_table_df["Species"] = new_species_column
 
-        ############################################################################
-        event, values = window_progress_bar.read(timeout=10)
-        if event == 'Cancel'  or event is None:
-            window_progress_bar.Close()
-            raise RuntimeError
-        # update bar with loop value +1 so that bar eventually reaches the maximum
-        progress_update += progress_increase
-        progress_bar.UpdateBar(progress_update)
-        ############################################################################
+        ## save the newly created Taxon table in TaXon format as excel file
+        TaXon_table_df.to_excel(Output_file, sheet_name='TaXon table', index=False)
 
-    window_progress_bar.Close()
+        closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
-    # create the column headers for the final file
-    # get the names of the taxonomyigger file
-    taxonomy_columns = list(taxonomy_df.columns)[:-1]
-    # get the names of the Read table
-    sample_names_columns = list(read_table_df.columns)[:-2]
-    # create the column headers
-    header_row = ["ID"] + taxonomy_columns + ["seq"] + sample_names_columns + ["sort"]
+        from taxontabletools.create_log import ttt_log
+        input = taxonomy_results_xlsx.name + " + " + read_table_xlsx.name
+        ttt_log("taXon table converter", "processing", input, Output_file.name, "qiime2", path_to_outdirs)
 
-    # create a new dataframe with the just created headers
-    df = pd.DataFrame(dataframe_list)
-    df.columns = header_row
-    # set the index to be the OTUs
-    df.set_index('ID')
-    # sort the dataframe by the sorting column
-    df = df.sort_values(by=["sort"])
-    # remove the sorting column as it is no longer needed
-    df = df.drop(["sort"], axis=1)
-    # save the newly created Taxon table in TaXon format as excel file
-    df.to_excel(Output_file, sheet_name='TaXon table', index=False)
-
-    closing_text = "Taxon table is found under:\n" + '/'.join(str(Output_file).split("/")[-4:])
-    sg.Popup(closing_text, title="Finished", keep_on_top=True)
-
-    from taxontabletools.create_log import ttt_log
-    input = taxonomy_results_xlsx.name + " + " + read_table_tsv.name
-    ttt_log("taXon table converter", "processing", input, Output_file.name, "nan", path_to_outdirs)
+    else:
+        sg.PopupError("Error: The IDs of the read table and taxonomy table do not match!")

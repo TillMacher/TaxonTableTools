@@ -41,17 +41,31 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
         available_taxa = sorted(list(available_taxa))
         filtered_taxa = list(set(available_taxa) - set(filtered_taxa))
 
-    # check for taxa to filter
-    mask_position = list(df.columns).index(mask)
-    df_columns = df.columns
+        # check for taxa to filter
+        mask_position = list(df.columns).index(mask)
+        df_columns = df.columns
 
-    rows_to_keep = []
+        rows_to_keep = []
 
-    df_rows = df.values.tolist()
-    for row in df_rows:
-        taxon_to_evaluate = row[mask_position]
-        if taxon_to_evaluate not in filtered_taxa:
-            if str(taxon_to_evaluate) != 'nan':
+        df_rows = df.values.tolist()
+        for row in df_rows:
+            taxon_to_evaluate = row[mask_position]
+            if taxon_to_evaluate not in filtered_taxa:
+                if str(taxon_to_evaluate) != 'nan':
+                    rows_to_keep.append(row)
+
+
+    else:
+        # check for taxa to filter
+        mask_position = list(df.columns).index(mask)
+        df_columns = df.columns
+
+        rows_to_keep = []
+
+        df_rows = df.values.tolist()
+        for row in df_rows:
+            taxon_to_evaluate = row[mask_position]
+            if taxon_to_evaluate not in filtered_taxa:
                 rows_to_keep.append(row)
 
     df_out = pd.DataFrame(rows_to_keep)
@@ -88,11 +102,19 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
         writer.save()
         writer.close()
 
-        closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
+        ## print results for the user
+        n_old_OTUs = len(df["ID"].values.tolist())
+        n_remaining_OTUs = len(df_out["ID"].values.tolist())
+        diff_abs = n_old_OTUs - n_remaining_OTUs
+        diff_rel = round(100 - n_remaining_OTUs / n_old_OTUs * 100, 2)
+
+        ## finish script
+        closing_text = "Removed " + str(diff_abs) + " OTUs (" + str(diff_rel) + "%).\n\n" + "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
         from taxontabletools.create_log import ttt_log
-        ttt_log("taxon filter", "processing", TaXon_table_file.name, output_name.name, "nan", path_to_outdirs)
+        log_text = str(diff_abs) + " OTUs ; " + str(diff_rel) + "%"
+        ttt_log("taxon filter", "processing", TaXon_table_file.name, output_name.name, log_text, path_to_outdirs)
 
 # 2.a create mask for user input
 def create_sample_mask(TaXon_table_xlsx, sample_mask):
@@ -125,6 +147,7 @@ def filter_samples(TaXon_table_xlsx, selected_samples, appendix_name, path_to_ou
     TaXon_table_xlsx_path = TaXon_table_xlsx
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
     df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
+    n_old_OTUs = len(df["ID"].values.tolist())
 
     if type(selected_samples) == str:
         selected_samples = [selected_samples]
@@ -154,11 +177,19 @@ def filter_samples(TaXon_table_xlsx, selected_samples, appendix_name, path_to_ou
     output_name = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + file_name + "_" + appendix_name + ".xlsx")
     df.to_excel(output_name, sheet_name = 'TaXon table', index=False)
 
-    closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
+    ## print results for the user
+    n_remaining_OTUs = len(df["ID"].values.tolist())
+    diff_abs = n_old_OTUs - n_remaining_OTUs
+    diff_rel = round(100 - n_remaining_OTUs / n_old_OTUs * 100, 2)
+
+    ## finish script
+    closing_text = "Removed " + str(diff_abs) + " OTUs (" + str(diff_rel) + "%).\n\n" + "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
     from taxontabletools.create_log import ttt_log
-    ttt_log("sample filter", "processing", TaXon_table_file.name, output_name.name, "nan", path_to_outdirs)
+    log_text = str(diff_abs) + " OTUs ; " + str(diff_rel) + "%"
+    from taxontabletools.create_log import ttt_log
+    ttt_log("sample filter", "processing", TaXon_table_file.name, output_name.name, log_text, path_to_outdirs)
 
 # 3 read-based filter
 def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filter_treshold):
@@ -167,6 +198,11 @@ def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filt
     from pandas import DataFrame
     from pathlib import Path
     import numpy as np
+
+    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table.xlsx"
+    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial"
+    # read_filter_method = "absolute_filtering"
+    # read_filter_treshold = 50
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
     TaXon_table_xlsx_path = TaXon_table_xlsx
@@ -194,12 +230,19 @@ def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filt
         output_name = Path(str(path_to_outdirs) + "/TaXon_tables/" + file_name + "_" + read_filter_treshold + ".xlsx")
         TaXon_table_df_filtered.to_excel(output_name, sheet_name = 'TaXon table', index=False)
 
+        ## print results for the user
+        n_old_OTUs = len(TaXon_table_df["ID"].values.tolist())
+        n_remaining_OTUs = len(TaXon_table_df_filtered["ID"].values.tolist())
+        diff_abs = n_old_OTUs - n_remaining_OTUs
+        diff_rel = round(100 - n_remaining_OTUs / n_old_OTUs * 100, 2)
+
         ## finish script
-        closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
+        closing_text = "Removed " + str(diff_abs) + " OTUs (" + str(diff_rel) + "%).\n\n" + "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
         from taxontabletools.create_log import ttt_log
-        ttt_log("absolute read filter", "processing", TaXon_table_file.name, output_name.name, read_filter_treshold, path_to_outdirs)
+        log_text = str(read_filter_treshold) + " ; " + str(diff_abs) + " OTUs ; " + str(diff_rel) + "%"
+        ttt_log("absolute read filter", "processing", TaXon_table_file.name, output_name.name, log_text, path_to_outdirs)
 
     elif read_filter_method == "relative_filtering":
         ## transform to percentage
@@ -226,13 +269,67 @@ def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filt
         output_name = Path(str(path_to_outdirs) + "/TaXon_tables/" + file_name + "_" + read_filter_treshold + ".xlsx")
         TaXon_table_df_filtered.to_excel(output_name, sheet_name = 'TaXon table', index=False)
 
+        ## print results for the user
+        n_old_OTUs = len(TaXon_table_df["ID"].values.tolist())
+        n_remaining_OTUs = len(TaXon_table_df_filtered["ID"].values.tolist())
+        diff_abs = n_old_OTUs - n_remaining_OTUs
+        diff_rel = round(100 - n_remaining_OTUs / n_old_OTUs * 100, 2)
+
         ## finish script
-        closing_text = "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
+        closing_text = "Removed " + str(diff_abs) + " OTUs (" + str(diff_rel) + "%).\n\n" + "Taxon table is found under:\n" + '/'.join(str(output_name).split("/")[-4:])
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
         from taxontabletools.create_log import ttt_log
-        ttt_log("relative read filter", "processing", TaXon_table_file.name, output_name.name, read_filter_treshold, path_to_outdirs)
+        log_text = str(read_filter_treshold) + " ; " + str(diff_abs) + " OTUs ; " + str(diff_rel) + "%"
+        ttt_log("relative read filter", "processing", TaXon_table_file.name, output_name.name, log_text, path_to_outdirs)
 
+def subtract_NCs(TaXon_table_xlsx, path_to_outdirs, negative_controls):
+
+    import PySimpleGUI as sg
+    import pandas as pd
+    import numpy as np
+    import plotly.graph_objects as go
+    from pathlib import Path
+    import webbrowser
+
+    ## load taxon table
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header = 0)
+
+    ##negative_controls = ["NC_3", "NC_1", "NC_2"]
+    ## collect samples
+    samples = [sample for sample in TaXon_table_df.columns.to_list()[10:] if sample not in negative_controls]
+    ## calculate sum of NCs
+    df_nc_sum = TaXon_table_df[negative_controls].sum(axis=1)
+    ## create a new dataframe
+    df_out = TaXon_table_df[TaXon_table_df.columns.tolist()[0:10]]
+
+    # subtract the sum of reads found in the NCs from each OTU of the samples
+    for sample in samples:
+        df_out.insert(10, sample, (TaXon_table_df[sample] - df_nc_sum).values.tolist())
+
+    ## replace negative values with 0
+    num = df_out._get_numeric_data()
+    num[num < 0] = 0
+
+    ## remove empty OTUs
+    out_list = [OTU for OTU in df_out.values.tolist() if sum(OTU[10:]) != 0]
+
+    ## check if the still contains reads
+    if df_out.empty:
+        sg.PopupError('Filter theshold were to harsh: Nothing to print', title="Error", keep_on_top=True)
+
+    else:
+        output_xlsx = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + TaXon_table_xlsx.stem + "_NCsub.xlsx")
+        df_out = pd.DataFrame(out_list, columns=df_out.columns.tolist()).replace("nan", "")
+        df_out.to_excel(output_xlsx, sheet_name="TaXon table", index=False)
+
+        from taxontabletools.create_log import ttt_log
+        ttt_log("nc subtract", "processing", TaXon_table_xlsx.name, output_xlsx.name, "nan", path_to_outdirs)
+
+        ## finish script
+        closing_text = str(len(TaXon_table_df) - len(df_out)) + " OTUs were removed. The Taxon table is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
+        sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
 
 

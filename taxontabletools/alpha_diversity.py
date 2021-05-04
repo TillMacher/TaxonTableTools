@@ -1,4 +1,4 @@
-def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size):
+def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -15,6 +15,14 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
     categories = Meta_data_table_df[meta_data_to_test].tolist()
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
         sg.PopupError("The meta data has to differ between samples!", title="Error")
@@ -65,18 +73,24 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
 
         ########################################
         # create the plot
+        title = "# " + taxon_title
 
-        title_dict = {'ID': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
-        title = title_dict[taxonomic_level]
+        ## create a list of colors that is longer than the list of categories
+        ## plotly express does this automatically, plotly go not!
+        while True:
+            if len(color_discrete_sequence) < len(categories):
+                color_discrete_sequence  = color_discrete_sequence + color_discrete_sequence
+            else:
+                break
 
         fig = go.Figure()
-        for category in set(categories):
-            fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(size=int(scatter_size))))
+        for category, color in zip(sorted(set(categories)), color_discrete_sequence):
+            fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(color=color, size=int(scatter_size))))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=True, font_size=font_size, title_font_size=font_size)
 
         ## finish script
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_scatter_plot.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_scatter_plot.html")
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_scatter_plot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_scatter_plot.html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 
@@ -91,7 +105,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
 
-def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, taxonomic_level, path_to_outdirs, template, theme, font_size):
+def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
 
     import PySimpleGUI as sg
     import pandas as pd
@@ -115,6 +129,14 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
     categories = Meta_data_table_df[meta_data_to_test].tolist()
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
         sg.PopupError("The meta data has to differ between samples!", title="Error")
@@ -162,18 +184,24 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
 
         ########################################
         # create the plot
+        title = "# " + taxon_title
 
-        title_dict = {'ID': '# OTUs', 'Phylum' : '# phyla', 'Class': '# classes', 'Order' : '# orders', 'Family' : '# families', 'Genus' : '# genera', 'Species' : '# species'}
-        title = title_dict[taxonomic_level]
+        ## create a list of colors that is longer than the list of categories
+        ## plotly express does this automatically, plotly go not!
+        while True:
+            if len(color_discrete_sequence) < len(categories):
+                color_discrete_sequence  = color_discrete_sequence + color_discrete_sequence
+            else:
+                break
 
         fig = go.Figure()
-        for category in set(categories):
-            fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color1, marker_line_color=color2, marker_line_width=0.2, opacity=opacity_value))
+        for category, color in zip(sorted(set(categories)), color_discrete_sequence):
+            fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color, marker_line_color="Black", marker_line_width=0.2, opacity=opacity_value))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=False, font_size=font_size, title_font_size=font_size)
 
         ## finish script
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_boxplot.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_boxplot.html")
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_boxplot.pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_boxplot.html")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
 

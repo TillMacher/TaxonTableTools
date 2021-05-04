@@ -1,4 +1,4 @@
-def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, draw_mesh, path_to_outdirs, template, font_size):
+def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, path_to_outdirs, template, font_size, color_discrete_sequence):
 
     import pandas as pd
     import numpy as np
@@ -11,6 +11,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
     from pathlib import Path
     import PySimpleGUI as sg
     import os, webbrowser
+    from itertools import combinations
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -18,6 +19,14 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     IDs_list = TaXon_table_df["ID"].values.tolist()
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     # check for presence absence data
     # otherwise abort and print error message
@@ -52,7 +61,7 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
         ## create title
-        textbox = meta_data_to_test + ", " + taxonomic_level
+        textbox = meta_data_to_test + ", " + taxon_title
 
         ## collect samples
         samples = Meta_data_table_samples
@@ -100,16 +109,18 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
         # collect the cca proportion explained values
         proportion_explained_list = []
         for i, cca_axis in enumerate(ordination_result.proportion_explained):
-            proportion_explained_list.append("CCA" + str(i+1) + " (" + str(round(cca_axis* 100, 2)) + " %)")
+            if round(cca_axis* 100, 2) >= 1:
+                proportion_explained_list.append("CCA" + str(i+1) + " (" + str(round(cca_axis* 100, 2)) + " %)")
 
-        cca_axis_checkboxes = list(slices([sg.Checkbox(name, key=name, size=(15,1)) for name in proportion_explained_list], 4))
+        cca_axis_checkboxes = list(slices([sg.Checkbox(name, key=name, size=(15,1)) for name in proportion_explained_list], 10))
 
         cca_window_layout = [
-                        [sg.Text('Check two axis to be displayed')],
+                        [sg.Text('Check up to four axes to be displayed')],
                         [sg.Frame(layout = cca_axis_checkboxes, title = '')],
                         [sg.Text('Only axes >= 1 % explained variance are shown')],
+                        [sg.CB("Connect categories", default=True, key="draw_mesh")],
                         [sg.Text('')],
-                        [sg.Button('Plot', key='Plot'), sg.Text(''), sg.Button('Plot matrix')],
+                        [sg.Button('Plot', key='Plot')],
                         [sg.Button('Back')],
                         ]
 
@@ -117,6 +128,8 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
 
         while True:
             event, values = cca_window.read()
+
+            draw_mesh = values["draw_mesh"]
 
             if event is None or event == 'Back':
                 break
@@ -139,16 +152,36 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
                     df_cca.insert(2, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
                     df_cca.insert(3, "Metadata", [str(value) for value in Meta_data_table_df[meta_data_to_test].values.tolist()], True)
 
-                    fig = px.scatter(df_cca, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox)
-                    fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
-                    fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
-                    fig.update_xaxes(title=axis_to_plot[1])
-                    fig.update_yaxes(title=axis_to_plot[0])
+                    if draw_mesh == True:
+                        combinations_list =[]
+                        for metadata in df_cca["Metadata"]:
+                            ## collect all entries for the respective metadata
+                            arr = df_cca.loc[df_cca['Metadata'] == metadata][[cat1, cat2, "Metadata", "Samples"]].to_numpy()
+                            ## create a df for all possible combinations using itertools combinations
+                            for entry in list(combinations(arr, 2)):
+                                combinations_list.append(list(entry[0]))
+                                combinations_list.append(list(entry[1]))
+                        ## create a dataframe to draw the plot from
+                        df = pd.DataFrame(combinations_list)
+                        df.columns = [cat1, cat2, "Metadata", "Samples"]
+
+                        fig = px.scatter(df, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
+                        fig.update_traces(marker_size=int(cca_scatter_size), mode="markers+lines")
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
+                        fig.update_xaxes(title=axis_to_plot[1])
+                        fig.update_yaxes(title=axis_to_plot[0])
+
+                    else:
+                        fig = px.scatter(df, x=cat1, y=cat2, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
+                        fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
+                        fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
+                        fig.update_xaxes(title=axis_to_plot[1])
+                        fig.update_yaxes(title=axis_to_plot[0])
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + ".xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + ".xlsx")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))
@@ -178,8 +211,6 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
                     df_cca.insert(3, "Samples", Meta_data_table_df["Samples"].values.tolist(), True)
                     df_cca.insert(4, "Metadata", [str(value) for value in Meta_data_table_df[meta_data_to_test].values.tolist()], True)
 
-                    from itertools import combinations
-
                     ## check if lines are to be drawn between the dots
                     if draw_mesh == True:
                         combinations_list =[]
@@ -194,20 +225,20 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
                         df = pd.DataFrame(combinations_list)
                         df.columns = [cat1, cat2, cat3, "Metadata", "Samples"]
                         ## draw the plot
-                        fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox)
+                        fig = px.scatter_3d(df, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", title=textbox, color_discrete_sequence=color_discrete_sequence)
                         fig.update_traces(marker_size=int(cca_scatter_size), mode="markers+lines", line=dict(width=0.5))
                         fig.update_layout(height=int(height), width=int(width), title=textbox, template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
                     else:
-                        fig = px.scatter_3d(df_cca, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples")
+                        fig = px.scatter_3d(df_cca, x=cat1, y=cat2, z=cat3, color="Metadata", text="Samples", color_discrete_sequence=color_discrete_sequence)
                         fig.update_traces(marker_size=int(cca_scatter_size), mode="markers")
                         fig.update_layout(height=int(height), width=int(width), template=template, title=textbox, showlegend=True, font_size=font_size, title_font_size=font_size)
                         fig.update_layout(scene = dict(xaxis_title=axis_to_plot[0],yaxis_title=axis_to_plot[1],zaxis_title=axis_to_plot[2]))
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.html")
-                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_3d.xlsx")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.html")
+                    output_xlsx = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_3d.xlsx")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))
@@ -340,8 +371,8 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
                     fig.update_layout(height=1000, width=1000, title_text=textbox)
 
                     ## define output files
-                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.pdf")
-                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxonomic_level + "_matrix.html")
+                    output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_matrix.pdf")
+                    output_html = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_matrix.html")
 
                     fig.write_image(str(output_pdf))
                     fig.write_html(str(output_html))

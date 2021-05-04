@@ -1,4 +1,4 @@
-def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
+def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clustering_unit):
 
     import os
     import PySimpleGUI as sg
@@ -22,7 +22,8 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
         count = 0
 
-        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", "G_OTUs"]
+        G = "G_" + clustering_unit
+        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", G]
 
         venn_dict = {}
 
@@ -40,8 +41,10 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
             output_name = taxon
             taxon = taxon[2:]
+            col_name = taxon
 
-            if taxon == "OTUs":
+            if taxon in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+                col_name = taxon
                 taxon="ID"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
@@ -81,9 +84,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             shared = set(taxa_labels_a) & set(taxa_labels_b)
             len_shared = len(shared)
 
-            venn_dict[taxon + "_a_only"] = a_only
-            venn_dict[taxon + "_shared"] = shared
-            venn_dict[taxon + "_b_only"] = b_only
+            venn_dict[col_name + "_a_only"] = a_only
+            venn_dict[col_name + "_shared"] = shared
+            venn_dict[col_name + "_b_only"] = b_only
 
             plt.figure(figsize=(20, 10))
             out = venn2(subsets = (len_a_only, len_b_only, len_shared), set_labels = (file_name_a, file_name_b))
@@ -143,7 +146,8 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
         count = 0
 
-        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", "G_OTUs"]
+        G = "G_" + clustering_unit
+        allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", G]
 
         venn_dict = {}
 
@@ -161,8 +165,10 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
 
             output_name = taxon
             taxon = taxon[2:]
+            col_name = taxon
 
-            if taxon == "OTUs":
+            if taxon in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+                col_name = taxon
                 taxon="ID"
 
             data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
@@ -223,13 +229,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs):
             shared_b_c = set(taxa_labels_b) & set(taxa_labels_c) - set(taxa_labels_a)
             len_shared_b_c = len(shared_b_c)
 
-            venn_dict[taxon + "_a_only"] = a_only
-            venn_dict[taxon + "_b_only"] = b_only
-            venn_dict[taxon + "_c_only"] = c_only
-            venn_dict[taxon + "_shared_all"] = shared_all
-            venn_dict[taxon + "_shared_a_b"] = shared_a_b
-            venn_dict[taxon + "_shared_a_c"] = shared_a_c
-            venn_dict[taxon + "_shared_b_c"] = shared_b_c
+            venn_dict[col_name + "_a_only"] = a_only
+            venn_dict[col_name + "_b_only"] = b_only
+            venn_dict[col_name + "_c_only"] = c_only
+            venn_dict[col_name + "_shared_all"] = shared_all
+            venn_dict[col_name + "_shared_a_b"] = shared_a_b
+            venn_dict[col_name + "_shared_a_c"] = shared_a_c
+            venn_dict[col_name + "_shared_b_c"] = shared_b_c
 
             plt.figure(figsize=(20, 10))
             out = venn3(subsets = (len_a_only, len_b_only, len_shared_a_b, len_c_only, len_shared_a_c, len_shared_b_c, len_shared_all), set_labels = (file_name_a, file_name_b, file_name_c))

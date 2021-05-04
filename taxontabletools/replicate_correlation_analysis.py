@@ -1,11 +1,11 @@
-def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size):
+def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size, clustering_unit):
 
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
     from pathlib import Path
     import numpy as np
-    import scipy.stats, webbrowser
+    import scipy.stats, webbrowser, os
     import matplotlib.pyplot as plt
     import plotly.express as px
     from plotly.subplots import make_subplots
@@ -23,6 +23,12 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+
+    ## create an output folder
+    replicate_analysis_name = Path(TaXon_table_xlsx).name.replace(".xlsx", "")
+    dirName = Path(str(path_to_outdirs) + "/Replicate_analysis/" + replicate_analysis_name)
+    if not os.path.exists(dirName):
+        os.mkdir(dirName)
 
     sample_names = TaXon_table_df.columns[10:].tolist()
     OTUs = TaXon_table_df["ID"].values.tolist()
@@ -105,10 +111,13 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         # calculate line if best fit for OTUs and add the scatter plot
         df = pd.DataFrame({'X':x2, 'Y':y2})
         df['bestfit'] = sm.OLS(df['Y'],sm.add_constant(df['X'])).fit().fittedvalues
-        fig.add_trace(go.Scatter(name='OTUs', x=x2, y=y2, mode='markers', marker=dict(color=color1), showlegend=False),row=1, col=2)
-        fig.add_trace(go.Scatter(name="rho(OTUs)=" + spearman_rho_OTUs, x=x2, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=2)
-        fig.update_xaxes(title_text = "# OTUs (rep2)", row=1, col=2)
-        fig.update_yaxes(title_text = "# OTUs (rep1)", row=1, col=2)
+        fig.add_trace(go.Scatter(name=clustering_unit, x=x2, y=y2, mode='markers', marker=dict(color=color1), showlegend=False),row=1, col=2)
+        title1 = "rho(" + clustering_unit + ")="+  spearman_rho_OTUs
+        fig.add_trace(go.Scatter(name=title1, x=x2, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=2)
+        title2 = "# " + clustering_unit + " (rep2)"
+        fig.update_xaxes(title_text = title2, row=1, col=2)
+        title3 = "# " + clustering_unit + " (rep3)"
+        fig.update_yaxes(title_text = title3, row=1, col=2)
         # update the layouts
         fig.update_layout(height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size, showlegend=True)
         if y_zero == True:
@@ -117,15 +126,16 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
             fig.update_xaxes(rangemode="tozero")
 
         ## write files
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.html")
-        output_text = Path(str(path_to_outdirs) + "/" + "Replicate_analysis" + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.txt")
+        output_pdf = Path(str(dirName) + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.pdf")
+        output_html = Path(str(dirName) + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.html")
+        output_text = Path(str(dirName) + "/" + TaXon_table_xlsx.stem + "_repcorr_OTUs.txt")
+
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
         f = open(output_text, "w")
         f.write("Spearman correlation results\n")
         f.write("Reads\n" + "rho = " + str(spearman_rho_reads) + "\np = " + str(spearman_p_reads) + "\n")
-        f.write("OTUs\n" + "rho = " + str(spearman_rho_OTUs) + "\np = " + str(spearman_p_OTUs) + "\n")
+        f.write(clustering_unit + "\n" + "rho = " + str(spearman_rho_OTUs) + "\np = " + str(spearman_p_OTUs) + "\n")
         f.close()
 
         ## ask to show file

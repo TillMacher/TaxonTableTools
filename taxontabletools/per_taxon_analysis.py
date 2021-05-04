@@ -8,6 +8,14 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
     from plotly.subplots import make_subplots
     import itertools, webbrowser
 
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
+
     ## collect plot variables
     color1 = theme[0]
     color2 = theme[1]
@@ -47,6 +55,11 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
         for taxon in taxa:
             n_reads.append(sum([sum(OTU[10:]) for OTU in TaXon_table_df[TaXon_table_df[taxonomic_level]==taxon].values.tolist()]))
 
+        if (taxonomic_level == "Species" or taxonomic_level == "Genus"):
+            x_values = ["<i>" + taxon + "</i>" for taxon in taxa]
+        else:
+            x_values = taxa
+
         ## calculate the read proportions
         reads_sum = sum(n_reads)
         n_reads = [round(reads / reads_sum * 100, 2) for reads in n_reads]
@@ -56,25 +69,28 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
 
         ## percentage of reads per taxonomic level
         hovertext = 'Taxon: %{x}, Reads: %{y}'
-        fig.add_trace(go.Bar(hovertemplate=hovertext, name="",x=taxa, y=n_reads),row=1, col=1)
+        fig.add_trace(go.Bar(hovertemplate=hovertext, name="",x=x_values, y=n_reads),row=1, col=1)
         fig.update_yaxes(title_text = "reads (%)", title_standoff=5, row=1, col=1)
         fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1, opacity=opacity_value, showlegend=False, row=1, col=1)
 
         ## Number of OTUs
         hovertext = 'Taxon: %{x}, OTUs: %{y}'
-        fig.add_trace(go.Bar(hovertemplate=hovertext, name="",x=taxa, y=n_OTUs, text=n_OTUs, showlegend=False),row=1, col=2)
+        title_text = "# " + taxon_title
+        fig.add_trace(go.Bar(hovertemplate=hovertext, name="",x=x_values, y=n_OTUs, text=n_OTUs, showlegend=False),row=1, col=2)
         fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1, opacity=opacity_value, row=1, col=2)
-        fig.update_yaxes(title_text = "# OTUs", title_standoff=5, row=1, col=2, rangemode="tozero")
+        fig.update_yaxes(title_text=title_text, title_standoff=5, row=1, col=2, rangemode="tozero")
 
         ## Number of OTUs on species level
         hovertext = 'Taxon: %{x}, Species: %{text}'
-        fig.add_trace(go.Scatter(textposition = "top center", hovertemplate=hovertext, text=n_species, name="Species",x=taxa, y=n_OTUs, showlegend=True, mode='text'),row=1, col=2)
+        fig.add_trace(go.Scatter(textposition = "top center", hovertemplate=hovertext, text=n_species, name="Species",x=x_values, y=n_OTUs, showlegend=True, mode='text'),row=1, col=2)
         fig.update_traces(marker_color=color1, marker_line_color=color2, marker_line_width=1, opacity=opacity_value, row=1, col=2)
 
         ## fig.add_annotation( text='─ Species', align='left', showarrow=False, xref='paper', yref='paper', x=1.05, y=0.5, bordercolor='black', borderwidth=1)
 
         ## update the layout
         fig.update_layout(barmode='stack', height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
+        fig.update_xaxes(tickmode='linear')
+        fig.update_xaxes(tickangle=-90)
 
         ## write ouput files
         output_pdf = Path(str(path_to_outdirs) + "/Per_taxon_statistics/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + ".pdf")

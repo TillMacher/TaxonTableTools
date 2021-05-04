@@ -1,4 +1,4 @@
-def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
+def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
 
     import os, webbrowser
     import pandas as pd
@@ -10,6 +10,11 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
     color1 = theme[0]
     color2 = theme[1]
     opacity_value = theme[2]
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header = 0)
@@ -93,15 +98,23 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
                     occupancy_list = list(occupancy_dict.values())
                     species_list = list(occupancy_dict.keys())
 
+                    if (taxonomic_level == "Species" or taxonomic_level == "Genus"):
+                        x_values = ["<i>" + taxon + "</i>" for taxon in species_list]
+                    else:
+                        x_values = species_list
+
                     occupancy_plot_directory = Path(str(path_to_outdirs) + "/" + "Site_occupancy_plots" + "/" + TaXon_table_xlsx.stem)
                     if not os.path.exists(occupancy_plot_directory):
                         os.mkdir(occupancy_plot_directory)
 
-                    fig = go.Figure(data=[go.Bar(x=species_list, y=occupancy_list)])
+                    fig = go.Figure(data=[go.Bar(x=x_values, y=occupancy_list)])
                     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=0.6, opacity=opacity_value)
                     fig.update_layout(title_text=site + " (" + taxonomic_level + ")", yaxis_title="occupancy (%)")
                     fig.update_layout(height=int(y_site_occ), width=int(x_site_occ), template=template, font_size=font_size, title_font_size=font_size)
                     fig.update_yaxes(range=[0,100])
+                    fig.update_xaxes(tickmode='linear')
+                    fig.update_xaxes(tickangle=-90)
+
 
                     output_pdf = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".pdf")
                     output_html = Path(str(occupancy_plot_directory) + "/" + site + "_" + taxonomic_level + ".html")
@@ -146,3 +159,143 @@ def site_occupancy(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to
         raise
         exception_text = "Something went wrong!" + "\n" + "Do not use numbers as metadata keys." + "\n" + "Please check your metadata file and read the manual."
         sg.PopupError(exception_text, title="Error", keep_on_top=True)
+
+def site_occupancy_heatmap(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, taxonomic_level, font_size, color_discrete_sequence, add_categories_sum):
+
+    import PySimpleGUI as sg
+    import pandas as pd
+    import numpy as np
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    from pathlib import Path
+    import webbrowser, os
+
+    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
+    Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+    metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
+
+    if len(set(metadata_list)) == 1:
+        sg.PopupError("Please choose more than one meta data category.")
+    else:
+
+        if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
+
+            ## define variables
+            samples = TaXon_table_samples
+            OTU_abundances_dict = {}
+            samples_metadata_list = []
+
+            ## extract the relevant data
+            TaXon_table_df = TaXon_table_df[[taxonomic_level] + samples]
+            ## define an aggregation function to combine multiple hit of one taxonimic level
+            aggregation_functions = {}
+            ## define samples functions
+            for sample in samples:
+                ## 'sum' will calculate the sum of p/a data
+                aggregation_functions[sample] = 'sum'
+            ## define taxon level function
+            aggregation_functions[taxonomic_level] = 'first'
+            ## create condensed dataframe
+            TaXon_table_df = TaXon_table_df.groupby(TaXon_table_df[taxonomic_level]).aggregate(aggregation_functions)
+            if 'unidentified' in TaXon_table_df.index:
+                TaXon_table_df = TaXon_table_df.drop('unidentified')
+
+            ## create a list of samples for each category
+            category_dict = {}
+            for sample, category in zip(Meta_data_table_samples, metadata_list):
+                if category not in category_dict.keys():
+                    category_dict[category] = [sample]
+                else:
+                    category_dict[category] = category_dict[category] + [sample]
+
+            ## collect all available taxa
+            taxa = TaXon_table_df[taxonomic_level].values.tolist()
+
+            ## check if the respective species are present in the collections
+            taxon_presence_dict = {}
+            n_rows, row_heights = [], []
+
+            color_discrete_sequence = color_discrete_sequence * len(category_dict.keys())
+
+            if (taxonomic_level == "Species" or taxonomic_level == "Genus"):
+                x_values = ["<i>" + taxon + "</i>" for taxon in taxa]
+            else:
+                x_values = taxa
+
+            if add_categories_sum == True:
+                for samples in category_dict.values():
+                    row_heights.append(len(samples))
+                row_heights.append(len(set(metadata_list)))
+                fig = make_subplots(rows=len(set(metadata_list)) + 1, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=row_heights)
+            else:
+                for samples in category_dict.values():
+                    row_heights.append(len(samples))
+                fig = make_subplots(rows=len(set(metadata_list)), cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=row_heights)
+
+            row = 1
+            for metadata, samples in category_dict.items():
+                if type(samples) == "str":
+                    samples = [samples]
+                z_values = []
+                for sample in samples:
+                    reads = TaXon_table_df[sample].values.tolist()
+                    z_values = z_values + [[1 if x > 0 else 0 for x in reads]]
+                y_values = samples
+                fig.add_trace(go.Heatmap(z=z_values, x=x_values, y=y_values, showscale=False, xgap=1, ygap=1, hoverongaps = False, colorscale=[[0, "White"], [1, color_discrete_sequence[row-1]]]), row=row, col=1)
+                row += 1
+
+            if add_categories_sum == True:
+                z_values, y_values = [], []
+                for metadata, samples in category_dict.items():
+                    reads = [sum(reads) for reads in TaXon_table_df[samples].values.tolist()]
+                    z_values = z_values + [[1 if x > 0 else 0 for x in reads]]
+                    y_values.append(metadata)
+                fig.add_trace(go.Heatmap(z=z_values[::-1], x=x_values, y=y_values[::-1], showscale=False, xgap=1, ygap=1, hoverongaps = False, colorscale=[[0, "White"], [1, "Grey"]]), row=row, col=1)
+                row += 1
+
+            fig.update_layout(width=int(width), height=int(height), template="seaborn", font_size=font_size, yaxis_nticks=5, title_font_size=font_size)
+            fig.update_xaxes(tickmode='linear')
+            fig.update_yaxes(tickmode='linear')
+            fig.update_xaxes(tickangle=-90)
+
+            occupancy_plot_directory = Path(str(path_to_outdirs) + "/" + "Site_occupancy_plots" + "/" + TaXon_table_xlsx.stem)
+            if not os.path.exists(occupancy_plot_directory):
+                os.mkdir(occupancy_plot_directory)
+
+            ## define output files
+            output_pdf = Path(str(occupancy_plot_directory) + "/" + taxonomic_level + "_" + meta_data_to_test + "_heatmap.pdf")
+            output_html = Path(str(occupancy_plot_directory) + "/" + taxonomic_level + "_" + meta_data_to_test + "_heatmap.html")
+
+            ## write output files
+            fig.write_image(str(output_pdf))
+            fig.write_html(str(output_html))
+
+            ## ask to show file
+            answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
+            if answer == "Yes":
+                webbrowser.open('file://' + str(output_html))
+
+            ## print closing text
+            closing_text = "Site occupancy heatmaps are found under:\n" + '/'.join(str(output_pdf).split("/")[-4:])
+            sg.Popup(closing_text, title="Finished", keep_on_top=True)
+
+            ## write to log
+            from taxontabletools.create_log import ttt_log
+            placeholder = TaXon_table_xlsx.name + " (multiple site occupancy plots)"
+            ttt_log("site occupancy", "analysis", TaXon_table_xlsx.name, "", meta_data_to_test, path_to_outdirs)
+
+
+        else:
+            sg.Popup("The metdata table and taXon table are not matching!")

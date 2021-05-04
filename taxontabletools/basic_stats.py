@@ -1,4 +1,4 @@
-def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size):
+def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size, taxonomic_level):
 
     import csv, glob, sys, os, webbrowser
     import PySimpleGUI as sg
@@ -12,6 +12,10 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
     TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
 
     color1 = theme[0]
     color2 = theme[1]
@@ -114,19 +118,21 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     width, heigth = int(width), int(heigth)
 
     # create subplots
-    fig = make_subplots(rows=3, cols=1, subplot_titles=("Reads", "OTUs", "OTUs on species level"), vertical_spacing=0.05, shared_xaxes=True)
+    y_title = "# " + taxon_title
+    title_3 = taxon_title + " on species level"
+    fig = make_subplots(rows=3, cols=1, subplot_titles=("Reads", taxon_title, title_3), vertical_spacing=0.05, shared_xaxes=True)
     # reads
     fig.add_trace(go.Bar(name="reads", x=samples, y=reads),row=1, col=1)
     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=1, col=1)
     fig.update_yaxes(title_text="# reads", row=1, col=1)
     # OTUs
-    fig.add_trace(go.Bar(name="OTUs", x=samples, y=otus),row=2, col=1)
+    fig.add_trace(go.Bar(name=taxon_title, x=samples, y=otus),row=2, col=1)
     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=2, col=1)
-    fig.update_yaxes(range=[0, max_otus], title_text="# OTUs", row=2, col=1)
+    fig.update_yaxes(range=[0, max_otus], title_text=y_title, row=2, col=1)
     # OTUs on species level
-    fig.add_trace(go.Bar(name="OTUs on species level", x=samples, y=species),row=3, col=1)
+    fig.add_trace(go.Bar(name=title_3, x=samples, y=species),row=3, col=1)
     fig.update_traces(marker_color=color1, marker_line_color=color2,marker_line_width=1.5, opacity=opacity_value,row=3, col=1)
-    fig.update_yaxes(range=[0, max_otus], title_text="# OTUs", row=3, col=1)
+    fig.update_yaxes(range=[0, max_otus], title_text=y_title, row=3, col=1)
     # update the layout
     fig.update_layout(height=heigth, width=width, template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
 
@@ -148,7 +154,7 @@ def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, them
     #df = pd.DataFrame(simple_list,columns=['col1','col2'])
 
     output_list_1.append([' Samples',n_samples, ''])
-    output_list_1.append([' OTUs',n_OTUs_total, ''])
+    output_list_1.append([' ' + taxon_title,n_OTUs_total, ''])
     output_list_1.append(['Number of taxa per taxon level', '#', ''])
     output_list_1.append([' Phyla',n_Phyla, ''])
     output_list_1.append([' Classes',n_Classes, ''])

@@ -1,4 +1,4 @@
-def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_test, taxonomic_level, path_to_outdirs, template, font_size):
+def beta_diversity(TaXon_table_xlsx, width, heigth, cmap, meta_data_to_test, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
 
     import pandas as pd
     import numpy as np
@@ -16,6 +16,14 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
     metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     # check if the meta data differs
     if len(set(Meta_data_table_df[meta_data_to_test])) == len(Meta_data_table_df['Samples'].tolist()):
@@ -49,27 +57,28 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
 
         ## collect reads
         data = df_new[samples].transpose().values.tolist()
-        ## calculate jaccard distances
-        jaccard_dm = beta_diversity("jaccard", data, samples)
+        ## calculate dissimilarity distances
+        dissimilarity_dm = beta_diversity(diss_metric, data, samples)
 
-        anosim_results = anosim(jaccard_dm, metadata_list, permutations=999)
+        anosim_results = anosim(dissimilarity_dm, metadata_list, permutations=999)
         anosim_r = round(anosim_results['test statistic'], 5)
         anosim_p = anosim_results['p-value']
-        textbox = "Anosim (" + meta_data_to_test + ", " + taxonomic_level + ")<br>" + "R = " + str(anosim_r) + "<br>" + "p = " + str(anosim_p)
+        textbox = "Anosim (" + meta_data_to_test + ", " + taxon_title + ")<br>" + "R = " + str(anosim_r) + "<br>" + "p = " + str(anosim_p)
 
-        matrix = jaccard_dm.data
+        matrix = dissimilarity_dm.data
         matrix_df = pd.DataFrame(matrix)
         matrix_df.columns = samples
         matrix_df.index = samples
 
         # create plot
-        fig = px.imshow(matrix, x=samples,y=samples, color_continuous_scale=beta_cmap, labels=dict(color="Jaccard distance"))
-        fig.update_layout(height=int(beta_h), width=int(beta_w), template=template, showlegend=True, title=textbox, font_size=font_size, title_font_size=font_size)
+        color_label = diss_metric + " distance"
+        fig = px.imshow(matrix, x=samples,y=samples, color_continuous_scale=cmap, labels=dict(color=color_label))
+        fig.update_layout(height=int(heigth), width=int(width), template=template, showlegend=True, title=textbox, font_size=font_size, title_font_size=font_size)
 
         # finish script
-        output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_jc.pdf")
-        output_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_jc.html")
-        output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxonomic_level + "_jc.xlsx")
+        output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_" + diss_metric + ".pdf")
+        output_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_" + diss_metric + ".html")
+        output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_" + diss_metric + ".xlsx")
         fig.write_image(str(output_pdf))
         fig.write_html(str(output_html))
         matrix_df.to_excel(output_xlsx)
@@ -87,7 +96,8 @@ def beta_diversity(TaXon_table_xlsx, beta_w, beta_h, beta_cmap, meta_data_to_tes
     else:
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
 
-def jaccard_clustering(TaXon_table_xlsx, height, width, threshold, taxonomic_level, path_to_outdirs, template, font_size):
+def betadiv_clustering(TaXon_table_xlsx, height, width, threshold, betadiv_linkage, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
+
     from scipy.cluster.hierarchy import dendrogram, linkage
     import plotly.figure_factory as ff
     import numpy as np
@@ -100,6 +110,14 @@ def jaccard_clustering(TaXon_table_xlsx, height, width, threshold, taxonomic_lev
     ## import table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+
+    ## create a y axis title text
+    taxon_title = taxonomic_level.lower()
+
+    ## adjust taxonomic level if neccessary
+    if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = taxonomic_level
+        taxonomic_level = "ID"
 
     ## collect samples for plot
     samples = TaXon_table_df.columns.tolist()[10:]
@@ -122,24 +140,25 @@ def jaccard_clustering(TaXon_table_xlsx, height, width, threshold, taxonomic_lev
     ## collect reads
     data = df_new[samples].transpose().values.tolist()
     ## calculate jaccard distances
-    jaccard_dm = beta_diversity("jaccard", data, samples)
+    dissimilarity_dm = beta_diversity(diss_metric, data, samples)
     ## convert to distance matrix
-    X1 = jaccard_dm.data
+    X1 = dissimilarity_dm.data
     matrix_df = pd.DataFrame(X1)
     matrix_df.columns = samples
     matrix_df.index = samples
     ## convert to 2D array
-    X2 = jaccard_dm.condensed_form()
+    X2 = dissimilarity_dm.condensed_form()
     ## cluster dendrogram
-    fig = ff.create_dendrogram(X1, labels=samples, color_threshold=float(threshold), orientation="left", linkagefun=lambda x: linkage(X2, 'complete', metric='jaccard'))
+    fig = ff.create_dendrogram(X1, labels=samples, color_threshold=float(threshold), orientation="left", linkagefun=lambda x: linkage(X2, betadiv_linkage, metric=diss_metric))
     fig.update_yaxes(ticks="")
     fig.update_xaxes(title="A")
-    fig.update_layout(xaxis_title="Jaccard distance", height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size)
+    title = str(diss_metric) + " distance"
+    fig.update_layout(xaxis_title=title, height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size)
 
     # finish script
-    output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + "_dendrogram.pdf")
-    output_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + "_dendrogram.html")
-    output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxonomic_level + "_dendrogram.xlsx")
+    output_pdf = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxon_title + "_dendrogram_" + diss_metric + ".pdf")
+    output_html = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxon_title + "_dendrogram_" + diss_metric + ".html")
+    output_xlsx = Path(str(path_to_outdirs) + "/" + "Beta_diversity" + "/" + TaXon_table_xlsx.stem + "_" + taxon_title + "_dendrogram_" + diss_metric + ".xlsx")
     fig.write_image(str(output_pdf))
     fig.write_html(str(output_html))
     matrix_df.to_excel(output_xlsx)
@@ -150,6 +169,6 @@ def jaccard_clustering(TaXon_table_xlsx, height, width, threshold, taxonomic_lev
         webbrowser.open('file://' + str(output_html))
 
     ## write to log file
-    sg.Popup("Jaccard clustering dendrograms are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
+    sg.Popup(diss_metric + " clustering dendrograms are found in", path_to_outdirs, "/Beta_diversity/", title="Finished", keep_on_top=True)
     from taxontabletools.create_log import ttt_log
-    ttt_log("jaccard clustering", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
+    ttt_log(diss_metric + " clustering", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)

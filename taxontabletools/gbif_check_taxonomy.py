@@ -1,14 +1,15 @@
 def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
 
-    import requests_html, json
+    import requests_html, json, time
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
     import numpy as np
     from pathlib import Path
 
-    #taxon_name = "Radix ampla" taxon_level = "species"
+    ## taxon_name = "Radix ampla" taxon_level = "species"
     ## create an html session
+    time.sleep(0.1)
     with requests_html.HTMLSession() as session:
         ## generate html request name
         request_name = '%20'.join(taxon_name.split(' '))
@@ -21,8 +22,13 @@ def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
 
         if 'note' in res.keys():
             if "Multiple equal matches" in res['note']:
+                empty = True
                 for match in res["alternatives"]:
-                    if phylum_name == match["phylum"]:
+                    try:
+                        match_phylum = match["phylum"]
+                    except:
+                        match_phylum = "nan"
+                    if phylum_name == match_phylum:
                         try:
                             for taxon_level in taxonomy_check:
                                     gbif_result.append(match[taxon_level.lower()])
@@ -45,6 +51,9 @@ def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
         else:
             gbif_result.append("")
             return gbif_result
+
+        if empty == True:
+            return "ERROR"
 
 def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
 
@@ -70,11 +79,10 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
     window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
     progress_bar = window_progress_bar['progressbar']
     progress_update = 0
-    progress_increase = 1000 / len(OTUs_list) + 1
+    progress_increase = 1000 / len(OTUs_list)
     ############################################################################
 
     for OTU in TaXon_table_df[["Phylum","Class","Order","Family","Genus","Species"]].fillna("").values.tolist():
-
         for i, taxonomy in enumerate(OTU):
             if taxonomy == "":
                 phylum_name = OTU[0]
@@ -82,7 +90,7 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
                 taxonomy_check = taxon_levels[0: i]
                 result = gbif_parent_check(phylum_name, taxon_name, taxonomy_check)
                 query = OTU[0: i]
-                if query != result:
+                if (query != result and result != "ERROR"):
                     if len(query) != 6:
                         add = 6 - len(query)
                         query = query + [''] * add
@@ -98,7 +106,7 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
                 taxon_name = OTU[5]
                 taxonomy_check = taxon_levels
                 result = gbif_parent_check(phylum_name, taxon_name, taxonomy_check)
-                if OTU != result:
+                if (OTU != result and result != "ERROR"):
                     query = ",".join(OTU)
                     taxonomy_check_dict[query] = result
 
