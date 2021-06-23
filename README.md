@@ -31,11 +31,11 @@ Then install TaxonTableTools via pip:
 
 TaxonTableTools can then be started via:  
 
-`python3 *m taxontabletools`
+`python3 -m taxontabletools`
 
 Updates can be installed via:
 
-`pip3 install **upgrade taxontabletools`
+`pip3 install --upgrade taxontabletools`
 
 The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is optional and needs to be done separately. Note that Krona tools is currently not supported on Windows.
 
