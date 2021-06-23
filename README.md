@@ -21,7 +21,7 @@ TaxonTableTools requires Python version 3.6 or 3.7 and can be easily installed u
 
 First, make sure you run the correct pip version via:
 
-`pip3 **version`
+`pip3 --version`
 
 Which should return python3.6 or 3.7. Otherwise specify your pip using `pip3.6` or `pip3.7`
 
