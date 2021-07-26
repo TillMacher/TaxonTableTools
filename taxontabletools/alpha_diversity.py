@@ -12,8 +12,28 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
 
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
-    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
+    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
+    metadata_loc = Meta_data_table_df.columns.tolist().index(meta_data_to_test)
+    ## drop samples with metadata called nan (= empty)
+    drop_samples = [i[0] for i in Meta_data_table_df.values.tolist() if i[metadata_loc] == "nan"]
+
+    if drop_samples != []:
+        ## filter the TaXon table
+        TaXon_table_df = TaXon_table_df.drop(drop_samples, axis=1)
+        TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+        ## also remove empty OTUs
+        row_filter_list = []
+        for row in TaXon_table_df.values.tolist():
+            reads = set(row[10:])
+            if reads != {0}:
+                row_filter_list.append(row)
+        columns = TaXon_table_df.columns.tolist()
+        TaXon_table_df = pd.DataFrame(row_filter_list, columns=columns)
+        Meta_data_table_df = pd.DataFrame([i for i in Meta_data_table_df.values.tolist() if i[0] not in drop_samples], columns=Meta_data_table_df.columns.tolist())
+        Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
     categories = Meta_data_table_df[meta_data_to_test].tolist()
 
     ## create a y axis title text
@@ -126,8 +146,28 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
 
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
-    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
+    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
+    metadata_loc = Meta_data_table_df.columns.tolist().index(meta_data_to_test)
+    ## drop samples with metadata called nan (= empty)
+    drop_samples = [i[0] for i in Meta_data_table_df.values.tolist() if i[metadata_loc] == "nan"]
+
+    if drop_samples != []:
+        ## filter the TaXon table
+        TaXon_table_df = TaXon_table_df.drop(drop_samples, axis=1)
+        TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+        ## also remove empty OTUs
+        row_filter_list = []
+        for row in TaXon_table_df.values.tolist():
+            reads = set(row[10:])
+            if reads != {0}:
+                row_filter_list.append(row)
+        columns = TaXon_table_df.columns.tolist()
+        TaXon_table_df = pd.DataFrame(row_filter_list, columns=columns)
+        Meta_data_table_df = pd.DataFrame([i for i in Meta_data_table_df.values.tolist() if i[0] not in drop_samples], columns=Meta_data_table_df.columns.tolist())
+        Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
     categories = Meta_data_table_df[meta_data_to_test].tolist()
 
     ## create a y axis title text

@@ -1,11 +1,5 @@
 def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
 
-    # read_table_xlsx = "/Users/tillmacher/Documents/GitHub/TaxonTableTools/_tutorial_files/tutorial_read_table_TTT.xlsx"
-    # taxonomy_results_xlsx = "/Users/tillmacher/Documents/GitHub/TaxonTableTools/_tutorial_files/tutorial_taxonomy_table_2.xlsx"
-    # TaXon_table_name = "NEW_TABLE"
-    # sheet_name = "JAMP hit"
-    # path_to_outdirs = Path("/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Robo_Test_2/TaXon_tables")
-
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
@@ -76,6 +70,9 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
 
 def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
 
+    # read_table_tsv = "/Users/tillmacher/Downloads/tutorial_read_table_qiime2.tsv"
+    # taxonomy_results_xlsx = "/Users/tillmacher/Downloads/tutorial_taxonomy_table.xlsx"
+
     import PySimpleGUI as sg
     import pandas as pd
     from pandas import DataFrame
@@ -98,22 +95,25 @@ def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_ta
         taxonomy_df = taxonomy_df.drop(columns=['Flags'])
 
     read_table_df = pd.read_csv(Path(read_table_tsv), sep="\t")
-    read_table_df = read_table_df.drop(['#q2:types'])
+
+    # drop the first row
+    read_table_df = read_table_df.iloc[1:]
+    read_table_df = read_table_df.reset_index(drop=True)
 
     ## create a new dataframe
     TaXon_table_df = taxonomy_df
 
     # check if all OTU are correctly sorted and present in both files
-    if taxonomy_df["ID"].to_list() == read_table_df["ID"].to_list():
+    if taxonomy_df["ID"].to_list() == read_table_df["id"].to_list():
 
         ## append the sequences to the TaXon stable
-        TaXon_table_df["seq"] = read_table_df["Sequences"]
+        TaXon_table_df["seq"] = read_table_df["Sequence"].values.tolist()
 
         ## remove the sequence column from the read table
-        read_table_df.drop('Sequences', axis='columns', inplace=True)
+        read_table_df.drop('Sequence', axis='columns', inplace=True)
 
         ## remove the ID column from the read table
-        read_table_df.drop('ID', axis='columns', inplace=True)
+        read_table_df.drop('id', axis='columns', inplace=True)
 
         ## add samples to the dataframe
         TaXon_table_df = pd.concat([TaXon_table_df, read_table_df], axis=1)
@@ -139,7 +139,7 @@ def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_ta
         sg.Popup(closing_text, title="Finished", keep_on_top=True)
 
         from taxontabletools.create_log import ttt_log
-        input = taxonomy_results_xlsx.name + " + " + read_table_xlsx.name
+        input = taxonomy_results_xlsx.name + " + " + read_table_tsv.name
         ttt_log("taXon table converter", "processing", input, Output_file.name, "qiime2", path_to_outdirs)
 
     else:

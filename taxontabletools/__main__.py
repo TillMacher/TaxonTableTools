@@ -10,7 +10,7 @@ import feedparser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = str('1.3.0')
+taxon_tools_version = str('1.3.1')
 
 ##########################################################################################################################
 # general functions
@@ -35,26 +35,18 @@ def change_log_text():
     TTT change log
     ____________________________________________________________________________
 
-    v 1.3.0
-    - Enhanced TaXon table check. Missing taxonomy is now marked with a flag
-    - User preferences can now be safed
-    - User will now be informed about available updates
-    - User can choose what the clustering units (e.g. OTUs, ASVs) shall be called
-    - Genus and species names are displayed in italic
-    - Added additional replicate analysis plot
-    - TaXon table filter tools print the number of removed OTUs
-    - Metadata tables can be opened in TTT
-    - Added new tool to subtract reads present in negative controls from all samples
-    - Added option to distinguish different taxa in the rarefaction plot
-    - Added site occupancy heatmap option
-    - Added parallel category chart
-    - Added option to display single samples in one Krona chart
-    - Added non-metric multidimensional scaling (NMDS) analysis
-    - Added bray-curtis option to diversity and ordination analyses
-    - Added vernacular names download in the taxon list
-    - Log files can be opened in TTT
-    - Several layout changes
-    - Various minor bug fixes
+    v 1.3.1
+    New functions:
+    - Metadata entries for specific samples can now be left blank to exclude the
+      sample from the analyses. This avoids the need to create new metadata tables
+      for each subset of a TaXon table
+    - Taxon lists have been overhauled and now include presence/absence indications
+      for samples or metadata  groups
+    Bug fixes:
+    - Fixed incorrect y-axis title in the per taxon plot
+    - Enhanced y-axis title of shared OTUs per bin plot
+    - Fixed Qiime2 conversion
+    - Fixed OTU and read correlation layout bugs
 
     """
     return change_log_text
@@ -554,8 +546,8 @@ def main():
     					[sg.Text("Calculate shared OTUs", size=(30,1)), sg.Button("Run", key = 'run_replicate_analysis'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_repicates"),
                         sg.Input("600", size=(4,1), key="height_repicates"), sg.CB("Custom colors:", default=False, key="replicate_analysis_custom_colors")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
-    					[sg.Text("Calculate OTU and read correlation", size=(30,1)), sg.Button("Run", key = 'run_replicate_correlation'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1000", size=(4,1), key="width_repcorr"),
-                        sg.Input("500", size=(4,1), key="height_repcorr"), sg.Text("", size=(1,1)), sg.Text("Start axes at zero"), sg.CB("x", key="x_zero_repcorr"), sg.CB("y", key="y_zero_repcorr")]], title="Settings")],
+    					[sg.Text("Calculate OTU and read correlation", size=(30,1)), sg.Button("Run", key = 'run_replicate_correlation'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1200", size=(4,1), key="width_repcorr"),
+                        sg.Input("600", size=(4,1), key="height_repcorr"), sg.Text("", size=(1,1)), sg.Text("Start axes at zero"), sg.CB("x", key="x_zero_repcorr"), sg.CB("y", key="y_zero_repcorr")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Replicate processing',size=(40,2), font=('Arial', 11, "bold"))],
     					[sg.Text("Merge replicates", size=(30, 1)), sg.Button("Run", key='run_replicate_consistency_filter'), sg.Text("", size=(1,1)),
@@ -685,8 +677,8 @@ def main():
 
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Per taxon statistics',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Reads, OTUs and species", size=(25,1)), sg.Button("Run", key = 'run_per_taxon_analysis'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("900", size=(4,1), key="width_per_taxon_stats"),
-                        sg.Input("600", size=(4,1), key="height_per_taxon_stats"), sg.Text('Tax. level:'), sg.Combo(available_taxonomic_levels_list, default_value="Class", key="per_taxon_stats_taxonomic_level")]], title="Settings")],
+    					[sg.Text("Reads, OTUs and species", size=(25,1)), sg.Button("Run", key = 'run_per_taxon_analysis'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("1400", size=(4,1), key="width_per_taxon_stats"),
+                        sg.Input("700", size=(4,1), key="height_per_taxon_stats"), sg.Text('Tax. level:'), sg.Combo(['Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species'], default_value="Class", key="per_taxon_stats_taxonomic_level")]], title="Settings")],
 
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Parallel category analysis',size=(40,2), font=('Arial', 11, "bold"))],
@@ -739,7 +731,7 @@ def main():
     					[sg.Text('',size=(1,1))],
 
     					[sg.Text('Alpha diversity',size=(40,2), font=('Arial', 11, "bold"))],
-    					[sg.Text("Calculate observed taxa:", size=(23,1)), sg.Button("Run", key = 'run_alpha_diversity'),
+    					[sg.Text("Calculate observed taxa:", size=(28,1)), sg.Button("Run", key = 'run_alpha_diversity'),
                         sg.Button(" ? ", key = 'run_alpha_diversity_help_text', button_color=('blue', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):", size=(11,1)), sg.Input("1000", size=(4,1), key="width_alpha"),
                         sg.Input("1000", size=(4,1), key="height_alpha"), sg.Text('Scatter size:'), sg.Input("15", size=(4,1), key="alpha_scatter_size")],
@@ -748,13 +740,13 @@ def main():
     					[sg.Text('',size=(1,1))],
 
     					[sg.Text('Beta diversity',size=(40,2), font=('Arial', 11, "bold"))],
-                        [sg.Text("Calculate beta diversity cluster:", size=(23,1)), sg.Button("Run", key = 'run_betadiv_clustering'), sg.Button(" ? ", key = 'run_cluster_dendrogram_help_text', button_color=('blue', 'white')), sg.Text("", size=(1,1)),
+                        [sg.Text("Calculate beta diversity cluster:", size=(28,1)), sg.Button("Run", key = 'run_betadiv_clustering'), sg.Button(" ? ", key = 'run_cluster_dendrogram_help_text', button_color=('blue', 'white')), sg.Text("", size=(1,1)),
                         sg.Frame(layout=[[sg.Text("Plot size (w,h):", size=(11,1)), sg.Input("1000", size=(4,1), key="width_betadiv_clustering"),
                         sg.Input("1000", size=(4,1), key="height_betadiv_clustering"), sg.Text('Tax. level:'), sg.Combo(available_taxonomic_levels_list, default_value='OTUs', key="betadiv_cluster_taxonomic_level")],
                         [sg.Text('Linkage:', size=(11,1)), sg.Combo(['single', 'average', 'complete'], default_value='average', size=(8,1), key="betadiv_linkage"), sg.Text('Group threshold:'), sg.Combo([str(round(i,1)) for i in np.arange(0.1, 1.0, 0.1)], default_value='0.3', size=(5,1), key="betadiv_clustering_threshold")],
                         [sg.Text("Method:"), sg.Combo(["jaccard", "braycurtis"], default_value="jaccard", key="betadiv_cluster_dissimilarity")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
-    					[sg.Text("Calculate beta diversity heatmap:", size=(23,1)), sg.Button("Run", key = 'run_beta_diversity'),
+    					[sg.Text("Calculate beta diversity heatmap:", size=(28,1)), sg.Button("Run", key = 'run_beta_diversity'),
                         sg.Button(" ? ", key = 'run_beta_diversity_help_text', button_color=('blue', 'white')),
                         sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):", size=(11,1)), sg.Input("1000", size=(4,1), key="width_beta"),
                         sg.Input("1000", size=(4,1), key="height_beta"), sg.Text('Tax. level:'), sg.Combo(available_taxonomic_levels_list, default_value='OTUs', key="betadiv_heatmap_taxonomic_level")],
@@ -808,7 +800,7 @@ def main():
                         [sg.Text("Enter name of output file:"), sg.Input(project_folder + "_taxon_list", size=(48,1), key='taxon_list_output_file_name'), sg.Text(".txt + .xlsx")],
                         [sg.Text('GBIF link:', size=(20,1)), sg.CB("", key="create_gbif_link", default=True), sg.Frame(layout=[[sg.Text("Create link to species entries and search for vernacular names in the GBIF database.")]], title="Information")],
                         [sg.Text('Intraspecific distances:', size=(20,1)), sg.CB("", key="calc_dist", default=True), sg.Frame(layout=[[sg.Text("Calculate intraspecific distances for species represented by more than one OTU.")]], title="Information")],
-                        [sg.Text('Occupancy per sample:', size=(20,1)), sg.CB("", key="calc_occupancy", default=True), sg.Frame(layout=[[sg.Text("Calculate the relative occurrence per taxon across all present samples.")]], title="Information")],
+                        [sg.Text('Use metadata:', size=(20,1)), sg.CB("", key="use_metadata", default=True), sg.Frame(layout=[[sg.Text("Calculate the taxon occurruence according to the metadata.")]], title="Information")],
                         [sg.Text('', size=(1,1))],
                         [sg.Text("Create taxon list"), sg.Button("Run", key = 'run_create_taxon_list')],
     					[sg.Text('',size=(1,1))]
@@ -938,7 +930,7 @@ def main():
             taxon_filter_method_criterion = values['taxon_filter_method_criterion']
             create_gbif_link = values['create_gbif_link']
             calc_dist = values['calc_dist']
-            calc_occupancy = values['calc_occupancy']
+            use_metadata = values['use_metadata']
             sorting_method_fh = values['sorting_method_fh']
             sorting_method_jamp = values['sorting_method_jamp']
             sorting_method_boldigger = values['sorting_method_boldigger']
@@ -1161,7 +1153,7 @@ def main():
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.create_taxon_list import create_taxon_list
-                    create_taxon_list(taxon_table_10_path, taxon_list_output_file_name, create_gbif_link, calc_dist, calc_occupancy, taxon_tools_version, path_to_outdirs, clustering_unit)
+                    create_taxon_list(taxon_table_10_path, taxon_list_output_file_name, create_gbif_link, calc_dist, use_metadata, taxon_tools_version, path_to_outdirs, clustering_unit)
 
             if event == 'run_taxon_filtering' and not win2_active:
 
@@ -1821,10 +1813,8 @@ def main():
                 if taxon_table_6_path == '':
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    if per_taxon_stats_taxonomic_level == "OTUs":
-                        per_taxon_stats_taxonomic_level = clustering_unit
                     from taxontabletools.per_taxon_analysis import per_taxon_analysis
-                    per_taxon_analysis(taxon_table_6_path, height_per_taxon_stats, width_per_taxon_stats, per_taxon_stats_taxonomic_level, path_to_outdirs, template, theme, font_size)
+                    per_taxon_analysis(taxon_table_6_path, height_per_taxon_stats, width_per_taxon_stats, per_taxon_stats_taxonomic_level, path_to_outdirs, template, theme, font_size, clustering_unit)
 
             if event == "run_read_filter":
                 if taxon_table_2_path == '':

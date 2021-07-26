@@ -162,11 +162,16 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
 
     ]
 
+    if (taxonomic_level == "Species" or taxonomic_level == "Genus"):
+        y_values = ["<i>" + taxon + "</i>" for taxon in plot_df.index.tolist()[::-1]]
+    else:
+        y_values = plot_df.index.tolist()[::-1]
+
     ## v2 heatmap
     fig = go.Figure(data=go.Heatmap(
         z=plot_df.values.tolist()[::-1],
         x=plot_df.columns.tolist(),
-        y=plot_df.index.tolist()[::-1],
+        y=y_values,
         colorscale=cs))
 
     fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='reads (%)')

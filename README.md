@@ -61,6 +61,15 @@ The easiest way to learn to how to use TaxonTableTools is to check out the [tuto
 
 ## Change log
 
+### v 1.3.1
+  * Metadata entries for specific samples can now be left blank to exclude the sample from the analyses. This avoids the need to create new metadata tables for each subset of a TaXon table
+  * Taxon lists have been overhauled and now include presence/absence indications for samples or metadata groups
+  * Fixed incorrect y-axis title in the per taxon plot
+  * Enhanced y-axis title of shared OTUs per bin plot
+  * Fixed Qiime2 conversion
+  * Fixed OTU and read correlation layout bugs
+
+
 ### v 1.3.0
   * Enhanced TaXon table check. Missing taxonomy is now marked with a flag
   * User preferences can now be saved

@@ -132,7 +132,7 @@ def create_krona_chart_multi(TaXon_table_xlsx, path_to_outdirs):
         # write krona table to tsv
         krona_taxonomy_df.to_csv(krona_table_tsv, sep="\t", header=False, index=False)
 
-    krona_chart_html = Path(str(dirName) + "_krona_mutli.html")
+    krona_chart_html = Path(str(dirName) + "_krona_multi.html")
     os.system("ktImportText " + ' '.join(sample_tsv_path) + " -o " + str(krona_chart_html))
 
     # finish script

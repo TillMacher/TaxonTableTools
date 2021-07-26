@@ -16,9 +16,30 @@ def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, he
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna('unidentified')
-    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0)
+    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     IDs_list = TaXon_table_df["ID"].values.tolist()
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()
+    metadata_loc = Meta_data_table_df.columns.tolist().index(meta_data_to_test)
+
+    ## drop samples with metadata called nan (= empty)
+    drop_samples = [i[0] for i in Meta_data_table_df.values.tolist() if i[metadata_loc] == "nan"]
+
+    if drop_samples != []:
+        ## filter the TaXon table
+        TaXon_table_df = TaXon_table_df.drop(drop_samples, axis=1)
+        TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+        ## also remove empty OTUs
+        row_filter_list = []
+        for row in TaXon_table_df.values.tolist():
+            reads = set(row[10:])
+            if reads != {0}:
+                row_filter_list.append(row)
+        columns = TaXon_table_df.columns.tolist()
+        TaXon_table_df = pd.DataFrame(row_filter_list, columns=columns)
+        Meta_data_table_df = pd.DataFrame([i for i in Meta_data_table_df.values.tolist() if i[0] not in drop_samples], columns=Meta_data_table_df.columns.tolist())
+        Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
     ## create a y axis title text
     taxon_title = taxonomic_level.lower()

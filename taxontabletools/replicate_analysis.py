@@ -1,17 +1,5 @@
 def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme, font_size, custom_colors, clustering_unit):
 
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Robo_Test_2/TaXon_tables/Robo_additional_data_samples.xlsx"
-    # height = 1000
-    # width = 1000
-    # suffix_list = ["A", "B"]
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Robo_Test_2"
-    # template = "simple_white"
-    # theme = ["Blue", "Black", 1]
-    # font_size = 16
-    # import plotly.express as px
-    # color_discrete_sequence = px.colors.qualitative.Plotly
-    # add_annotations = True
-
     import PySimpleGUI as sg
     import pandas as pd
     import numpy as np
@@ -275,7 +263,7 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     fig.add_trace(go.Bar(x=names, y=n_OTUs_nonshared, name='non-shared', marker_color=custom_colors[1]))
 
     fig.update_layout(width=int(width), height=int(height), template=template, font_size=font_size, title_font_size=font_size)
-    y_title = 'rel. ' + clustering_unit + ' per bin'
+    y_title = clustering_unit + ' per bin (%)'
     fig.update_yaxes(title=y_title)
     fig.update_xaxes(title='read abundance')
 

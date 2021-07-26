@@ -116,7 +116,7 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
         fig.add_trace(go.Scatter(name=title1, x=x2, y=df['bestfit'], mode='lines', marker=dict(color=color2)),row=1, col=2)
         title2 = "# " + clustering_unit + " (rep2)"
         fig.update_xaxes(title_text = title2, row=1, col=2)
-        title3 = "# " + clustering_unit + " (rep3)"
+        title3 = "# " + clustering_unit + " (rep1)"
         fig.update_yaxes(title_text = title3, row=1, col=2)
         # update the layouts
         fig.update_layout(height=int(height), width=int(width), template=template, font_size=font_size, title_font_size=font_size, showlegend=True)
