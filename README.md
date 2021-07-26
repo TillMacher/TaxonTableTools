@@ -4,9 +4,9 @@
 
 ## Background
 
-TaxonTableTools (TTT) aims to provide easy*to*use tools for biologists and non*bioinformaticians to analyse and visualize their metabarcoding data quickly and reproducible via a graphical user interface.
+TaxonTableTools (TTT) aims to provide easy*to*use tools for biologists and non-bioinformaticians to analyse and visualize their metabarcoding data quickly and reproducible via a graphical user interface.
 
-TaxonTableTools is an evolving software and there will be bugs and issues at few points. If so, please leave the report in the git repository or drop me an email. Furthermore, new content and functions will be gradualy added. Suggestions and recommodations for new features are always welcome!
+TaxonTableTools is an evolving software and there will be bugs and issues at few points. If so, please leave the report in the git repository or drop me an email. Furthermore, new content and functions will be gradually added. Suggestions and recommendations for new features are always welcome!
 
 ## Requirements
 
