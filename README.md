@@ -21,21 +21,23 @@ TaxonTableTools requires Python version 3.6 or 3.7 and can be easily installed u
 
 First, make sure you run the correct pip version via:
 
-`pip3 --version`
+`python3.9 -m pip --version`
 
-Which should return python3.6 or 3.7. Otherwise specify your pip using `pip3.6` or `pip3.7`
+Which should return "pip 21.3.1 from /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/pip (python 3.9)" or similar.
 
-Then install TaxonTableTools via pip:
+Then install numpy and TaxonTableTools via pip:
 
-`pip3 install taxontabletools`
+`python3.9 -m pip install numpy`
+
+`python3.9 -m pip install taxontabletools`
 
 TaxonTableTools can then be started via:  
 
-`python3 -m taxontabletools`
+`python3.9 -m taxontabletools`
 
 Updates can be installed via:
 
-`pip3 install --upgrade taxontabletools`
+`python3.9 -m pip install --upgrade taxontabletools`
 
 The installation of [Krona tools](https://github.com/marbl/Krona/wiki) is optional and needs to be done separately. Note that Krona tools is currently not supported on Windows.
 
