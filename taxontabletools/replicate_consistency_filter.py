@@ -1,12 +1,13 @@
-def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs, consistency):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
+def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs, consistency):
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df_orr = TaXon_table_df
 
     sample_names = TaXon_table_df.columns[10:].tolist()
     OTUs = TaXon_table_df["ID"].values.tolist()
@@ -86,17 +87,34 @@ def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs,
                 if sum(entry[10:]) != 0:
                     TaXon_table_list_final.append(entry)
                 else:
-                    print("Dropped:", entry[0], "(0 reads)")
                     dropped_OTUs_list.append(entry[0])
 
+            ## Create a Pandas Excel writer using XlsxWriter as the engine.
             taxon_tables_directory = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + TaXon_table_xlsx.stem)
             output_xlsx = Path(str(taxon_tables_directory) + "_cons.xlsx")
+            writer = pd.ExcelWriter(output_xlsx, engine='xlsxwriter')
 
+            ## create a dataframe and write the main table
             TaXon_table_df = pd.DataFrame(TaXon_table_list_final, columns=columns)
-            TaXon_table_df.to_excel(output_xlsx, sheet_name='TaXon table', index=False)
+            TaXon_table_df.to_excel(writer, sheet_name='TaXon table', index=False)
 
-            closing_text = "Taxon table is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:]) + "\n\n" + str(len(dropped_OTUs_list)) + " OTUs were removed."
-            sg.Popup(closing_text, title="Finished", keep_on_top=True)
+            answer = sg.PopupYesNo("Write dropped OTUs to a seperate sheet?")
+            if answer == "Yes":
+                dropped_OTUs_df = pd.DataFrame([i for i in TaXon_table_df_orr.values.tolist() if i[0] in dropped_OTUs_list], columns=TaXon_table_df_orr.columns.tolist())
+                dropped_OTUs_df.to_excel(writer, sheet_name='Dropped OTUs', index=False)
+
+            original_reads = sum([sum(i[10:]) for i in TaXon_table_df_orr.values.tolist()])
+            remaining_reads = original_reads - sum([sum(i[10:]) for i in TaXon_table_df.values.tolist()])
+            rel_remaining_reads = 100 - round(remaining_reads / original_reads * 100, 2)
+
+
+            closing_text = "Taxon table is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
+            reads_info = str(rel_remaining_reads) + "% of reads were kept."
+            OTU_info = str(len(dropped_OTUs_list)) + " OTUs were removed from the dataset.\n"
+
+            sg.Popup(closing_text + "\n\n" + reads_info + "\n" + OTU_info, title="Finished", keep_on_top=True)
+
+            writer.save()
 
             from taxontabletools.create_log import ttt_log
             ttt_log("replicate consistency", "processing", TaXon_table_xlsx.name, output_xlsx.name, "consistency merged", path_to_outdirs)

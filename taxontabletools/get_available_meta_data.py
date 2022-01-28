@@ -1,9 +1,9 @@
-def get_available_meta_data(TaXon_table_xlsx, path_to_outdirs):
+import os
+import pandas as pd
+from pandas import DataFrame
+from pathlib import Path
 
-    import os
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
+def get_available_meta_data(TaXon_table_xlsx, path_to_outdirs):
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     meta_data_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")

@@ -1,11 +1,11 @@
-def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
+import subprocess, os, webbrowser
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
 
-    import subprocess, os, webbrowser
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
+def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
 
     try:
         subprocess.call(["ktImportText"], stdout=open(os.devnull, 'wb'))
@@ -69,13 +69,6 @@ def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
     ttt_log("krona chart", "analysis", TaXon_table_xlsx.name, krona_chart_html.name, "nan", path_to_outdirs)
 
 def create_krona_chart_multi(TaXon_table_xlsx, path_to_outdirs):
-
-    import subprocess, os, webbrowser
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
 
     try:
         subprocess.call(["ktImportText"], stdout=open(os.devnull, 'wb'))

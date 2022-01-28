@@ -1,13 +1,15 @@
-def beta_diversity(TaXon_table_xlsx, width, heigth, cmap, meta_data_to_test, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
+import plotly.figure_factory as ff
+import numpy as np
+import pandas as pd
+from skbio.diversity import beta_diversity
+from pathlib import Path
+from scipy.cluster.hierarchy import dendrogram, linkage
+import PySimpleGUI as sg
+import webbrowser
+from skbio.stats.distance import anosim
+import plotly.express as px
 
-    import pandas as pd
-    import numpy as np
-    from skbio.diversity import beta_diversity
-    from skbio.stats.distance import anosim
-    import plotly.express as px
-    from pathlib import Path
-    import PySimpleGUI as sg
-    import webbrowser
+def beta_diversity_heatmap(TaXon_table_xlsx, width, heigth, cmap, meta_data_to_test, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -119,15 +121,6 @@ def beta_diversity(TaXon_table_xlsx, width, heigth, cmap, meta_data_to_test, tax
         sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
 
 def betadiv_clustering(TaXon_table_xlsx, height, width, threshold, betadiv_linkage, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
-
-    from scipy.cluster.hierarchy import dendrogram, linkage
-    import plotly.figure_factory as ff
-    import numpy as np
-    import pandas as pd
-    from skbio.diversity import beta_diversity
-    from pathlib import Path
-    import PySimpleGUI as sg
-    import webbrowser
 
     ## import table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)

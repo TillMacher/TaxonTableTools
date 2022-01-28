@@ -1,13 +1,14 @@
+import requests_html, json, time
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
+
 def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
 
-    import requests_html, json, time
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
-
-    ## taxon_name = "Radix ampla" taxon_level = "species"
+    # taxon_name = "Aturidae"
+    # taxon_level = "Family"
     ## create an html session
     time.sleep(0.1)
     with requests_html.HTMLSession() as session:
@@ -43,10 +44,7 @@ def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
                     try:
                         gbif_result.append(res[taxon_level.lower()])
                     except:
-                        try:
-                            gbif_result.append(res["alternatives"][0][taxon_level.lower()])
-                        except:
-                            gbif_result.append("")
+                        gbif_result.append("")
                 return gbif_result
         else:
             gbif_result.append("")
@@ -56,13 +54,6 @@ def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
             return "ERROR"
 
 def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
-
-    import requests_html, json
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
@@ -137,6 +128,35 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
     file_name = TaXon_table_xlsx.stem
     output_name = Path(str(path_to_outdirs) + "/TaXon_tables/" + file_name + "_gbif" + ".xlsx")
     df_new = pd.DataFrame(TaXon_table_list, columns=(TaXon_table_df.columns.values.tolist()))
+
+    ## replace missing taxonomy in the new dataframe with a >FLAG< placeholder
+    taxonomy_list = df_new[["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
+    answer = "NO"
+    for entry in taxonomy_list:
+        if "" in entry:
+            taxonomy = entry[1:]
+            OTU = entry[0]
+            n_nan = taxonomy.count("")
+            if 6 - taxonomy.index("") != n_nan:
+                answer = sg.Popup("Internally missing taxonomy found!\nReplacing cases of missing taxonomy with a >FLAG< placeholder.\nPlease adjust the taxonomy in Excel.")
+                break
+    if answer == 'OK':
+        new_df_list = []
+        for row in df_new.values.tolist():
+            entry = row[0:7]
+            if "" in entry:
+                taxonomy = entry[1:]
+                OTU = entry[0]
+                n_nan = taxonomy.count("")
+                if 6 - taxonomy.index("") != n_nan:
+                    for item in [i for i,x in enumerate(entry) if x == ""]:
+                        row[item] = ">FLAG<"
+            row = ['' if x=='' else x for x in row]
+            new_df_list.append(row)
+        column_names = df_new.columns.tolist()
+        df_new = pd.DataFrame(new_df_list, columns=column_names)
+
+    ## write dataframe
     df_new.to_excel(output_name, sheet_name = 'TaXon table', index=False)
 
     change_log_list = []

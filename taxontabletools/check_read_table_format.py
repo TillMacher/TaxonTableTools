@@ -1,9 +1,9 @@
-def check_read_table_format_TTT(read_table_xlsx):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
+def check_read_table_format_TTT(read_table_xlsx):
 
     try:
         read_table_df = pd.read_excel(Path(read_table_xlsx))
@@ -99,11 +99,6 @@ def check_read_table_format_TTT(read_table_xlsx):
     sg.Popup("Your file looks great and is ready to use!", title="Read table check", keep_on_top=True)
 
 def check_read_table_format_qiime2(read_table_xlsx):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
 
     try:
         read_table_df = pd.read_csv(Path(read_table_xlsx), sep="\t")

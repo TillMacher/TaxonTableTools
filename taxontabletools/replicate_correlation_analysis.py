@@ -1,16 +1,17 @@
-def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size, clustering_unit):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import numpy as np
+import scipy.stats, webbrowser, os
+import matplotlib.pyplot as plt
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import statsmodels.api as sm
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    import numpy as np
-    import scipy.stats, webbrowser, os
-    import matplotlib.pyplot as plt
-    import plotly.express as px
-    from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
-    import statsmodels.api as sm
+
+def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size, clustering_unit):
 
     color1 = theme[0]
     color2 = theme[1]

@@ -1,11 +1,11 @@
-def parcat_analysis(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, plotly_colors, available_taxonomic_levels_list, taxonomic_level, theme, font_size, color_discrete_sequence):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from pathlib import Path
+import webbrowser, random
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import webbrowser, random
+def parcat_analysis(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, plotly_colors, available_taxonomic_levels_list, taxonomic_level, theme, font_size, color_discrete_sequence):
 
     color1 = theme[0]
     color2 = theme[1]
@@ -138,4 +138,4 @@ def parcat_analysis(TaXon_table_xlsx, path_to_outdirs, template, height, width, 
             ttt_log("parallel category analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
         else:
-            sg.PopupError("Error: The samples between the taxon table and meta table do not match!", keep_on_top=True)
+            sg.PopupError("Error: The samples between the taxon table and meta data table do not match!", keep_on_top=True)

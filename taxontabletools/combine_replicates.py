@@ -1,10 +1,10 @@
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
 # remove PCR or Extraction Replicates
 def combine_replicates(TaXon_table_xlsx, suffix_list, path_to_outdirs):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 

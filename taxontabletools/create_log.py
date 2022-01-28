@@ -1,10 +1,13 @@
-def ttt_log(task, type, input_file, output_file, parameters, path_to_outdirs):
+import os
+import pandas as pd
+import numpy as np
+from datetime import datetime
+from pathlib import Path
+import networkx as nx
+import matplotlib.pyplot as plt
+import PySimpleGUI as sg
 
-    import os
-    import pandas as pd
-    import numpy as np
-    from datetime import datetime
-    from pathlib import Path
+def ttt_log(task, type, input_file, output_file, parameters, path_to_outdirs):
 
     dateTimeObj = datetime.now()
     time = str(dateTimeObj)
@@ -20,14 +23,6 @@ def ttt_log(task, type, input_file, output_file, parameters, path_to_outdirs):
     log_df.to_excel(log_xlsx, index=False)
 
 def ttt_log_network(path_to_outdirs):
-
-    import os
-    import pandas as pd
-    import numpy as np
-    import networkx as nx
-    import matplotlib.pyplot as plt
-    import PySimpleGUI as sg
-    from pathlib import Path
 
     log_xlsx = Path(str(path_to_outdirs) + "/log.xlsx")
 

@@ -1,10 +1,15 @@
-## TaXon table filtering
-#1.a create mask for user input
-def create_taxa_mask(TaXon_table_xlsx, mask, taxon_mask):
-
     import pandas as pd
     from pandas import DataFrame
     from pathlib import Path
+    import PySimpleGUI as sg
+    import pandas as pd
+    import numpy as np
+    import plotly.graph_objects as go
+    import webbrowser
+
+## TaXon table filtering
+#1.a create mask for user input
+def create_taxa_mask(TaXon_table_xlsx, mask, taxon_mask):
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
@@ -21,11 +26,6 @@ def create_taxa_mask(TaXon_table_xlsx, mask, taxon_mask):
 
 # 1.b filter taxa from taxon table
 def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold, path_to_outdirs, taxon_filter_method):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 
@@ -119,10 +119,6 @@ def taxon_filter(TaXon_table_xlsx, filtered_taxa, mask, appendix_name, threshold
 # 2.a create mask for user input
 def create_sample_mask(TaXon_table_xlsx, sample_mask):
 
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
-
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
     df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
@@ -136,11 +132,6 @@ def create_sample_mask(TaXon_table_xlsx, sample_mask):
 
 # 2.b filter samples from taxon list
 def filter_samples(TaXon_table_xlsx, selected_samples, appendix_name, path_to_outdirs, sample_filter_method):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 
@@ -193,16 +184,6 @@ def filter_samples(TaXon_table_xlsx, selected_samples, appendix_name, path_to_ou
 
 # 3 read-based filter
 def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filter_treshold):
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
-    import numpy as np
-
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table.xlsx"
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Tutorial"
-    # read_filter_method = "absolute_filtering"
-    # read_filter_treshold = 50
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
     TaXon_table_xlsx_path = TaXon_table_xlsx
@@ -284,13 +265,6 @@ def read_filter(TaXon_table_xlsx, path_to_outdirs, read_filter_method, read_filt
         ttt_log("relative read filter", "processing", TaXon_table_file.name, output_name.name, log_text, path_to_outdirs)
 
 def subtract_NCs(TaXon_table_xlsx, path_to_outdirs, negative_controls):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import webbrowser
 
     ## load taxon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)

@@ -1,12 +1,12 @@
-def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme, font_size):
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+import plotly.graph_objects as go
+from pathlib import Path
+import webbrowser
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import webbrowser
+def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme, font_size):
 
     color1 = theme[0]
     color2 = theme[1]

@@ -1,10 +1,10 @@
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
 # check the input format
 def check_taXon_table_format(taXon_table):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
 
     try:
         taXon_table_df = pd.read_excel(Path(taXon_table), "TaXon table")
@@ -99,7 +99,7 @@ def check_taXon_table_format(taXon_table):
                 n_nan = taxonomy.count("nan")
                 if 6 - taxonomy.index("nan") != n_nan:
                     for item in [i for i,x in enumerate(entry) if x == "nan"]:
-                        row[item] = "FLAG"
+                        row[item] = ">FLAG<"
             row = ['' if x=='nan' else x for x in row]
             new_df_list.append(row)
         column_names = taXon_table_df.columns.tolist()

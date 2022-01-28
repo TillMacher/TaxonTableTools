@@ -1,10 +1,10 @@
-def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
+def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
 
     ## collect both input files
     taxonomy_results_xlsx =  Path(taxonomy_results_xlsx)
@@ -69,15 +69,6 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
         sg.PopupError("Error: The IDs of the read table and taxonomy table do not match!")
 
 def taxon_table_converter_qiime2(read_table_tsv, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
-
-    # read_table_tsv = "/Users/tillmacher/Downloads/tutorial_read_table_qiime2.tsv"
-    # taxonomy_results_xlsx = "/Users/tillmacher/Downloads/tutorial_taxonomy_table.xlsx"
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
 
     taxonomy_results_xlsx =  Path(taxonomy_results_xlsx)
     read_table_tsv = Path(read_table_tsv)

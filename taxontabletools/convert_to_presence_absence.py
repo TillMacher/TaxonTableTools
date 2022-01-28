@@ -1,8 +1,8 @@
-def convert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
+from pathlib import Path
+import PySimpleGUI as sg
+import pandas as pd
 
-    from pathlib import Path
-    import PySimpleGUI as sg
-    import  pandas as pd
+def convert_to_presence_absence(TaXon_table_xlsx, path_to_outdirs):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0)

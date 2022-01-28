@@ -1,17 +1,17 @@
-def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, path_to_outdirs, template, font_size, color_discrete_sequence):
+import pandas as pd
+import numpy as np
+from skbio.diversity import beta_diversity
+from skbio.stats.ordination import cca
+from skbio.stats.distance import anosim
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.express as px
+from pathlib import Path
+import PySimpleGUI as sg
+import os, webbrowser
+from itertools import combinations
 
-    import pandas as pd
-    import numpy as np
-    from skbio.diversity import beta_diversity
-    from skbio.stats.ordination import cca
-    from skbio.stats.distance import anosim
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import plotly.express as px
-    from pathlib import Path
-    import PySimpleGUI as sg
-    import os, webbrowser
-    from itertools import combinations
+def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, path_to_outdirs, template, font_size, color_discrete_sequence):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")

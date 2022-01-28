@@ -1,18 +1,17 @@
+import requests_html, json
+import re, sys, subprocess, os
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+from datetime import date
+import numpy as np
+from pathlib import Path
+from Bio import pairwise2
+from Bio.Seq import Seq
+
 def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif_link, calc_dist, use_metadata, taxon_tools_version, path_to_outdirs, clustering_unit):
 
-    import requests_html, json
-    import re, sys, subprocess, os
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    from datetime import date
-    import numpy as np
-    from pathlib import Path
-    from Bio import pairwise2
-    from Bio.Seq import Seq
-
     ##### functions
-
     def open_table(table):
         if sys.platform == "win32":
             os.startfile(table)

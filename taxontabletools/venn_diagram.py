@@ -1,15 +1,15 @@
-def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clustering_unit):
+import os
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib_venn import venn2
+from matplotlib_venn import venn3
+from matplotlib.pyplot import plot, ion, show
+from pathlib import Path
 
-    import os
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib_venn import venn2
-    from matplotlib_venn import venn3
-    from matplotlib.pyplot import plot, ion, show
-    from pathlib import Path
+def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clustering_unit):
 
     file_a = Path(file_a)
     file_b = Path(file_b)
@@ -283,3 +283,276 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
         ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_c.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+
+def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test, path_to_outdirs, clustering_unit):
+
+    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
+
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+    Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
+    Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
+    metadata_loc = Meta_data_table_df.columns.tolist().index(meta_data_to_test)
+    ## drop samples with metadata called nan (= empty)
+    drop_samples = [i[0] for i in Meta_data_table_df.values.tolist() if i[metadata_loc] == "nan"]
+
+    if drop_samples != []:
+        ## filter the TaXon table
+        TaXon_table_df = TaXon_table_df.drop(drop_samples, axis=1)
+        TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+        ## also remove empty OTUs
+        row_filter_list = []
+        for row in TaXon_table_df.values.tolist():
+            reads = set(row[10:])
+            if reads != {0}:
+                row_filter_list.append(row)
+        columns = TaXon_table_df.columns.tolist()
+        TaXon_table_df = pd.DataFrame(row_filter_list, columns=columns)
+        Meta_data_table_df = pd.DataFrame([i for i in Meta_data_table_df.values.tolist() if i[0] not in drop_samples], columns=Meta_data_table_df.columns.tolist())
+        Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
+
+    categories = Meta_data_table_df[meta_data_to_test].tolist()
+    u_categories = list(set(categories))
+    len_categories = len(u_categories)
+
+    categories_dict = {}
+    for sample, metadata in Meta_data_table_df[["Samples", meta_data_to_test]].values.tolist():
+        if metadata in categories_dict.keys():
+            categories_dict[metadata] = categories_dict[metadata] + [sample]
+        else:
+            categories_dict[metadata] = [sample]
+
+    ## create a y axis title text
+    taxon_title = clustering_unit.lower()
+
+    ## adjust taxonomic level if neccessary
+    if clustering_unit in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+        taxon_title = clustering_unit
+        clustering_unit = "ID"
+
+    if len(set(Meta_data_table_df[meta_data_to_test])) == 1:
+        sg.PopupError("The meta data has to differ between samples!", title="Error")
+        raise RuntimeError
+
+    if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
+        venn_font = 20
+
+        if len_categories == 2:
+        ############################################################################
+        # use venn2
+
+            count = 0
+
+            G = "G_" + clustering_unit
+            allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", G]
+
+            venn_dict = {}
+
+            ############################################################################
+            ## create the progress bar window
+            layout = [[sg.Text('Progress bar')],
+                      [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
+                      [sg.Cancel()]]
+            window_progress_bar = sg.Window('Progress bar', layout)
+            progress_bar = window_progress_bar['progressbar']
+            progress_update = 167*2
+            ############################################################################
+
+            for taxon in allowed_taxa:
+
+                output_name = taxon
+                taxon = taxon[2:]
+                col_name = taxon
+
+                if taxon in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+                    col_name = taxon
+                    taxon="ID"
+
+                ## search present taxa for each metadata
+                samples_a = categories_dict[u_categories[0]]
+                category_a = u_categories[0]
+                taxa_labels_a = sorted(list(set([i[0] for i in TaXon_table_df[[taxon] + samples_a].values.tolist() if i[0] != 'unidentified' and sum(i[1::]) != 0])))
+
+                samples_b = categories_dict[u_categories[1]]
+                taxa_labels_b = sorted(list(set([i[0] for i in TaXon_table_df[[taxon] + samples_b].values.tolist() if i[0] != 'unidentified' and sum(i[1::]) != 0])))
+                category_b = u_categories[1]
+
+                a_only = set(taxa_labels_a) - set(taxa_labels_b)
+                len_a_only = len(a_only)
+                b_only = set(taxa_labels_b) - set(taxa_labels_a)
+                len_b_only = len(b_only)
+                shared = set(taxa_labels_a) & set(taxa_labels_b)
+                len_shared = len(shared)
+
+                venn_dict[col_name + "_a_only"] = a_only
+                venn_dict[col_name + "_shared"] = shared
+                venn_dict[col_name + "_b_only"] = b_only
+
+                plt.figure(figsize=(20, 10))
+                out = venn2(subsets = (len_a_only, len_b_only, len_shared), set_labels = (category_a, category_b))
+                for text in out.set_labels:
+                    text.set_fontsize(venn_font)
+                for x in range(len(out.subset_labels)):
+                    if out.subset_labels[x] is not None:
+                        out.subset_labels[x].set_fontsize(venn_font)
+
+                dirName = Path(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name)
+                if not os.path.exists(dirName):
+                    os.mkdir(dirName)
+
+                output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
+                plt.title(output_name[2:])
+                plt.savefig(output_pdf, bbox_inches='tight')
+
+                if taxon == "Species":
+                    answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        plt.show(block=False)
+                        sg.Popup("Close")
+
+                plt.close()
+
+                ############################################################################
+                event, values = window_progress_bar.read(timeout=10)
+                if event == 'Cancel'  or event is None:
+                    window_progress_bar.Close()
+                    raise RuntimeError
+                # update bar with loop value +1 so that bar eventually reaches the maximum
+                progress_update += 167
+                progress_bar.UpdateBar(progress_update)
+                ############################################################################
+
+            window_progress_bar.Close()
+
+            output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
+            df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
+            df.to_excel(output_xlsx, index=False)
+
+            sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("venn diagram", "analysis", category_a, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+            ttt_log("venn diagram", "analysis", category_b, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+
+        elif len_categories == 3:
+        ############################################################################
+        # use venn3
+
+            count = 0
+
+            G = "G_" + clustering_unit
+            allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", G]
+
+            venn_dict = {}
+
+            ############################################################################
+            ## create the progress bar window
+            layout = [[sg.Text('Progress bar')],
+                      [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
+                      [sg.Cancel()]]
+            window_progress_bar = sg.Window('Progress bar', layout)
+            progress_bar = window_progress_bar['progressbar']
+            progress_update = 167*2
+            ############################################################################
+
+            for taxon in allowed_taxa:
+
+                output_name = taxon
+                taxon = taxon[2:]
+                col_name = taxon
+
+                if taxon in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
+                    col_name = taxon
+                    taxon="ID"
+
+                ## search present taxa for each metadata
+                samples_a = categories_dict[u_categories[0]]
+                category_a = u_categories[0]
+                taxa_labels_a = sorted(list(set([i[0] for i in TaXon_table_df[[taxon] + samples_a].values.tolist() if i[0] != 'unidentified' and sum(i[1::]) != 0])))
+
+                samples_b = categories_dict[u_categories[1]]
+                category_b = u_categories[1]
+                taxa_labels_b = sorted(list(set([i[0] for i in TaXon_table_df[[taxon] + samples_b].values.tolist() if i[0] != 'unidentified' and sum(i[1::]) != 0])))
+
+                samples_c = categories_dict[u_categories[2]]
+                category_c = u_categories[2]
+                taxa_labels_c = sorted(list(set([i[0] for i in TaXon_table_df[[taxon] + samples_c].values.tolist() if i[0] != 'unidentified' and sum(i[1::]) != 0])))
+
+                a_only = set(taxa_labels_a) - set(taxa_labels_b) - set(taxa_labels_c)
+                len_a_only = len(a_only)
+                b_only = set(taxa_labels_b) - set(taxa_labels_a) - set(taxa_labels_c)
+                len_b_only = len(b_only)
+                c_only = set(taxa_labels_c) - set(taxa_labels_a) - set(taxa_labels_b)
+                len_c_only = len(c_only)
+
+                shared_all = set(taxa_labels_a) & set(taxa_labels_b) & set(taxa_labels_c)
+                len_shared_all = len(shared_all)
+                shared_a_b = set(taxa_labels_a) & set(taxa_labels_b) - set(taxa_labels_c)
+                len_shared_a_b = len(shared_a_b)
+                shared_a_c = set(taxa_labels_a) & set(taxa_labels_c) - set(taxa_labels_b)
+                len_shared_a_c = len(shared_a_c)
+                shared_b_c = set(taxa_labels_b) & set(taxa_labels_c) - set(taxa_labels_a)
+                len_shared_b_c = len(shared_b_c)
+
+                venn_dict[col_name + "_a_only"] = a_only
+                venn_dict[col_name + "_b_only"] = b_only
+                venn_dict[col_name + "_c_only"] = c_only
+                venn_dict[col_name + "_shared_all"] = shared_all
+                venn_dict[col_name + "_shared_a_b"] = shared_a_b
+                venn_dict[col_name + "_shared_a_c"] = shared_a_c
+                venn_dict[col_name + "_shared_b_c"] = shared_b_c
+
+                plt.figure(figsize=(20, 10))
+                out = venn3(subsets = (len_a_only, len_b_only, len_shared_a_b, len_c_only, len_shared_a_c, len_shared_b_c, len_shared_all), set_labels = (category_a, category_b, category_c))
+                for text in out.set_labels:
+                    text.set_fontsize(venn_font)
+                for x in range(len(out.subset_labels)):
+                    if out.subset_labels[x] is not None:
+                        out.subset_labels[x].set_fontsize(venn_font)
+
+                dirName = Path(str(path_to_outdirs) + "/Venn_diagrams/" + venn_diagram_name)
+                if not os.path.exists(dirName):
+                    os.mkdir(dirName)
+
+                output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
+                plt.title(output_name[2:])
+                plt.savefig(output_pdf, bbox_inches='tight')
+
+                if taxon == "Species":
+                    answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
+                    if answer == "Yes":
+                        plt.show(block=False)
+                        sg.Popup("Close")
+
+                plt.close()
+
+                ############################################################################
+                event, values = window_progress_bar.read(timeout=10)
+                if event == 'Cancel'  or event is None:
+                    window_progress_bar.Close()
+                    raise RuntimeError
+                # update bar with loop value +1 so that bar eventually reaches the maximum
+                progress_update += 167
+                progress_bar.UpdateBar(progress_update)
+                ############################################################################
+
+            window_progress_bar.Close()
+
+            output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
+            df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
+            df.to_excel(output_xlsx, index=False)
+
+            sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+
+            from taxontabletools.create_log import ttt_log
+            ttt_log("venn diagram", "analysis", category_a, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+            ttt_log("venn diagram", "analysis", category_b, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+            ttt_log("venn diagram", "analysis", category_c, output_xlsx.name, venn_diagram_name, path_to_outdirs)
+
+        else:
+            sg.PopupError("You cannot use more than 3 metadata categories for Venn diagrams!")
+
+    else:
+        sg.PopupError("Error: The samples do not match", title="Error")

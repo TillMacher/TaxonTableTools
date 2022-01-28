@@ -1,20 +1,20 @@
-def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme, font_size, custom_colors, clustering_unit):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from statistics import mean
+from pathlib import Path
+import matplotlib.pyplot as plt
+from matplotlib_venn import venn2
+from matplotlib_venn import venn3
+from matplotlib.pyplot import plot, ion, show
+import matplotlib.gridspec as gridspec
+import math, os, webbrowser
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+from collections import OrderedDict
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from statistics import mean
-    from pathlib import Path
-    import matplotlib.pyplot as plt
-    from matplotlib_venn import venn2
-    from matplotlib_venn import venn3
-    from matplotlib.pyplot import plot, ion, show
-    import matplotlib.gridspec as gridspec
-    import math, os, webbrowser
-    import plotly.express as px
-    from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
-    from collections import OrderedDict
+def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme, font_size, custom_colors, clustering_unit):
 
     color1 = theme[0]
     color2 = theme[1]

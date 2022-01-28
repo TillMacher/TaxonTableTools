@@ -1,13 +1,13 @@
-def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme, font_size, clustering_unit):
+import glob
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+import plotly.graph_objects as go
+from pathlib import Path
+import webbrowser
 
-    import glob
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import webbrowser
+def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme, font_size, clustering_unit):
 
     color1 = theme[0]
     color2 = theme[1]

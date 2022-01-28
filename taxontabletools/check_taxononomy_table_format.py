@@ -1,10 +1,10 @@
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
 # check the input format
 def check_taxononomy_table_format(taxonomy_results_xlsx, sheet_name):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
 
     try:
         taxonomy_table_df = pd.read_excel(Path(taxonomy_results_xlsx), sheet_name)

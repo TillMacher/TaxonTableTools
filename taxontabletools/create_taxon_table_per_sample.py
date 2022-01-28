@@ -1,9 +1,9 @@
-def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
+def create_taxon_table_per_sample(TaXon_table_xlsx, path_to_outdirs):
 
     TaXon_table_file =  Path(TaXon_table_xlsx)
 

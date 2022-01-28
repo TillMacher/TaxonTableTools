@@ -1,13 +1,13 @@
-def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size, taxonomic_level):
+import csv, glob, sys, os, webbrowser
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
-    import csv, glob, sys, os, webbrowser
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
-    from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
+def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size, taxonomic_level):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)

@@ -1,11 +1,14 @@
-def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import webbrowser
+import plotly.graph_objects as go
+import PySimpleGUI as sg
+from scipy import stats
+import itertools
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    import webbrowser
-    import plotly.graph_objects as go
+def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
@@ -127,13 +130,6 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
 
 def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    import webbrowser
-    import plotly.graph_objects as go
-
     color1 = theme[0]
     color2 = theme[1]
     opacity_value = theme[2]
@@ -221,6 +217,26 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
                 observed_otus_dict[category] = [observed_otus]
             else:
                 observed_otus_dict[category] = observed_otus_dict[category] + [observed_otus]
+
+        ########################################
+        ## kurskal test
+        ## for samples of an independant dataset
+        kruskal_list = []
+        for a, b in itertools.combinations(observed_otus_dict.keys(), 2):
+            res = stats.kruskal(observed_otus_dict[a], observed_otus_dict[b])
+            len_a = len(observed_otus_dict[a])
+            len_b = len(observed_otus_dict[b])
+            if res.pvalue <= 0.05:
+                if len_a >= 5 and len_b >= 5:
+                    kruskal_list = kruskal_list + [[a, len_a, b, len_b, round(res.statistic, 2), round(res.pvalue, 4), "*"]]
+                else:
+                    kruskal_list = kruskal_list + [[a, len_a, b, len_b, round(res.statistic, 2), round(res.pvalue, 4), "*, n > 5"]]
+            else:
+                kruskal_list = kruskal_list + [[a, len_a, b, len_b, round(res.statistic, 2), round(res.pvalue, 4), ""]]
+
+        kruskal_df = pd.DataFrame(kruskal_list)
+        kruskal_df.columns = ["ID 1", "len 1", "ID 2", "len 2", "H", "p", "#"]
+
 
         ########################################
         # create the plot

@@ -1,13 +1,14 @@
-def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, template, theme, font_size, path_to_outdirs):
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
+import plotly.graph_objects as go
+import os, webbrowser
+import requests_html, json, glob
 
-    import requests_html, json
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
-    import plotly.graph_objects as go
-    import os, webbrowser
+
+def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, template, theme, font_size, path_to_outdirs):
 
     ## dictionary with all country codes of the Earth
     country_codes_dict = {'Andorra': ['AD', 'Europe'],
@@ -406,15 +407,6 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
         ttt_log("occurrence analysis", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
 def gbif_occurrence_plot(width, height, template, theme, font_size, path_to_outdirs):
-
-    import requests_html, json, glob
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
-    import plotly.graph_objects as go
-    import os, webbrowser
 
     # slice function for lists to split up lists
     def slices(list, slice):

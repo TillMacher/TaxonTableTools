@@ -1,12 +1,12 @@
-def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme, font_size, clustering_unit):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import itertools, webbrowser
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import itertools, webbrowser
+def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme, font_size, clustering_unit):
 
     ## save the taxon title
     taxon_title = clustering_unit

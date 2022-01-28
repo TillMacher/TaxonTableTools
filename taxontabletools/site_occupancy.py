@@ -1,11 +1,13 @@
-def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
+import os, webbrowser
+import pandas as pd
+from pandas import DataFrame
+from pathlib import Path
+import plotly.graph_objects as go
+import PySimpleGUI as sg
+import numpy as np
+from plotly.subplots import make_subplots
 
-    import os, webbrowser
-    import pandas as pd
-    from pandas import DataFrame
-    from pathlib import Path
-    import plotly.graph_objects as go
-    import PySimpleGUI as sg
+def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
 
     color1 = theme[0]
     color2 = theme[1]
@@ -168,14 +170,6 @@ def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level
         sg.PopupError("Please check your Metadata file and Taxon table file: The samples do not match or the metadata is unique for all samples!", keep_on_top=True)
 
 def site_occupancy_heatmap(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, taxonomic_level, font_size, color_discrete_sequence, add_categories_sum):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    from pathlib import Path
-    import webbrowser, os
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")

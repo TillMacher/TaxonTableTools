@@ -1,12 +1,12 @@
-def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from pathlib import Path
+import os, webbrowser
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.express as px
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import os, webbrowser
+def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
@@ -174,7 +174,7 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
         y=y_values,
         colorscale=cs))
 
-    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.index.tolist()), legend_title_text='reads (%)')
+    fig.update_layout(width=int(width_value), height=int(height_value), template=template, font_size=font_size, title_font_size=font_size, yaxis_nticks=len(plot_df.index.tolist()), xaxis_nticks=len(plot_df.columns.tolist()), legend_title_text='reads (%)')
 
     ## write files
     fig.write_image(str(output_pdf))
@@ -194,13 +194,6 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
     ttt_log("read proportions heatmap", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
 def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.express as px
-    from pathlib import Path
-    import os, webbrowser
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
@@ -319,13 +312,6 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
     ttt_log("read proportions bar plot", "analysis", TaXon_table_xlsx.name, output_pdf.name, "", path_to_outdirs)
 
 def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import os, webbrowser
 
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")

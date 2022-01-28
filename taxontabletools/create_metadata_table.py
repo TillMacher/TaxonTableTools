@@ -1,11 +1,11 @@
-def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+import sys, subprocess, os
+from pathlib import Path
 
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    import sys, subprocess, os
-    from pathlib import Path
+def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
 
     def open_table(table):
         if sys.platform == "win32":
@@ -78,10 +78,6 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
         ttt_log("meta data table", "analysis", TaXon_table_xlsx.name, Meta_data_table_xlsx.name, "nan", path_to_outdirs)
 
 def modify_metadata_table(path_to_outdirs):
-    import PySimpleGUI as sg
-    from pathlib import Path
-    import os, subprocess, sys
-
     metadata_tables_dir = Path(str(path_to_outdirs) + "/Meta_data_table")
 
     metadata_table = sg.PopupGetFile(initial_folder = metadata_tables_dir, message="Select a metadata table:")

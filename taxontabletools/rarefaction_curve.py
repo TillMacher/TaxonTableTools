@@ -1,12 +1,15 @@
-def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme, font_size, taxonomic_level_1):
+import random
+import PySimpleGUI as sg
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from pathlib import Path
+import math, webbrowser
+import plotly.express as px
+from statistics import mean
+from plotly.subplots import make_subplots
 
-    import random
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    from pathlib import Path
-    import webbrowser
+def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme, font_size, taxonomic_level_1):
 
     color1 = theme[0]
     color2 = theme[1]
@@ -143,15 +146,6 @@ def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, tem
 
 def rarefaction_curve_taxa(TaXon_table_xlsx, repetitions, path_to_outdirs, template, font_size, taxonomic_level_1, taxonomic_level_2, color_discrete_sequence):
 
-    import random
-    import PySimpleGUI as sg
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from pathlib import Path
-    import webbrowser
-
     ## load the TaXon table
     TaXon_table_file = Path(TaXon_table_xlsx)
     TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
@@ -284,17 +278,7 @@ def rarefaction_curve_taxa(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
     from taxontabletools.create_log import ttt_log
     ttt_log("rarefaction curve per taxon", "analysis", TaXon_table_file.name, output_pdf.name, "nan", path_to_outdirs)
 
-
 def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_to_outdirs, template, theme, font_size):
-
-    import pandas as pd
-    import PySimpleGUI as sg
-    import numpy as np
-    from statistics import mean
-    from pathlib import Path
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import math, webbrowser
 
     TaXon_table_file = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("")
