@@ -14,6 +14,7 @@ TaxonTableTools is an evolving software and there will be bugs and issues at few
 * Pip python package installer
 * OS independent (tested on Windows 10, Ubuntu 16 & 18 and MacOS Catalina)
   * Some issues were reported during the [installation on Windows](https://github.com/TillMacher/TaxonTableTools/issues/1)
+  * Some issues were reported during the [installation on MacOS](https://github.com/TillMacher/TaxonTableTools/issues/4)
 
 ## Installation
 
