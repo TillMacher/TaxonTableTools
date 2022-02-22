@@ -116,6 +116,7 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
         # proportion_explained = [round(i/sm*100,2) for i in vars]
         #
 
+        data = TaXon_table_df[samples].transpose().values.tolist()
         jc_dm = beta_diversity(pcoa_dissimilarity, data, samples)
         ordination_result = pcoa(jc_dm)
         metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()

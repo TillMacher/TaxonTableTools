@@ -10,7 +10,7 @@ import feedparser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = str('1.4.0')
+taxon_tools_version = str('1.4.1')
 
 ##########################################################################################################################
 # general functions
@@ -32,36 +32,10 @@ def open_taxon_table(taxon_table):
 
 def change_log_text():
     change_log_text = """
-    TTT change log
-    ____________________________________________________________________________
 
-    v 1.4.0
-    New functions:
-    - Metadata entries for specific samples can now be left blank to exclude the
-      sample from analyses. This avoids the need to create new metadata tables
-      for each subset of a TaXon table
-    - Taxon lists have been overhauled and now include presence/absence indications
-      for samples or metadata  groups.
-    - The data conversion tab has been rearrange.
-    - Reads of all samples can now be normalized
-    - Samples can be sorted and renamed based on metadata tables
-    - OTU traits have been added
-    - Venn diagrams can be created based on metadata tables
-    - New tab 'Table comparison' has been added:
-        - Allows the comparison of two independant TaXon tables, for example:
-            * datasets based on two differ primers
-            * morphological data versus genetic data
-            * generally data that cannot be clustered together
-        - Additionally sample-specific modules are available where the samples must match
-            * allow a pairwise comparison of all samples
-    - Krona charts with individual samples can now be created
-
-    Bug fixes:
-    - Various minor bugs
-    - Enhanced runtimes of various modules
-    - NMDS has been updated from raw stress to Kruskal's stress
-    - Taxon list distance calculation is now faster and shows more detailed progress
-    - Minor fixes in the WFD modules
+    TTT change log v 1.4.1
+    Bug fixes
+    - PCoA crash was fixed
 
     """
     return change_log_text
