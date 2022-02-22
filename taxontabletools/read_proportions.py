@@ -5,11 +5,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import os, webbrowser
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size):
 
+    ## load Taxon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 
@@ -195,8 +198,10 @@ def read_proportions_heatmap(TaXon_table_xlsx, taxonomic_level, path_to_outdirs,
 
 def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
 
+    ## load Taxon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 
@@ -313,8 +318,10 @@ def read_proportions_bar(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, wid
 
 def read_proportions_pie(TaXon_table_xlsx, taxonomic_level, path_to_outdirs, width_value, height_value, template, font_size, color_discrete_sequence):
 
+    ## load Taxon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("unidentified")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     samples_list = TaXon_table_df.columns.tolist()[10:]
     Species_read_proportion_dict = {}
 

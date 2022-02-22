@@ -5,6 +5,7 @@ from pathlib import Path
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import itertools, webbrowser
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to_outdirs, template, theme, font_size, clustering_unit):
 
@@ -18,10 +19,10 @@ def per_taxon_analysis(TaXon_table_xlsx, height, width, taxonomic_level, path_to
     height = int(height)
     width = int(width)
 
-    ## load taxon table
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
-    TaXon_table_df = TaXon_table_df.fillna("nan")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     ## collect the taxa to test on
     taxa = sorted(list(set([taxon for taxon in TaXon_table_df[taxonomic_level].values.tolist() if taxon != "nan"])))

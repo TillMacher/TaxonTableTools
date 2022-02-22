@@ -8,13 +8,18 @@ import PySimpleGUI as sg
 import webbrowser
 from skbio.stats.distance import anosim
 import plotly.express as px
+from taxontabletools.taxontable_manipulation import strip_metadata
+
 
 def beta_diversity_heatmap(TaXon_table_xlsx, width, heigth, cmap, meta_data_to_test, taxonomic_level, path_to_outdirs, template, font_size, diss_metric):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
@@ -125,6 +130,7 @@ def betadiv_clustering(TaXon_table_xlsx, height, width, threshold, betadiv_linka
     ## import table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     ## create a y axis title text
     taxon_title = taxonomic_level.lower()

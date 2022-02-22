@@ -4,6 +4,9 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
+from taxontabletools.taxontable_manipulation import collect_metadata
+from taxontabletools.taxontable_manipulation import add_metadata
 
 def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
 
@@ -55,8 +58,13 @@ def gbif_parent_check(phylum_name, taxon_name, taxonomy_check):
 
 def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('')
+    TaXon_table_df_metadata = collect_metadata(TaXon_table_df)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
+
+
     taxon_levels = ["Phylum","Class","Order","Family","Genus","Species"]
     OTUs_list = TaXon_table_df["ID"].values.tolist()
 
@@ -156,8 +164,12 @@ def gbif_check_taxonomy(TaXon_table_xlsx, path_to_outdirs):
         column_names = df_new.columns.tolist()
         df_new = pd.DataFrame(new_df_list, columns=column_names)
 
+    ## add already existing metadata back to the df
+    if len(TaXon_table_df_metadata.columns) != 1:
+        df_new = add_metadata(df_new, TaXon_table_df_metadata)
+
     ## write dataframe
-    df_new.to_excel(output_name, sheet_name = 'TaXon table', index=False)
+    df_new.to_excel(output_name, index=False)
 
     change_log_list = []
     for key, value in taxonomy_check_dict.items():

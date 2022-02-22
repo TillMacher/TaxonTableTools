@@ -13,22 +13,7 @@ from scipy.spatial import distance
 import plotly.figure_factory as ff
 from statistics import mean
 import webbrowser, os
-
-# taxonomic_level = "Order"
-# taxonomic_level_2 = "Species"
-# color_list = px.colors.qualitative.Alphabet * 1000
-#
-# TaXon_table_xlsx_1 = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/old/TaXon_tables/MolEcol_2021_EPTD_taxon_table_0.01_merged_NCsub_mzb_gbif.xlsx"
-# TaXon_table_xlsx_2 = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/old/TaXon_tables/MolEcol_2021_fwh_taxon_table_0.01_merged_NCsub_mzb_gbif_EPTD_taxa.xlsx"
-#
-# color_discrete_sequence = ["Red", "Blue"]
-# name_1 = "EPTD"
-# name_2 = "fwh"
-# plotly_colorscale = "Blues"
-# width_value = 1000
-# height_value = 1000
-# font_size = 10
-# template = "simple_white"
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def tc_alpha_diversity(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, name_1, name_2, width_value, height_value, template, taxonomic_level, font_size, color_discrete_sequence):
 
@@ -50,9 +35,11 @@ def tc_alpha_diversity(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, 
         taxon_title = "# species"
 
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## count overall number of taxa
@@ -129,9 +116,11 @@ def tc_overall_taxon_richness(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_ou
         taxon_title = "# species"
 
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## collect all taxa for the second (i.e. higher taxonomic level)
@@ -199,9 +188,11 @@ def tc_overall_taxon_richness(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_ou
 def tc_seperate_taxon_richness(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, name_1, name_2, width_value, height_value, template, taxonomic_level, taxonomic_level_2, font_size, color_discrete_sequence, min_show):
 
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## collect all taxa for the second (i.e. higher taxonomic level)
@@ -322,9 +313,11 @@ def tc_pairwise_sample_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_t
         taxon_title = "species"
 
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## collect all taxa for the second (i.e. higher taxonomic level)
@@ -474,10 +467,13 @@ def tc_pairwise_sample_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_t
         ttt_log("Table comparison overview", "analysis", out, output_pdf.name, "", path_to_outdirs)
 
 def tc_pairwise_taxon_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, name_1, name_2, width_value, height_value, template, taxonomic_level, font_size, color_discrete_sequence, method):
+
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## collect all taxa for the second (i.e. higher taxonomic level)
@@ -619,10 +615,13 @@ def tc_pairwise_taxon_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to
         ttt_log("Table comparison overview", "analysis", out, output_pdf.name, "", path_to_outdirs)
 
 def tc_taxon_occurrence(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, name_1, name_2, width_value, height_value, template, taxonomic_level, taxonomic_level_2, font_size, color_discrete_sequence):
+
     ## load dataframes and sample names
-    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna("nan")
+    df1 = pd.read_excel(TaXon_table_xlsx_1).fillna('nan')
+    df1 = strip_metadata(df1)
     df1_samples = df1.columns.tolist()[10:]
-    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna("nan")
+    df2 = pd.read_excel(TaXon_table_xlsx_2).fillna('nan')
+    df2 = strip_metadata(df2)
     df2_samples = df2.columns.tolist()[10:]
 
     ## collect all taxa for the second (i.e. higher taxonomic level)
@@ -649,6 +648,7 @@ def tc_taxon_occurrence(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs,
     taxa_dict = {}
     ## loop through taxa
     for taxon in taxa2_list:
+        taxon = 'Trichoptera'
         n1 = set([i[0] for i in df1[[taxonomic_level, taxonomic_level_2]].values.tolist() if i[0] != "nan" and i[1] == taxon])
         n2 = set([i[0] for i in df2[[taxonomic_level, taxonomic_level_2]].values.tolist() if i[0] != "nan" and i[1] == taxon])
 

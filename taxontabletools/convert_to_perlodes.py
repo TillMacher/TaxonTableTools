@@ -1,17 +1,11 @@
+import PySimpleGUI as sg
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from pathlib import Path
+import sys, subprocess, os
+
 def convert_to_perlodes(TaXon_table_xlsx, operational_taxon_list, path_to_outdirs, meta_data_to_test):
-
-    import PySimpleGUI as sg
-    import pandas as pd
-    from pandas import DataFrame
-    import numpy as np
-    from pathlib import Path
-    import sys, subprocess, os
-
-    # TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/GeDNA_MZB_2020/TaXon_tables/GeDNA_MZB_2020_taxon_table_0.01_cons_NCsub_mzb_LANUV_gbif.xlsx"
-    # operational_taxon_list = "/Users/tillmacher/Downloads/Operationelle_Taxaliste (7).xlsx"
-    # path_to_outdirs = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/GeDNA_MZB_2020/"
-    # meta_data_to_test = "Typ"
-
 
     def open_table(table):
         if sys.platform == "win32":

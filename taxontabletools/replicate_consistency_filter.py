@@ -1,12 +1,18 @@
 import PySimpleGUI as sg
 import pandas as pd
 import numpy as np
+from taxontabletools.taxontable_manipulation import strip_metadata
+from taxontabletools.taxontable_manipulation import add_metadata
+from taxontabletools.taxontable_manipulation import collect_metadata
 from pathlib import Path
 
 def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs, consistency):
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df_metadata = collect_metadata(TaXon_table_df)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_df_orr = TaXon_table_df
 
     sample_names = TaXon_table_df.columns[10:].tolist()
@@ -89,6 +95,11 @@ def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs,
                 else:
                     dropped_OTUs_list.append(entry[0])
 
+            ## calculate stats
+            original_reads = sum([sum(i[10:]) for i in TaXon_table_df_orr.values.tolist()])
+            remaining_reads = original_reads - sum([sum(i[10:]) for i in TaXon_table_df.values.tolist()])
+            rel_remaining_reads = 100 - round(remaining_reads / original_reads * 100, 2)
+
             ## Create a Pandas Excel writer using XlsxWriter as the engine.
             taxon_tables_directory = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + TaXon_table_xlsx.stem)
             output_xlsx = Path(str(taxon_tables_directory) + "_cons.xlsx")
@@ -96,17 +107,18 @@ def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs,
 
             ## create a dataframe and write the main table
             TaXon_table_df = pd.DataFrame(TaXon_table_list_final, columns=columns)
+
+            ## add already existing metadata back to the df
+            if len(TaXon_table_df_metadata.columns) != 1:
+                TaXon_table_df = add_metadata(TaXon_table_df, TaXon_table_df_metadata)
+
+            ## write dataframe
             TaXon_table_df.to_excel(writer, sheet_name='TaXon table', index=False)
 
             answer = sg.PopupYesNo("Write dropped OTUs to a seperate sheet?")
             if answer == "Yes":
                 dropped_OTUs_df = pd.DataFrame([i for i in TaXon_table_df_orr.values.tolist() if i[0] in dropped_OTUs_list], columns=TaXon_table_df_orr.columns.tolist())
                 dropped_OTUs_df.to_excel(writer, sheet_name='Dropped OTUs', index=False)
-
-            original_reads = sum([sum(i[10:]) for i in TaXon_table_df_orr.values.tolist()])
-            remaining_reads = original_reads - sum([sum(i[10:]) for i in TaXon_table_df.values.tolist()])
-            rel_remaining_reads = 100 - round(remaining_reads / original_reads * 100, 2)
-
 
             closing_text = "Taxon table is found under:\n" + '/'.join(str(output_xlsx).split("/")[-4:])
             reads_info = str(rel_remaining_reads) + "% of reads were kept."
@@ -155,6 +167,10 @@ def replicate_consistency_filter(TaXon_table_xlsx, suffix_list, path_to_outdirs,
         else:
             taxon_tables_directory = Path(str(path_to_outdirs) + "/" + "TaXon_tables" + "/" + TaXon_table_xlsx.stem)
             output_xlsx = Path(str(taxon_tables_directory) + "_merged.xlsx")
+
+            ## add already existing metadata back to the df
+            if len(TaXon_table_df_metadata.columns) != 1:
+                TaXon_table_df = add_metadata(TaXon_table_df, TaXon_table_df_metadata)
 
             TaXon_table_df.to_excel(output_xlsx, sheet_name='TaXon table', index=False)
 

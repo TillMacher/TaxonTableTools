@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="taxontabletools", # Replace with your own username
-    version="1.3.2",
+    version="1.4.0",
     author="Till-Hendrik Macher",
     author_email="till-hendrik.macher@uni-due.de",
     description="TaxonTableTools - A comprehensive, platform-independent graphical user interface software to explore and visualise DNA metabarcoding data",
@@ -19,6 +19,7 @@ setuptools.setup(
                         'numpy>=1.18.1',
                         'matplotlib-venn>=0.11.5',
                         'xlrd>=1.2.0',
+                        'tqdm>=4.60.0',
                         'openpyxl>=3.0.3',
                         'xlsxwriter>=1.2.7',
                         'biopython>=1.77',
@@ -38,4 +39,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    entry_points = {
+        "console_scripts" : [
+            "taxontabletools = taxontabletools.__main__:main",
+        ]
+    },
 )

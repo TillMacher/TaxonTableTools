@@ -10,13 +10,19 @@ from pathlib import Path
 import PySimpleGUI as sg
 import os, webbrowser
 from itertools import combinations
+from taxontabletools.taxontable_manipulation import strip_metadata
+from statistics import pvariance
+
 
 def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, pcoa_s, path_to_outdirs, template, font_size, color_discrete_sequence, pcoa_dissimilarity):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
@@ -78,7 +84,38 @@ def PCoA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
         if 'unidentified' in TaXon_table_df.index:
             TaXon_table_df = TaXon_table_df.drop('unidentified')
 
-        data = TaXon_table_df[samples].transpose().values.tolist()
+        # ## calculate distance matrix
+        # if pcoa_dissimilarity == 'jaccard':
+        #     distance_matrix = []
+        #     for s1 in samples:
+        #         distances = []
+        #         array1 = [1 if i != 0 else 0 for i in TaXon_table_df[s1].values.T.tolist()]
+        #         for s2 in samples:
+        #             array2 = [1 if i != 0 else 0 for i in TaXon_table_df[s2].values.T.tolist()]
+        #             distances.append(distance.jaccard(array1, array2))
+        #         distance_matrix.append(distances)
+        #
+        # elif pcoa_dissimilarity == 'braycurtis':
+        #     distance_matrix = []
+        #     for s1 in samples:
+        #         distances = []
+        #         array1 = TaXon_table_df[s1].values.T.tolist()
+        #         for s2 in samples:
+        #             array2 = TaXon_table_df[s2].values.T.tolist()
+        #             distances.append(distance.braycurtis(array1, array2))
+        #         distance_matrix.append(distances)
+        #
+        # ## execute pcoa
+        # mds = manifold.MDS(n_components=10, max_iter=30000, dissimilarity="precomputed", n_jobs=1)
+        # positions = mds.fit(distance_matrix).embedding_
+        # df = pd.DataFrame(positions, index=samples)
+        #
+        # ## calculate proportion explained
+        # vars = [pvariance(df[i].values.tolist()) for i in df.columns]
+        # sm = sum(vars)
+        # proportion_explained = [round(i/sm*100,2) for i in vars]
+        #
+
         jc_dm = beta_diversity(pcoa_dissimilarity, data, samples)
         ordination_result = pcoa(jc_dm)
         metadata_list = Meta_data_table_df[meta_data_to_test].values.tolist()

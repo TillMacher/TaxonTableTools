@@ -4,6 +4,7 @@ from pandas import DataFrame
 import numpy as np
 import sys, subprocess, os
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
 
@@ -14,12 +15,15 @@ def create_metadata_table(TaXon_table_xlsx, path_to_outdirs):
             opener = "open" if sys.platform == 'darwin' else 'xdg-open'
             subprocess.call([opener, table])
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
-    TaXon_table_xslx_df = pd.read_excel(TaXon_table_xlsx)
-    samples_list = TaXon_table_xslx_df.columns.tolist()[10:]
+    samples_list = TaXon_table_df.columns.tolist()[10:]
     samples_metadata_list = []
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
 
     ############################################################################
     ## create the progress bar window

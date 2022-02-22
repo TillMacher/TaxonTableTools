@@ -2,24 +2,24 @@ import PySimpleGUI as sg
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
+from taxontabletools.taxontable_manipulation import collect_metadata
 
 # check the input format
-def check_taXon_table_format(taXon_table):
+def check_taXon_table_format(TaXon_table_xlsx):
 
-    try:
-        taXon_table_df = pd.read_excel(Path(taXon_table), "TaXon table")
-        taXon_table_df = taXon_table_df.replace(np.nan, 'nan', regex=True)
-    except:
-        sg.PopupError("Could not find the TaXon table sheet", keep_on_top=True)
-        raise
-
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    TaXon_table_df_metadata = collect_metadata(TaXon_table_df)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     ###################################
     # A) header prompt
-    taXon_table_df_header = taXon_table_df.columns.tolist()[0:9]
+    TaXon_table_df_header = TaXon_table_df.columns.tolist()[0:9]
     header_prompt = ["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Similarity", "Status"]
 
-    if taXon_table_df_header != header_prompt:
+    if TaXon_table_df_header != header_prompt:
         sg.PopupError("Oops! Something is wrong with the header!", title="Error", keep_on_top=True)
         raise RuntimeError("Oops! Something is wrong with the header!")
 
@@ -32,7 +32,7 @@ def check_taXon_table_format(taXon_table):
     # C) Species prompt
     # does not necessarily need to include both the Genus and epithet, but it is recommended
 
-    species_list = taXon_table_df['Species'].values.tolist()
+    species_list = TaXon_table_df['Species'].values.tolist()
     epithet_only_list = []
 
     for species in species_list:
@@ -47,7 +47,7 @@ def check_taXon_table_format(taXon_table):
     ###################################
     # D) Samples prompt
 
-    samples_list = taXon_table_df.columns.tolist()[10:]
+    samples_list = TaXon_table_df.columns.tolist()[10:]
 
     for sample in samples_list:
         if " " in sample:
@@ -56,9 +56,14 @@ def check_taXon_table_format(taXon_table):
             raise RuntimeError(ErrorMessage)
 
     ###################################
-    # E) Reads prompt
+    # D) Samples prompt
+    n_metadata_categories = len(TaXon_table_df_metadata.columns.tolist()[1:])
+    sg.Popup('Found {} metadata categories in your TaXon table!'.format(n_metadata_categories), title='Metadata')
 
-    OTU_reads_list = taXon_table_df.values.tolist()
+    ###################################
+    # F) Reads prompt
+
+    OTU_reads_list = TaXon_table_df.values.tolist()
 
     ask = False
     answer = False
@@ -80,7 +85,7 @@ def check_taXon_table_format(taXon_table):
     ###################################
     # F) Taxonomy consistency
 
-    taxonomy_list = taXon_table_df[["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
+    taxonomy_list = TaXon_table_df[["ID", "Phylum", "Class", "Order", "Family", "Genus", "Species"]].values.tolist()
     for entry in taxonomy_list:
         if "nan" in entry:
             taxonomy = entry[1:]
@@ -91,7 +96,7 @@ def check_taXon_table_format(taXon_table):
                 break
     if answer == 'OK':
         new_df_list = []
-        for row in taXon_table_df.values.tolist():
+        for row in TaXon_table_df.values.tolist():
             entry = row[0:7]
             if "nan" in entry:
                 taxonomy = entry[1:]
@@ -102,13 +107,13 @@ def check_taXon_table_format(taXon_table):
                         row[item] = ">FLAG<"
             row = ['' if x=='nan' else x for x in row]
             new_df_list.append(row)
-        column_names = taXon_table_df.columns.tolist()
-        taXon_table_df_new = pd.DataFrame(new_df_list, columns=column_names)
+        column_names = TaXon_table_df.columns.tolist()
+        TaXon_table_df_new = pd.DataFrame(new_df_list, columns=column_names)
         write = True
         sg.Popup("Replaced missing taxonomy with a >FLAG< placeholder.\nPlease adjust the taxonomy in Excel.")
 
     if write == True:
-        taXon_table_df_new.to_excel(taXon_table, sheet_name="TaXon table", index=False)
+        TaXon_table_df_new.to_excel(taXon_table, sheet_name="TaXon table", index=False)
 
 
     sg.Popup("Your file looks great and is ready to use!", title="Taxonomy table check", keep_on_top=True)

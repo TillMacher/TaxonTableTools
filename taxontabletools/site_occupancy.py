@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import PySimpleGUI as sg
 import numpy as np
 from plotly.subplots import make_subplots
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, path_to_outdirs, x_site_occ, y_site_occ, template, theme, font_size):
 
@@ -18,9 +19,12 @@ def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level
         taxon_title = taxonomic_level
         taxonomic_level = "ID"
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header = 0)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header = 0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
@@ -171,10 +175,13 @@ def site_occupancy_barchart(TaXon_table_xlsx, meta_data_to_test, taxonomic_level
 
 def site_occupancy_heatmap(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, taxonomic_level, font_size, color_discrete_sequence, add_categories_sum):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
@@ -209,7 +216,6 @@ def site_occupancy_heatmap(TaXon_table_xlsx, path_to_outdirs, template, height, 
     if len(set(metadata_list)) == 1:
         sg.PopupError("Please choose more than one meta data category.")
     else:
-
         if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
 
             ## define variables
@@ -318,4 +324,4 @@ def site_occupancy_heatmap(TaXon_table_xlsx, path_to_outdirs, template, height, 
 
 
         else:
-            sg.Popup("The metdata table and taXon table are not matching!")
+            sg.Popup("The metadata table and taXon table are not matching!")

@@ -6,12 +6,14 @@ import numpy as np
 from pathlib import Path
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def basic_stats(TaXon_table_xlsx, heigth, width, path_to_outdirs, template, theme, font_size, taxonomic_level):
 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
     TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     ## adjust taxonomic level if neccessary
     if taxonomic_level in ["ASVs", "ESVs", "OTUs", "zOTUs"]:

@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
 import webbrowser, random
 
 def parcat_analysis(TaXon_table_xlsx, path_to_outdirs, template, height, width, meta_data_to_test, plotly_colors, available_taxonomic_levels_list, taxonomic_level, theme, font_size, color_discrete_sequence):
@@ -11,10 +12,13 @@ def parcat_analysis(TaXon_table_xlsx, path_to_outdirs, template, height, width, 
     color2 = theme[1]
     opacity_value = theme[2]
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 

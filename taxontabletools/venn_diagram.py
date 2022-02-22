@@ -8,6 +8,7 @@ from matplotlib_venn import venn2
 from matplotlib_venn import venn3
 from matplotlib.pyplot import plot, ion, show
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clustering_unit):
 
@@ -47,8 +48,8 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
                 col_name = taxon
                 taxon="ID"
 
-            data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
-            data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)
+            data_file_a = pd.read_excel(file_a, header=0)
+            data_file_b = pd.read_excel(file_b, header=0)
 
             file_name_a = file_a.stem
             file_name_b = file_b.stem
@@ -171,9 +172,9 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
                 col_name = taxon
                 taxon="ID"
 
-            data_file_a = pd.read_excel(file_a, 'TaXon table', header=0)
-            data_file_b = pd.read_excel(file_b, 'TaXon table', header=0)
-            data_file_c = pd.read_excel(file_c, 'TaXon table', header=0)
+            data_file_a = pd.read_excel(file_a, header=0)
+            data_file_b = pd.read_excel(file_b, header=0)
+            data_file_c = pd.read_excel(file_c, header=0)
 
             file_name_a = file_a.stem
             file_name_b = file_b.stem
@@ -286,11 +287,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
 
 def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test, path_to_outdirs, clustering_unit):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 

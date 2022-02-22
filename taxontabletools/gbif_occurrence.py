@@ -6,7 +6,7 @@ from pathlib import Path
 import plotly.graph_objects as go
 import os, webbrowser
 import requests_html, json, glob
-
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, template, theme, font_size, path_to_outdirs):
 
@@ -263,8 +263,10 @@ def gbif_occurrence(TaXon_table_xlsx, width, height, continents_to_check, templa
 
     ## load Taxon table
     #TaXon_table_xlsx = "/Users/tillmacher/Desktop/Projects/TTT_Projects/Projects/Sicliy_MZB/TaXon_tables/Sicily_eDNA_MZB_taxon_table_renamed_cons_derep_no_match_excluded_blanks_excluded_species.xlsx"
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("nan")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     ## get a unique list of taxa
     taxa = set([taxon for taxon in TaXon_table_df["Species"].values.tolist() if taxon != "nan"])
     ## create a dataframe to store the results

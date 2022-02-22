@@ -6,6 +6,8 @@ import numpy as np
 import plotly.graph_objects as go
 from pathlib import Path
 import webbrowser
+from taxontabletools.taxontable_manipulation import strip_metadata
+
 
 def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res, y_tax_res, figure_type, template, theme, font_size, clustering_unit):
 
@@ -13,10 +15,10 @@ def calculate_taxonomic_resolution(TaXon_table_xlsx, path_to_outdirs, x_tax_res,
     color2 = theme[1]
     opacity_value = theme[2]
 
+    ## load TaxonTable
     TaXon_table_file =  Path(TaXon_table_xlsx)
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
-    TaXon_table_df = TaXon_table_df.replace(np.nan, 'nan', regex=True)
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
     statistics_list, statistics_set, statistics_dict, highest_level_dict = [], [], {}, {}

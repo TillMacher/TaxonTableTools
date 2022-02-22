@@ -7,6 +7,7 @@ from pathlib import Path
 import math, webbrowser
 import plotly.express as px
 from statistics import mean
+from taxontabletools.taxontable_manipulation import strip_metadata
 from plotly.subplots import make_subplots
 
 def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, template, theme, font_size, taxonomic_level_1):
@@ -23,11 +24,11 @@ def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, tem
         taxon_title = taxonomic_level_1
         taxonomic_level_1 = "ID"
 
+    ## load TaxonTable
     TaXon_table_file = Path(TaXon_table_xlsx)
-
-    TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
-    df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
-    df = df.replace(np.nan,"nan")
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    df = strip_metadata(df)
 
     available_samples = df.columns.tolist()[10:]
     sample_dict_clean = {}
@@ -146,11 +147,11 @@ def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, tem
 
 def rarefaction_curve_taxa(TaXon_table_xlsx, repetitions, path_to_outdirs, template, font_size, taxonomic_level_1, taxonomic_level_2, color_discrete_sequence):
 
-    ## load the TaXon table
+    ## load TaxonTable
     TaXon_table_file = Path(TaXon_table_xlsx)
-    TaXon_table_xlsx = pd.ExcelFile(TaXon_table_xlsx)
-    df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
-    df = df.replace(np.nan,"nan")
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    df = strip_metadata(df)
 
     ## create a y axis title text
     taxon_title = taxonomic_level_1.lower()
@@ -280,8 +281,11 @@ def rarefaction_curve_taxa(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
 
 def rarefaction_curve_reads(TaXon_table_xlsx, repetitions, width, height, path_to_outdirs, template, theme, font_size):
 
+    ## load TaxonTable
     TaXon_table_file = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna("")
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     samples = TaXon_table_df.columns.tolist()[10:]
     scatter_size = 5
 

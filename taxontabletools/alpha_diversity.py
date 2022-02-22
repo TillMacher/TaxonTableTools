@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import PySimpleGUI as sg
 from scipy import stats
 import itertools
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, heigth, scatter_size, taxonomic_level, path_to_outdirs, template, theme, font_size, color_discrete_sequence):
 
@@ -14,6 +15,8 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
 
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_df = strip_metadata(TaXon_table_df)
+
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
@@ -137,10 +140,8 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
     TaXon_table_xlsx =  Path(TaXon_table_xlsx)
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()

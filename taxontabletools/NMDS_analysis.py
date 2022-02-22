@@ -8,13 +8,19 @@ from pathlib import Path
 import PySimpleGUI as sg
 import os, webbrowser
 from itertools import combinations
+from taxontabletools.taxontable_manipulation import strip_metadata
+from scipy.spatial import distance
+from sklearn.metrics import euclidean_distances
 
 def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, nmds_s, max_iter_val, n_init_val, path_to_outdirs, template, font_size, color_discrete_sequence, nmds_dissimilarity):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
-    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna("unidentified")
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
+
+    Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
     Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
 
@@ -78,19 +84,48 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
         if 'unidentified' in df_new.index:
             df_new = df_new.drop('unidentified')
 
-        ## collect reads
-        data = df_new[samples].transpose().values.tolist()
-        ## calculate jaccard distances
-        jaccard_dm = beta_diversity(nmds_dissimilarity, data, samples)
+        ## calculate distance matrix
+        ## JACCARD
+        if nmds_dissimilarity == 'jaccard':
+            distance_matrix = []
+            for s1 in samples:
+                distances = []
+                array1 = [1 if i != 0 else 0 for i in TaXon_table_df[s1].values.T.tolist()]
+                for s2 in samples:
+                    array2 = [1 if i != 0 else 0 for i in TaXon_table_df[s2].values.T.tolist()]
+                    distances.append(distance.jaccard(array1, array2))
+                distance_matrix.append(distances)
+        ## BRAYCURTIS
+        elif nmds_dissimilarity == 'braycurtis':
+            distance_matrix = []
+            for s1 in samples:
+                distances = []
+                array1 = TaXon_table_df[s1].values.T.tolist()
+                for s2 in samples:
+                    array2 = TaXon_table_df[s2].values.T.tolist()
+                    distances.append(distance.braycurtis(array1, array2))
+                distance_matrix.append(distances)
 
         ## NMDS function
         def nmds_function(matrix, dimensions):
+            ## nmds settings
             nmds = MDS(n_components=dimensions, metric=False, dissimilarity='precomputed', max_iter=int(max_iter_val), n_init=int(n_init_val))
-            nmds_results = nmds.fit(jaccard_dm[:100])
+            ## calculate nmds
+            nmds_results = nmds.fit(matrix)
+            # collect raw stress
             stress = round(nmds_results.stress_, 2)
             nmds_array = nmds_results.embedding_
-            return({"stress":stress,"nmds_results":nmds_array})
+            ## create a dataframe and transform it to an array
+            data = pd.DataFrame(matrix).values
+            # Coordinates of points in the plan (n_components=2)
+            points = nmds.embedding_
+            ## Manual calculus of sklearn stress
+            DE = euclidean_distances(points)
+            stress = 0.5 * np.sum((DE - data)**2)
+            ## Kruskal's stress (or stress formula 1)
+            k_stress = round(np.sqrt(stress / (0.5 * np.sum(data**2))),2)
 
+            return({"stress":k_stress,"nmds_results":nmds_array})
 
         answer = sg.PopupOKCancel("The NMDS calculation may take a while. Continue?")
 
@@ -99,7 +134,7 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
             nmds_results_dict = {}
             stress_dict = {}
             for i in range(1,11):
-                nmds_results = nmds_function(jaccard_dm, i)
+                nmds_results = nmds_function(distance_matrix, i)
                 nmds_results_dict[i] = nmds_results
                 stress_dict[i] = nmds_results["stress"]
 
@@ -127,9 +162,14 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
 
             ## plot stress and dimensions
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=list(stress_dict.values()), mode='markers+lines', name=sample, marker=dict(color="Blue", size=int(10))))
+            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=list(stress_dict.values()), mode='markers+lines', name='Stress', marker=dict(color="Blue", size=int(10))))
+            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.2]*len(stress_dict.keys()), mode='lines', name='Poor',line=dict(color='black', dash='dot')))
+            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.1]*len(stress_dict.keys()), mode='lines', name='Fair', line=dict(color='black', dash='dot')))
+            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.05]*len(stress_dict.keys()), mode='lines', name='Good', line=dict(color='black', dash='dot')))
             fig.update_layout(showlegend=False, xaxis_title="Dimensions", yaxis_title="Stress")
             fig.update_layout(height=int(600), width=int(800), template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
+            fig.update_yaxes(range=[0,1])
+            fig.update_xaxes(tickmode='linear')
 
             ## define output files
             output_pdf = Path(str(dirName) + "/" + meta_data_to_test + "_" + taxon_title + "_stress.pdf")

@@ -12,6 +12,7 @@ import math, os, webbrowser
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from taxontabletools.taxontable_manipulation import strip_metadata
 from collections import OrderedDict
 
 def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_outdirs, template, theme, font_size, custom_colors, clustering_unit):
@@ -23,8 +24,10 @@ def replicate_analysis(TaXon_table_xlsx, height, width, suffix_list, path_to_out
     height = int(height)
     width = int(width)
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     sample_names = TaXon_table_df.columns[10:].tolist()
     OTUs = TaXon_table_df["ID"].values.tolist()

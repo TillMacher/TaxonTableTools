@@ -1,13 +1,18 @@
-import requests_html, json
+import requests_html, json, datetime
 import re, sys, subprocess, os
 import PySimpleGUI as sg
 import pandas as pd
+from tqdm import tqdm
+from statistics import mean
 from pandas import DataFrame
 from datetime import date
 import numpy as np
 from pathlib import Path
 from Bio import pairwise2
 from Bio.Seq import Seq
+from taxontabletools.taxontable_manipulation import strip_metadata
+from taxontabletools.taxontable_manipulation import collect_metadata
+from taxontabletools.taxontable_manipulation import add_metadata
 
 def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif_link, calc_dist, use_metadata, taxon_tools_version, path_to_outdirs, clustering_unit):
 
@@ -23,11 +28,12 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
         for i in range(0, len(list), slice):
             yield list[i : i + slice]
 
-    def collect_metadata(Meta_data_table_df):
+    def fetch_metadata(Meta_data_table_df):
+
         available_metadata = Meta_data_table_df.columns.tolist()[1:]
         win2_active = True
         meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(available_metadata)], 5))
-        layout2 = [[sg.Text("Site occupancy", size=(20,1))],
+        layout2 = [[sg.Text("Taxon list", size=(20,1))],
         [sg.Frame(layout = meta_data_to_test_list, title = 'Check metadata to test')],
         [sg.Text('',size=(1,1))],
         [sg.Button('Calculate')],
@@ -108,8 +114,9 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
 
     # load the TaXon table
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, 'TaXon table', header=0)
-    TaXon_table_df = TaXon_table_df.fillna("nan")
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
+    TaXon_table_df_metadata = collect_metadata(TaXon_table_df)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     samples = TaXon_table_df.columns.tolist()[10:]
     n_samples = len(samples)
     total_reads = sum([sum(reads) for reads in TaXon_table_df[samples].values.tolist()])
@@ -121,7 +128,7 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
             ## load metadata list
             Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
             Meta_data_table_samples = Meta_data_table_df['Samples'].tolist()
-            meta_data_to_test = collect_metadata(Meta_data_table_df)
+            meta_data_to_test = fetch_metadata(Meta_data_table_df)
 
             if meta_data_to_test != False:
 
@@ -183,22 +190,25 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
         answer = sg.PopupYesNo("Taxon list already exists! Overwrite?")
 
     if answer == "Yes":
-        ############################################################################
-        ## create the progress bar window
-        layout = [[sg.Text('Calculating statistics for taxon list.')],
-                  [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-                  [sg.Cancel()]]
-        window_progress_bar = sg.Window('Progress bar', layout, keep_on_top=True)
-        progress_bar = window_progress_bar['progressbar']
-        ############################################################################
+        ## create a species dict
 
-        # progress bar 1
-        progress_update = 0
-        progress_increase = 1000 / len(taxon_list_df.values.tolist())
+        taxon_dict = {}
+        for OTU in TaXon_table_df.values.tolist():
+            taxon = OTU[-1]
+            if taxon not in taxon_dict.keys():
+                n_reads = sum(OTU[10:-1])
+                n_OTUs = 1
+                sequence = [OTU[9]]
+                taxon_dict[taxon] = [n_reads, n_OTUs, sequence]
+            else:
+                n_reads = taxon_dict[taxon][0] + sum(OTU[10:-1])
+                n_OTUs = taxon_dict[taxon][1] + 1
+                sequence = taxon_dict[taxon][2] + [OTU[9]]
+                taxon_dict[taxon] = [n_reads, n_OTUs, sequence]
 
-        ############################################################################
-        # 1
+        sg.Popup('TTT will be minimized and no progress bar will be shown to increase the performance.\nPlease refer to the console for progress updates.')
 
+        ## create output lists
         n_OTUs_list = []
         n_reads_list = []
         n_reads_rel_list = []
@@ -210,13 +220,18 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
         vernacular_name_list = []
         gbif_link_list = []
 
-        for species in taxon_list_df["FullName"]:
-            n_OTUs = len([i for i in TaXon_table_df.values.tolist() if species in i])
-            n_reads = sum([sum(i[10:-1]) for i in TaXon_table_df.values.tolist() if species in i])
+        ## calculate all statistics per taxon
+        for taxon in tqdm(taxon_list_df["FullName"], desc='Creating taxon list'):
+            ## calculate statistics
+            n_reads = taxon_dict[taxon][0]
+            n_OTUs = taxon_dict[taxon][1]
+            sequences = taxon_dict[taxon][2]
             n_reads_rel = round(n_reads / total_reads * 100, 3)
+            species_name = taxon.split("<>")[-1]
 
+            ## OCCURENCES
             if use_metadata == True:
-                df = pd.DataFrame([i[10:-1] for i in TaXon_table_df.values.tolist() if species in i], columns=samples)
+                df = pd.DataFrame([i[10:-1] for i in TaXon_table_df.values.tolist() if taxon in i], columns=samples)
                 sample_occurrences = []
                 for sample in samples:
                     if sum(df[sample]) != 0:
@@ -230,7 +245,7 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
                     else:
                         abs_occurrences.append('')
             else:
-                df = pd.DataFrame([i[10:-1] for i in TaXon_table_df.values.tolist() if species in i], columns=samples)
+                df = pd.DataFrame([i[10:-1] for i in TaXon_table_df.values.tolist() if taxon in i], columns=samples)
                 sample_occurrences = []
                 for sample in samples:
                     if sum(df[sample]) != 0:
@@ -244,25 +259,19 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
                     else:
                         abs_occurrences.append('')
 
-            n_OTUs_list.append(n_OTUs)
-            n_reads_list.append(n_reads)
-            n_reads_rel_list.append(n_reads_rel)
-            rel_occurrence_list.append(rel_occurences)
-            abs_occurrences_list.append(abs_occurrences)
-
+            ## INTRASPECIFIC DISTANCE
             if calc_dist == True:
-                species_name = species.split("<>")[-1]
                 if n_OTUs != 1 and species_name != "nan":
                     distances = []
-                    sequences = [i[9] for i in TaXon_table_df.values.tolist() if species in i]
-                    for main_sequence in sequences:
+
+                    for main_sequence in tqdm(sequences, leave=False, desc='Calculating distances for {}'.format(species_name)):
                         for sub_sequence in sequences:
-                            distances.append(pw_distance(main_sequence, sub_sequence))
-                    distances = list(filter((0.0).__ne__, distances))
+                            d = pw_distance(main_sequence, sub_sequence)
+                            if d != 0.0:
+                                distances.append(d)
                     max_dist = max(distances)
                     min_dist = min(distances)
-                    avg_dist = sum(distances) / len(distances)
-                    avg_dist = round(avg_dist, 2)
+                    avg_dist = round(mean(distances), 2)
                     max_dist_list.append(max_dist)
                     min_dist_list.append(min_dist)
                     avg_dist_list.append(avg_dist)
@@ -271,8 +280,8 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
                     min_dist_list.append('')
                     avg_dist_list.append('')
 
+            ## GBIF LINK
             if create_gbif_link == True:
-                species_name = species.split("<>")[-1]
                 if species_name != "nan":
                     res = gbif_requester(species_name)
                     vernacular_name_list.append(res[0])
@@ -281,17 +290,12 @@ def create_taxon_list(TaXon_table_xlsx, taxon_list_output_file_name, create_gbif
                     vernacular_name_list.append('')
                     gbif_link_list.append('')
 
-            ############################################################################
-            event, values = window_progress_bar.read(timeout=5)
-            if event == 'Cancel'  or event is None:
-                window_progress_bar.Close()
-                raise RuntimeError
-            # update bar with loop value +1 so that bar eventually reaches the maximum
-            progress_update += progress_increase
-            progress_bar.UpdateBar(progress_update)
-            ############################################################################
-
-        window_progress_bar.Close()
+            ## append remaining values
+            n_OTUs_list.append(n_OTUs)
+            n_reads_list.append(n_reads)
+            n_reads_rel_list.append(n_reads_rel)
+            rel_occurrence_list.append(rel_occurences)
+            abs_occurrences_list.append(abs_occurrences)
 
         taxon_list_df["Phylum"] = [i.split("<>")[0] if i.split("<>")[0] != "nan" else "" for i in taxon_list_df["FullName"].values.tolist()]
         taxon_list_df["Class"] = [i.split("<>")[1] if i.split("<>")[1] != "nan" else "" for i in taxon_list_df["FullName"].values.tolist()]

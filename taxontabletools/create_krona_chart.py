@@ -4,6 +4,7 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
 
@@ -13,10 +14,11 @@ def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
         sg.PopupError("Krona tools must be manually installed first!" + "\n" * 2 + "Note: Krona tools is currently not supported on Windows!" + "\n", title="Error")
         raise RuntimeError("Krona tools needs to be installed")
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('__')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
-    TaXon_table_df = TaXon_table_df.replace(np.nan, '__', regex=True)
 
     ## create an output folder
     krona_chart_name = Path(TaXon_table_xlsx).name.replace(".xlsx", "")
@@ -60,7 +62,7 @@ def create_krona_chart_single(TaXon_table_xlsx, path_to_outdirs):
     # finish script
     answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        webbrowser.open('file://' + str(krona_chart_html))
+        webbrowser.open(str(krona_chart_html))
 
     closing_text = "Krona chart is found under:\n" + '/'.join(str(krona_chart_html).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)
@@ -76,10 +78,11 @@ def create_krona_chart_multi(TaXon_table_xlsx, path_to_outdirs):
         sg.PopupError("Krona tools must be manually installed first!" + "\n" * 2 + "Note: Krona tools is currently not supported on Windows!" + "\n", title="Error")
         raise RuntimeError("Krona tools needs to be installed")
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('__')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
-    TaXon_table_df = TaXon_table_df.replace(np.nan, '__', regex=True)
 
     samples = TaXon_table_df.columns.tolist()[10:]
     columns = TaXon_table_df.columns.tolist()[:10]
@@ -131,7 +134,7 @@ def create_krona_chart_multi(TaXon_table_xlsx, path_to_outdirs):
     # finish script
     answer = sg.PopupYesNo('Show plot?', keep_on_top=True)
     if answer == "Yes":
-        webbrowser.open('file://' + str(krona_chart_html))
+        webbrowser.open(str(krona_chart_html))
 
     closing_text = "Krona chart is found under:\n" + '/'.join(str(krona_chart_html).split("/")[-4:])
     sg.Popup(closing_text, title="Finished", keep_on_top=True)

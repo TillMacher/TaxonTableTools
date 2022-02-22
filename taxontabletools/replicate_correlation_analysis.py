@@ -9,7 +9,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import statsmodels.api as sm
-
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdirs, width, height, repcorr_options, template, theme, font_size, clustering_unit):
 
@@ -22,8 +22,10 @@ def replicate_correlation_analysis(TaXon_table_xlsx, suffix_list, path_to_outdir
     x_zero = repcorr_options[0]
     y_zero = repcorr_options[1]
 
+    ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx)
+    TaXon_table_df = strip_metadata(TaXon_table_df)
 
     ## create an output folder
     replicate_analysis_name = Path(TaXon_table_xlsx).name.replace(".xlsx", "")

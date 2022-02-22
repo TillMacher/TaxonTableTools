@@ -10,13 +10,18 @@ from pathlib import Path
 import PySimpleGUI as sg
 import os, webbrowser
 from itertools import combinations
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def CCA_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, cca_scatter_size, path_to_outdirs, template, font_size, color_discrete_sequence):
 
-    TaXon_table_xlsx =  Path(TaXon_table_xlsx)
+    ## load TaxonTable
+    TaXon_table_xlsx = Path(TaXon_table_xlsx)
+    TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
+    TaXon_table_df = strip_metadata(TaXon_table_df)
+
     Meta_data_table_xlsx = Path(str(path_to_outdirs) + "/" + "Meta_data_table" + "/" + TaXon_table_xlsx.stem + "_metadata.xlsx")
-    TaXon_table_df = pd.read_excel(TaXon_table_xlsx, header=0).fillna('unidentified')
     Meta_data_table_df = pd.read_excel(Meta_data_table_xlsx, header=0).fillna("nan")
+
     IDs_list = TaXon_table_df["ID"].values.tolist()
     TaXon_table_samples = TaXon_table_df.columns.tolist()[10:]
 
