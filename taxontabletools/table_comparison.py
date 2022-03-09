@@ -648,7 +648,6 @@ def tc_taxon_occurrence(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs,
     taxa_dict = {}
     ## loop through taxa
     for taxon in taxa2_list:
-        taxon = 'Trichoptera'
         n1 = set([i[0] for i in df1[[taxonomic_level, taxonomic_level_2]].values.tolist() if i[0] != "nan" and i[1] == taxon])
         n2 = set([i[0] for i in df2[[taxonomic_level, taxonomic_level_2]].values.tolist() if i[0] != "nan" and i[1] == taxon])
 

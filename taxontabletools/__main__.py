@@ -10,7 +10,7 @@ import feedparser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = str('1.4.1')
+taxon_tools_version = str('1.4.3')
 
 ##########################################################################################################################
 # general functions
@@ -33,9 +33,14 @@ def open_taxon_table(taxon_table):
 def change_log_text():
     change_log_text = """
 
-    TTT change log v 1.4.1
+    TTT change log v 1.4.3
+
     Bug fixes
-    - PCoA crash was fixed
+    - Fixed taxonomic richness and resolution.
+
+    NMDS
+    - Changed back NMDS to raw stress until sclearn updates to normalized stress.
+    - TTT will be updated as soon as normalized stress is available.
 
     """
     return change_log_text
@@ -681,13 +686,13 @@ def main():
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxonomic resolution',size=(40,1), font=('Arial', 11, "bold"))],
     					[sg.Text("Taxonomic resolution plot:", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_resolution'), sg.Text("", size=(1,1)),
-                        sg.Frame(layout=[
-                        [sg.Text("Plot size (w,h):"), sg.Input("600", size=(4,1), key="width_tax_res"), sg.Input("600", size=(4,1), key="height_tax_res"), sg.Text("Plot type:"), sg.Radio('a', "tres_plot_type", key='tres_type_a', default=True), sg.Radio('b', "tres_plot_type", key='tres_type_b')]
-                        ], title="Settings", size=(1,2))],
+                        sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("600", size=(4,1), key="width_tax_res"),
+                        sg.Input("600", size=(4,1), key="height_tax_res"), sg.Text("Plot type:"), sg.Radio('a', "tres_plot_type", key='tres_type_a', default=True), sg.Radio('b', "tres_plot_type", key='tres_type_b')]], title="Settings")],
 
     					[sg.Text('',size=(1,1))],
     					[sg.Text('Taxonomic richness',size=(40,1), font=('Arial', 11, "bold"))],
-    					[sg.Text("Taxonomic richness plot:", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_richness'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("600", size=(4,1), key="width_tax_rich"),
+    					[sg.Text("Taxonomic richness plot:", size=(25,1)), sg.Button("Run", key = 'run_taxonomic_richness'), sg.Text("", size=(1,1)),
+                        sg.Frame(layout=[[sg.Text("Plot size (w,h):"), sg.Input("600", size=(4,1), key="width_tax_rich"),
                         sg.Input("600", size=(4,1), key="height_tax_rich")]], title="Settings")],
     					[sg.Text('',size=(1,1))],
 

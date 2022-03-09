@@ -14,6 +14,21 @@ from sklearn.metrics import euclidean_distances
 
 def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, height, nmds_s, max_iter_val, n_init_val, path_to_outdirs, template, font_size, color_discrete_sequence, nmds_dissimilarity):
 
+    # TaXon_table_xlsx = '/Users/tillmacher/Desktop/ttt_projects/Projects/Tutorial/TaXon_tables/Tutorial_taxon_table_cons_NCsub_arthropoda_gbif.xlsx'
+    # meta_data_to_test = 'Site'
+    # taxonomic_level = 'Species'
+    # width = 800
+    # height = 800
+    # nmds_s = 10
+    # max_iter_val = 100
+    # n_init_val = 100
+    # path_to_outdirs = '/Users/tillmacher/Desktop/ttt_projects/Projects/Tutorial'
+    # template = 'seaborn'
+    # font_size = 15
+    # color_discrete_sequence = 'Blue'
+    # nmds_dissimilarity = 'jaccard'
+
+
     ## load TaxonTable
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('unidentified')
@@ -115,17 +130,8 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
             # collect raw stress
             stress = round(nmds_results.stress_, 2)
             nmds_array = nmds_results.embedding_
-            ## create a dataframe and transform it to an array
-            data = pd.DataFrame(matrix).values
-            # Coordinates of points in the plan (n_components=2)
-            points = nmds.embedding_
-            ## Manual calculus of sklearn stress
-            DE = euclidean_distances(points)
-            stress = 0.5 * np.sum((DE - data)**2)
-            ## Kruskal's stress (or stress formula 1)
-            k_stress = round(np.sqrt(stress / (0.5 * np.sum(data**2))),2)
 
-            return({"stress":k_stress,"nmds_results":nmds_array})
+            return({"stress":stress,"nmds_results":nmds_array})
 
         answer = sg.PopupOKCancel("The NMDS calculation may take a while. Continue?")
 
@@ -163,12 +169,12 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
             ## plot stress and dimensions
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=list(stress_dict.values()), mode='markers+lines', name='Stress', marker=dict(color="Blue", size=int(10))))
-            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.2]*len(stress_dict.keys()), mode='lines', name='Poor',line=dict(color='black', dash='dot')))
-            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.1]*len(stress_dict.keys()), mode='lines', name='Fair', line=dict(color='black', dash='dot')))
-            fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.05]*len(stress_dict.keys()), mode='lines', name='Good', line=dict(color='black', dash='dot')))
+            # fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.2]*len(stress_dict.keys()), mode='lines', name='Poor',line=dict(color='black', dash='dot')))
+            # fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.1]*len(stress_dict.keys()), mode='lines', name='Fair', line=dict(color='black', dash='dot')))
+            # fig.add_trace(go.Scatter(x=list(stress_dict.keys()), y=[0.05]*len(stress_dict.keys()), mode='lines', name='Good', line=dict(color='black', dash='dot')))
             fig.update_layout(showlegend=False, xaxis_title="Dimensions", yaxis_title="Stress")
             fig.update_layout(height=int(600), width=int(800), template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
-            fig.update_yaxes(range=[0,1])
+            # fig.update_yaxes(range=[0,1])
             fig.update_xaxes(tickmode='linear')
 
             ## define output files
@@ -209,7 +215,7 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                 fig = go.Figure()
                 fig = px.scatter(df, x="NMDS1", y="NMDS2", hover_data=['Sample'], color=meta_data_to_test, color_discrete_sequence=color_discrete_sequence)
                 fig.update_traces(marker_size=int(nmds_s), mode="markers+lines", line=dict(width=0.5))
-                fig.update_layout(title="Stress=" + str(stress), yaxis_title="NMDS1", xaxis_title="NMDS2")
+                fig.update_layout(title="Raw stress=" + str(stress), yaxis_title="NMDS1", xaxis_title="NMDS2")
                 fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
 
             else:
@@ -223,7 +229,7 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                 fig = go.Figure()
                 fig = px.scatter(nmds_results_df, x="X", y="Y", hover_data=['Sample'], color=meta_data_to_test, color_discrete_sequence=color_discrete_sequence)
                 fig.update_traces(marker_size=int(nmds_s), mode="markers")
-                fig.update_layout(title="Stress=" + str(stress), yaxis_title="NMDS1", xaxis_title="NMDS2")
+                fig.update_layout(title="Raw stress=" + str(stress), yaxis_title="NMDS1", xaxis_title="NMDS2")
                 fig.update_layout(height=int(height), width=int(width), template=template, showlegend=True, font_size=font_size, title_font_size=font_size)
 
             ## define output files
@@ -266,7 +272,7 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                 ## draw the plot
                 fig = px.scatter_3d(df, x="NMDS1", y="NMDS2", z="NMDS3", color=meta_data_to_test, text="Sample", title="textbox", color_discrete_sequence=color_discrete_sequence)
                 fig.update_traces(marker_size=int(12), mode="markers+lines", line=dict(width=1))
-                fig.update_layout(height=int(height), width=int(width), template=template, title="Stress=" + str(stress), showlegend=True, font_size=font_size, title_font_size=font_size)
+                fig.update_layout(height=int(height), width=int(width), template=template, title="Raw stress=" + str(stress), showlegend=True, font_size=font_size, title_font_size=font_size)
                 fig.update_layout(scene = dict(xaxis_title="NMDS1",yaxis_title="NMDS2",zaxis_title="NMDS3"))
 
             else:
@@ -280,7 +286,7 @@ def NMDS_analysis(TaXon_table_xlsx, meta_data_to_test, taxonomic_level, width, h
                 ## draw the plot
                 fig = px.scatter_3d(nmds_results_df, x="NMDS1", y="NMDS2", z="NMDS3", color=meta_data_to_test, color_discrete_sequence=color_discrete_sequence)
                 fig.update_traces(marker_size=int(12), mode="markers", line=dict(width=1))
-                fig.update_layout(height=int(height), width=int(width), template=template, title="Stress=" + str(stress), showlegend=True, font_size=font_size, title_font_size=font_size)
+                fig.update_layout(height=int(height), width=int(width), template=template, title="Raw stress=" + str(stress), showlegend=True, font_size=font_size, title_font_size=font_size)
                 fig.update_layout(scene = dict(xaxis_title="NMDS1",yaxis_title="NMDS2",zaxis_title="NMDS3"))
 
 

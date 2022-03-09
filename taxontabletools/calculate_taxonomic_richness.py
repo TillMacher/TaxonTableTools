@@ -5,6 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 from pathlib import Path
 import webbrowser
+from taxontabletools.taxontable_manipulation import strip_metadata
 
 def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, y_tax_rich, template, theme, font_size):
 
@@ -16,7 +17,6 @@ def calculate_taxonomic_richness(TaXon_table_xlsx, path_to_outdirs, x_tax_rich, 
     TaXon_table_file =  Path(TaXon_table_xlsx)
     TaXon_table_xlsx = Path(TaXon_table_xlsx)
     TaXon_table_df = pd.read_excel(TaXon_table_xlsx).fillna('nan')
-    TaXon_table_df_metadata = collect_metadata(TaXon_table_df)
     TaXon_table_df = strip_metadata(TaXon_table_df)
 
     taxonomic_levels = ["Phylum", "Class", "Order", "Family", "Genus", "Species"]
