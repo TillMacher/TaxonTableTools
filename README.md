@@ -87,6 +87,12 @@ OTU-specific traits can now be added to the TaXon table. Traits can e.g. be:
 There is no limit of OTU traits columns that can be added. A TaXon table containing OTU traits is compatible with
 all modules (OTU traits will simply be ignored if not required).
 
+<details><summary> Example for aquatic invertebrates </summary>
+
+![image](https://user-images.githubusercontent.com/48299746/174555954-a495755c-723f-40c4-9051-fe879242639a.png)
+
+</details>
+
 ## Change log
 
 ### v 1.3.1
