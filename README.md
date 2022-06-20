@@ -96,20 +96,20 @@ all modules (OTU traits will simply be ignored if not required).
 ## Change log
 
 ### v 1.4.5
-    TTT change log v 1.4.5
-    
-    Added trait import to the data conversion modules. 
+  TTT change log v 1.4.5
+
+  * Added trait import to the data conversion modules. 
 
 
 ### v 1.4.4
-    TTT change log v 1.4.4
+  TTT change log v 1.4.4
 
-    Bug fixes
-    - Fixed incorrect text boxes.
+  Bug fixes
+  * Fixed incorrect text boxes.
 
-    NMDS
-    - Changed back NMDS to raw stress until sclearn updates to normalized stress.
-    - TTT will be updated as soon as normalized stress is available!
+  NMDS
+  * Changed back NMDS to raw stress until sclearn updates to normalized stress.
+  * TTT will be updated as soon as normalized stress is available!
 
 ### v 1.3.1
   * Metadata entries for specific samples can now be left blank to exclude the sample from the analyses. This avoids the need to create new metadata tables for each subset of a TaXon table
