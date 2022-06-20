@@ -62,6 +62,31 @@ The easiest way to learn to how to use TaxonTableTools is to check out the [tuto
 ## Examples
 ![](/_data/ttt_figure_1.png "figure*1") ![](/_data/ttt_figure_2.png "figure*2")
 
+## Ecological traits
+
+OTU-specific traits can now be added to the TaXon table. Traits can e.g. be:
+- habitat
+- diet type
+- distribution
+- ecological traits
+
+*Requirements for trait source tables (.xlsx):*
+- Column A: One of the TTT-specific taxonomic level (Phylum, Class, Order, Family, Genus, Species)
+- Column B: Name of the trait
+
+<details><summary> Example for aquatic invertebrates </summary>
+
+![image](https://user-images.githubusercontent.com/48299746/174554773-2aa8e5d5-3c39-4285-a0a0-7b1997bc472d.png)
+
+</details>
+
+*Requirements for manual import:*
+- The traits columns must be located between the 'Status' and 'seq' columns!
+- Do not alter the location of the other TaXon table columns.
+
+There is no limit of OTU traits columns that can be added. A TaXon table containing OTU traits is compatible with
+all modules (OTU traits will simply be ignored if not required).
+
 ## Change log
 
 ### v 1.3.1
