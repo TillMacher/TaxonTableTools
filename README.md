@@ -10,7 +10,8 @@ TaxonTableTools is an evolving software and there will be bugs and issues at few
 
 ## Requirements
 
-* Python version 3.6 or 3.7 (should also work with 3.8 and 3.9)
+* Python version 3.6 or 3.7, 3.8, and 3.9
+* TTT will most likely not work with python 3.10 and 3.11
 * Pip python package installer
 * OS independent (tested on Windows 10, Ubuntu 16 & 18 and MacOS Catalina)
   * Some issues were reported during the [installation on Windows](https://github.com/TillMacher/TaxonTableTools/issues/1)
