@@ -104,6 +104,19 @@ def normalize_reads(TaXon_table_xlsx, path_to_outdirs, sub_sample_size):
 
     window_progress_bar.Close()
 
+    ## remove empty OTUs
+    header = df_out.columns.tolist()
+    row_filter_list = []
+    for row in df_out.values.tolist():
+        reads = sum(row[10:])
+        if reads != 0:
+            row_filter_list.append(row)
+        else:
+            print('Removed: {}'.format(row[0]))
+
+    df_out = pd.DataFrame(row_filter_list)
+    df_out.columns = header
+
     ## add already existing metadata back to the df
     if len(TaXon_table_df_metadata.columns) != 1:
         df_out = add_metadata(df_out, TaXon_table_df_metadata)

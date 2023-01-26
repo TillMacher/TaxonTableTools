@@ -1,4 +1,5 @@
 import os
+import time
 import PySimpleGUI as sg
 import pandas as pd
 from pandas import DataFrame
@@ -9,13 +10,20 @@ from matplotlib_venn import venn3
 from matplotlib.pyplot import plot, ion, show
 from pathlib import Path
 from taxontabletools.taxontable_manipulation import strip_metadata
+from taxontabletools.create_log import ttt_log
+
+file_a = '/Users/tillmacher/Desktop/TTT_projects/Projects/Lippe_eRNA_fwh_invertebrates/TaXon_tables/Lippe_eRNA_fwh_taxon_table_cons_NCsub_invertebrates_normalized_eDNA.xlsx'
+file_b = '/Users/tillmacher/Desktop/TTT_projects/Projects/Lippe_eRNA_fwh_invertebrates/TaXon_tables/Lippe_eRNA_fwh_taxon_table_cons_NCsub_invertebrates_normalized_eRNA.xlsx'
+file_c = ''
+venn_diagram_name = 'test'
+path_to_outdirs = 'test'
+clustering_unit = 'OTUs'
 
 def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clustering_unit):
 
     file_a = Path(file_a)
     file_b = Path(file_b)
-
-    venn_font = 20
+    venn_font = 40
 
     if file_c == False:
     ############################################################################
@@ -25,20 +33,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
 
         G = "G_" + clustering_unit
         allowed_taxa = ["A_Phylum","B_Class","C_Order","D_Family","E_Genus","F_Species", G]
-
         venn_dict = {}
-
-        ############################################################################
-        ## create the progress bar window
-        layout = [[sg.Text('Progress bar')],
-                  [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-                  [sg.Cancel()]]
-        window_progress_bar = sg.Window('Progress bar', layout)
-        progress_bar = window_progress_bar['progressbar']
-        progress_update = 167*2
-        ############################################################################
+        data_file_a = pd.read_excel(file_a, header=0).fillna('')
+        data_file_b = pd.read_excel(file_b, header=0).fillna('')
 
         for taxon in allowed_taxa:
+
+            time.sleep(1)
 
             output_name = taxon
             taxon = taxon[2:]
@@ -48,41 +49,17 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
                 col_name = taxon
                 taxon="ID"
 
-            data_file_a = pd.read_excel(file_a, header=0)
-            data_file_b = pd.read_excel(file_b, header=0)
-
             file_name_a = file_a.stem
             file_name_b = file_b.stem
 
-            taxa_file_a = data_file_a[taxon].values.tolist()
-            taxa_file_b = data_file_b[taxon].values.tolist()
+            taxa_file_a = set([i for i in data_file_a[taxon].values.tolist() if i != ''])
+            taxa_file_b = set([i for i in data_file_b[taxon].values.tolist() if i != ''])
 
-            taxa_unique_a = list(dict.fromkeys(taxa_file_a))
-            taxa_unique_b = list(dict.fromkeys(taxa_file_b))
-
-            taxa_labels_a = []
-            taxa_labels_b = []
-            taxa_sizes_a = []
-            taxa_sizes_b = []
-
-            for taxon_name in taxa_unique_a:
-                if "nan" != str(taxon_name):
-                    taxa_labels_a.append(str(taxon_name))
-                    taxa_sizes_a.append(taxa_file_a.count(taxon_name))
-
-            for taxon_name in taxa_unique_b:
-                if "nan" != str(taxon_name):
-                    taxa_labels_b.append(str(taxon_name))
-                    taxa_sizes_b.append(taxa_file_b.count(taxon_name))
-
-            taxa_labels_a = sorted(taxa_labels_a)
-            taxa_labels_b = sorted(taxa_labels_b)
-
-            a_only = set(taxa_labels_a) - set(taxa_labels_b)
+            a_only = taxa_file_a - taxa_file_b
             len_a_only = len(a_only)
-            b_only = set(taxa_labels_b) - set(taxa_labels_a)
+            b_only = taxa_file_b - taxa_file_a
             len_b_only = len(b_only)
-            shared = set(taxa_labels_a) & set(taxa_labels_b)
+            shared = taxa_file_a & taxa_file_b
             len_shared = len(shared)
 
             venn_dict[col_name + "_a_only"] = a_only
@@ -104,26 +81,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
             output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
             plt.title(output_name[2:])
             plt.savefig(output_pdf, bbox_inches='tight')
-
-            if taxon == "Species":
-                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
-                if answer == "Yes":
-                    plt.show(block=False)
-                    sg.Popup("Close")
-
             plt.close()
-
-            ############################################################################
-            event, values = window_progress_bar.read(timeout=10)
-            if event == 'Cancel'  or event is None:
-                window_progress_bar.Close()
-                raise RuntimeError
-            # update bar with loop value +1 so that bar eventually reaches the maximum
-            progress_update += 167
-            progress_bar.UpdateBar(progress_update)
-            ############################################################################
-
-        window_progress_bar.Close()
 
         output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
@@ -131,13 +89,12 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
 
         sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
 
-        from taxontabletools.create_log import ttt_log
         ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
 
     else:
-    ############################################################################
-    # use venn3
+        ############################################################################
+        # use venn3
 
         if file_c == '':
             sg.PopupError("Please provide a file", keep_on_top=True)
@@ -152,17 +109,13 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
 
         venn_dict = {}
 
-        ############################################################################
-        ## create the progress bar window
-        layout = [[sg.Text('Progress bar')],
-                  [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-                  [sg.Cancel()]]
-        window_progress_bar = sg.Window('Progress bar', layout)
-        progress_bar = window_progress_bar['progressbar']
-        progress_update = 167*2
-        ############################################################################
+        data_file_a = pd.read_excel(file_a, header=0).fillna('')
+        data_file_b = pd.read_excel(file_b, header=0).fillna('')
+        data_file_c = pd.read_excel(file_c, header=0).fillna('')
 
         for taxon in allowed_taxa:
+
+            time.sleep(1)
 
             output_name = taxon
             taxon = taxon[2:]
@@ -171,10 +124,6 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
             if taxon in ["ASVs", "ESVs", "OTUs", "zOTUs"]:
                 col_name = taxon
                 taxon="ID"
-
-            data_file_a = pd.read_excel(file_a, header=0)
-            data_file_b = pd.read_excel(file_b, header=0)
-            data_file_c = pd.read_excel(file_c, header=0)
 
             file_name_a = file_a.stem
             file_name_b = file_b.stem
@@ -253,26 +202,7 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
             output_pdf = Path(str(dirName) + "/" + output_name + ".pdf")
             plt.title(output_name[2:])
             plt.savefig(output_pdf, bbox_inches='tight')
-
-            if taxon == "Species":
-                answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
-                if answer == "Yes":
-                    plt.show(block=False)
-                    sg.Popup("Close")
-
             plt.close()
-
-            ############################################################################
-            event, values = window_progress_bar.read(timeout=10)
-            if event == 'Cancel'  or event is None:
-                window_progress_bar.Close()
-                raise RuntimeError
-            # update bar with loop value +1 so that bar eventually reaches the maximum
-            progress_update += 167
-            progress_bar.UpdateBar(progress_update)
-            ############################################################################
-
-        window_progress_bar.Close()
 
         output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
         df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
@@ -280,7 +210,6 @@ def venn_diagram(file_a, file_b, file_c, venn_diagram_name, path_to_outdirs, clu
 
         sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
 
-        from taxontabletools.create_log import ttt_log
         ttt_log("venn diagram", "analysis", file_a.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_b.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
         ttt_log("venn diagram", "analysis", file_c.name, output_xlsx.name, venn_diagram_name, path_to_outdirs)
@@ -340,7 +269,7 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
         raise RuntimeError
 
     if sorted(TaXon_table_samples) == sorted(Meta_data_table_samples):
-        venn_font = 20
+        venn_font = 40
 
         if len_categories == 2:
         ############################################################################
@@ -353,17 +282,9 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
 
             venn_dict = {}
 
-            ############################################################################
-            ## create the progress bar window
-            layout = [[sg.Text('Progress bar')],
-                      [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-                      [sg.Cancel()]]
-            window_progress_bar = sg.Window('Progress bar', layout)
-            progress_bar = window_progress_bar['progressbar']
-            progress_update = 167*2
-            ############################################################################
-
             for taxon in allowed_taxa:
+
+                time.sleep(1)
 
                 output_name = taxon
                 taxon = taxon[2:]
@@ -409,25 +330,7 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
                 plt.title(output_name[2:])
                 plt.savefig(output_pdf, bbox_inches='tight')
 
-                if taxon == "Species":
-                    answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
-                    if answer == "Yes":
-                        plt.show(block=False)
-                        sg.Popup("Close")
-
                 plt.close()
-
-                ############################################################################
-                event, values = window_progress_bar.read(timeout=10)
-                if event == 'Cancel'  or event is None:
-                    window_progress_bar.Close()
-                    raise RuntimeError
-                # update bar with loop value +1 so that bar eventually reaches the maximum
-                progress_update += 167
-                progress_bar.UpdateBar(progress_update)
-                ############################################################################
-
-            window_progress_bar.Close()
 
             output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
             df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
@@ -435,7 +338,6 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
 
             sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
 
-            from taxontabletools.create_log import ttt_log
             ttt_log("venn diagram", "analysis", category_a, output_xlsx.name, venn_diagram_name, path_to_outdirs)
             ttt_log("venn diagram", "analysis", category_b, output_xlsx.name, venn_diagram_name, path_to_outdirs)
 
@@ -450,17 +352,9 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
 
             venn_dict = {}
 
-            ############################################################################
-            ## create the progress bar window
-            layout = [[sg.Text('Progress bar')],
-                      [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar')],
-                      [sg.Cancel()]]
-            window_progress_bar = sg.Window('Progress bar', layout)
-            progress_bar = window_progress_bar['progressbar']
-            progress_update = 167*2
-            ############################################################################
-
             for taxon in allowed_taxa:
+
+                time.sleep(1)
 
                 output_name = taxon
                 taxon = taxon[2:]
@@ -523,33 +417,14 @@ def venn_diagram_metadata(TaXon_table_xlsx, venn_diagram_name, meta_data_to_test
                 plt.title(output_name[2:])
                 plt.savefig(output_pdf, bbox_inches='tight')
 
-                if taxon == "Species":
-                    answer = sg.PopupYesNo('Show last plot?', keep_on_top=True)
-                    if answer == "Yes":
-                        plt.show(block=False)
-                        sg.Popup("Close")
-
                 plt.close()
-
-                ############################################################################
-                event, values = window_progress_bar.read(timeout=10)
-                if event == 'Cancel'  or event is None:
-                    window_progress_bar.Close()
-                    raise RuntimeError
-                # update bar with loop value +1 so that bar eventually reaches the maximum
-                progress_update += 167
-                progress_bar.UpdateBar(progress_update)
-                ############################################################################
-
-            window_progress_bar.Close()
 
             output_xlsx = Path(str(dirName) + "/" + "Venn_comparison_results.xlsx")
             df = pd.DataFrame.from_dict(venn_dict, orient='index').transpose()
             df.to_excel(output_xlsx, index=False)
 
-            sg.Popup("Venn diagrams are found in", path_to_outdirs, "Venn_diagrams/", title="Finished", keep_on_top=True)
+            sg.Popup("Venn diagrams are found in", str(path_to_outdirs), "Venn_diagrams/", title="Finished", keep_on_top=True)
 
-            from taxontabletools.create_log import ttt_log
             ttt_log("venn diagram", "analysis", category_a, output_xlsx.name, venn_diagram_name, path_to_outdirs)
             ttt_log("venn diagram", "analysis", category_b, output_xlsx.name, venn_diagram_name, path_to_outdirs)
             ttt_log("venn diagram", "analysis", category_c, output_xlsx.name, venn_diagram_name, path_to_outdirs)

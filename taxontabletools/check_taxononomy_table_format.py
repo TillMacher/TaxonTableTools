@@ -6,6 +6,9 @@ from pathlib import Path
 # check the input format
 def check_taxononomy_table_format(taxonomy_results_xlsx, sheet_name):
 
+    if sheet_name == 'APSCALE':
+        sheet_name = 'Taxonomy table'
+
     try:
         taxonomy_table_df = pd.read_excel(Path(taxonomy_results_xlsx), sheet_name)
         taxonomy_table_df = taxonomy_table_df.replace(np.nan, 'nan', regex=True)

@@ -118,13 +118,14 @@ def rarefaction_curve_legacy(TaXon_table_xlsx, repetitions, path_to_outdirs, tem
 
     # draw the plot
     draws = [i+1 for i in rarefaction_dict_average.keys()]
-    n_species = list(rarefaction_dict_average.values())
+    n_species = [float(i) for i in list(rarefaction_dict_average.values())]
     error_bar = list(rarefaction_dict_stdef.values())
     y_axis_title = "# " + taxon_title
     fig = go.Figure(data=[go.Scatter(x=draws, y=n_species, error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True))])
     fig.update_layout(title_text="repetitions = " + str(n_reps+1), yaxis_title=y_axis_title, xaxis_title="# samples")
     fig.update_traces(marker_color=color1, marker_line_color=color2, opacity=opacity_value)
     fig.update_layout(height=800, width=1200, template=template, showlegend=False, font_size=font_size, title_font_size=font_size)
+    fig.update_yaxes(rangemode="tozero")
 
     ## write files
     output_pdf = Path(str(path_to_outdirs) + "/" + "Rarefaction_curves" + "/" + TaXon_table_file.name + "_rarefaction_" + taxon_title + ".pdf")
@@ -246,7 +247,7 @@ def rarefaction_curve_taxa(TaXon_table_xlsx, repetitions, path_to_outdirs, templ
 
         ## add to plot
         draws = [i+1 for i in rarefaction_dict_average.keys()]
-        n_species = list(rarefaction_dict_average.values())
+        n_species = [float(i) for i in list(rarefaction_dict_average.values())]
         increase_dict[taxon] = n_species
         error_bar = list(rarefaction_dict_stdef.values())
         fig.add_trace(go.Scatter(x=draws, y=n_species, name=taxon, marker_color=color_dict[taxon], error_y=dict(type='data', array=error_bar, thickness=0.5, width=3, visible=True)))

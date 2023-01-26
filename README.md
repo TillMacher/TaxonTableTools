@@ -93,12 +93,26 @@ all modules (OTU traits will simply be ignored if not required).
 
 </details>
 
-## Change log
+## Change log (only for major changes)
+
+### v 1.4.8
+
+  * New feature:
+  * Added support for easier read and taxonomy table conversion from APSCALE.
+  * Important changes:
+      -> Taxonomy table sheet name for the APSCALE import changed to 'Taxonomy table’
+      -> Read table column name for OTU sequences changed to 'Seq'
+      -> Those are the default names generated in APSCALE and makes importing data easier.
+
+  * Bug fixes:
+  * Y-axes for alpha diversity and rarefaction plots start at 0.
+  * Fixed crash of the venn diagram module.
+  * Fixed potentially remaining zero read OTUs after read-based rarefaction.
 
 ### v 1.4.5
   TTT change log v 1.4.5
 
-  * Added trait import to the data conversion modules. 
+  * Added trait import to the data conversion modules.
 
 
 ### v 1.4.4

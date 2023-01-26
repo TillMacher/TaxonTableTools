@@ -10,7 +10,7 @@ import feedparser
 
 ##########################################################################################################################
 # update version here (will be displayed on the main layout)
-taxon_tools_version = str('1.4.3')
+taxon_tools_version = str('1.4.8')
 
 ##########################################################################################################################
 # general functions
@@ -33,14 +33,19 @@ def open_taxon_table(taxon_table):
 def change_log_text():
     change_log_text = """
 
-    TTT change log v 1.4.3
+    TTT change log v 1.4.8
 
-    Bug fixes
-    - Fixed taxonomic richness and resolution.
+    * New feature:
+    - Added support for easier read and taxonomy table conversion from APSCALE.
+    - Important changes:
+        -> Taxonomy table sheet name for the APSCALE import changed to 'Taxonomy table’
+        -> Read table column name for OTU sequences changed to 'Seq'
+        -> Those are the default names generated in APSCALE and makes importing data easier.
 
-    NMDS
-    - Changed back NMDS to raw stress until sclearn updates to normalized stress.
-    - TTT will be updated as soon as normalized stress is available.
+    * Bug fixes:
+    - Y-axes for alpha diversity and rarefaction plots start at 0.
+    - Fixed crash of the venn diagram module.
+    - Fixed potentially remaining zero read OTUs after read-based rarefaction.
 
     """
     return change_log_text
@@ -48,7 +53,7 @@ def change_log_text():
 def metadata_table_help_text():
     metadata_table_help_text = """
     A metadata will be automatically created as Excel sheet.
-    ____________________________________________________________________________
+    ______
 
     Please rename the columns according to your metadata in the Excel sheet!
     This cannot be performed via TTT! The default column names are non-descriptive
@@ -193,7 +198,7 @@ def gbif_check_help_text():
 def sort_and_rename_help():
     sort_and_rename_help = """
     Rename or sort samples according to a metadata table category.
-    ____________________________________________________________________________
+    ______
 
     Therefore, create a metadata table and add a new column that contains the respective names that will replace the old sample name.
 
@@ -206,7 +211,7 @@ def pa_conversion_help_text():
     pa_conversion_help_text = """
     The TaXon table will be converted to incidence data.
     This format is required for most diversity and ordiniation analyses.
-    ____________________________________________________________________________
+    ______
 
     The use of read abundances as a proxy for specimen counts or biomass estimates
     has been subject of discussion with the development of DNA metabarcoding.
@@ -224,7 +229,7 @@ def pa_conversion_help_text():
 def read_proportions_help_text():
     read_proportions_help_text = """
     Read proportion plots, although informative, can quickly become overwhelming, difficult to read and hard to interprete.
-    ____________________________________________________________________________
+    ______
 
     The easiest workaround is to reduce the amount of data that is presented. Follow these
     few steps and the read proportions plots will quickly become much more eye-pleasing!
@@ -242,7 +247,7 @@ def layout_help_text():
     layout_help_text = """
 
     TTT offers a wide range of customizable functions to individualize plots.
-    ____________________________________________________________________________
+    ______
 
     Layout:
     A layout defines the general appearance of a plot, such as the grid,
@@ -272,7 +277,7 @@ def tc_help_text():
     Examplary use cases are:
     - Comparison of morphological and genetic results of the same dataset.
     - Analysis of two different primer sets, which cannot be clustered together.
-    ____________________________________________________________________________
+    ______
 
     Table comparison:
     These tools offer general analyses that include the overall taxonomic composition of both tables.
@@ -283,39 +288,17 @@ def tc_help_text():
     """
     return tc_help_text
 
-def OTU_traits_help_text():
-    OTU_traits_help_text = """
+def add_trait_help_text():
+    add_trait_help_text = """
 
-    OTU-specific traits can now be added to the TaXon table. Traits can e.g. be:
-    - habitat
-    - diet type
-    - distribution
-    - ecological traits
+    This module will automatically import traits from a table and assign them to the OTUs in the TaXon table.
+    This module works with any kind of trait.
 
-    Requirements:
-    - The traits columns must be located between the 'Status' and 'seq' columns!
-    - Do not alter the location of the other TaXon table columns,
-
-    There is no limit of OTU traits columns that can be added. A TaXon table containing OTU traits is compatible with
-    all modules (OTU traits will simply be ignored if not required).
-
-    Further tools for trait-specific analyses will be implemented in future updates.
+    The first column needs to contain the taxa (can be any level that is present in the TaXon table).
+    The traits have to be added to the second row and onwards. There is no limit for traits.
 
     """
-    return OTU_traits_help_text
-
-def add_itt_trait_help_text():
-    add_itt_trait_help_text = """
-
-    This module will automatically import insect traits and assign them to the OTUs in the TaXon table.
-    This will only work with insect families.
-
-    Please refer to the publication (Hörren et al. 2021) for further information.
-
-    The added traits follow the general requirements of OTU traits (see below).
-
-    """
-    return add_itt_trait_help_text
+    return add_trait_help_text
 
 ##########################################################################################################################
 ##########################################################################################################################
@@ -566,9 +549,10 @@ def main():
     					[sg.Text('TaXon table converter', size=(50,1), font=('Arial', 11, "bold"))],
     					[sg.Text('Enter path to taxonomy table and read table to create a new table in TaXon format', size=(85,2))],
     					[sg.Text('Taxonomy table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'taxonomy_table_path'), sg.Button("Check table", key = 'run_taxonomy_table_check', button_color=('black', 'white'))],
-                        [sg.Text('Sorting method:', size=(20, 1)),  sg.Radio('First hit', "sorting_method", key='sorting_method_fh'), sg.Radio('JAMP', "sorting_method", default=True, key='sorting_method_jamp'), sg.Radio('BOLDigger', "sorting_method", key='sorting_method_boldigger')],
+                        [sg.Text('Format:', size=(20, 1)),  sg.Combo(['APSCALE', 'First hit', 'JAMP', 'BOLDigger'], default_value='APSCALE', key='taxonomy_table_format')],
+                        [sg.Text('Learn more about BOLDigger flags here:'), sg.Button(' ? ', key='open_boldigger_flags')],
     					[sg.Text('Read table:', size=(20, 1)), sg.Input(), sg.FileBrowse(key = 'Read_table_path'), sg.Button("Check table", key = 'run_read_table_check', button_color=('black', 'white'))],
-                        [sg.Text('Format:', size=(20, 1)), sg.Radio('TTT', "read_table_format", key='read_table_format_TTT', default=True),  sg.Radio('Qiime2', "read_table_format", key='read_table_format_qiime')],
+                        [sg.Text('Format:', size=(20, 1)), sg.Combo(['APSCALE', 'Qiime2'], default_value='APSCALE', key='read_table_format')],
                         [sg.Text('Name of TaXon table:', size=(20, 1)), sg.Input(project_folder + "_taxon_table", key = 'TaXon_table_name'), sg.Text('.xlsx'), sg.Button("Convert", key = 'run_taxon_converter')],
     					[sg.Text('')],
                         [sg.Text('Check TaXon table:', size=(20, 1)), sg.Input(), sg.FileBrowse(initial_folder = taXon_table_dir_path, key = 'taxon_table_0_path'), sg.Button("Check table", key = 'run_taXon_table_check', button_color=('black', 'white')), sg.Button("Open", key = 'open0')],
@@ -656,11 +640,11 @@ def main():
                 [sg.Text("Sort table:", size=(25,1)), sg.Button("Run", key = 'run_sort_table')],
                 [sg.Text("Rename samples:", size=(25,1)), sg.Button("Run", key = 'run_rename_samples'), sg.Text('',size=(1,1)), sg.Button(" ? ", button_color=('blue', 'white'), key="run_sort_and_rename_help")],
                 [sg.Text('',size=(1,1))],
-                [sg.Text('OTU trait modules', size=(43,1), font=('Arial', 11, "bold")), sg.Text("", size=(2,1))],
-                [sg.Text('Insect Trait Tool (ITT) v 1.0', size=(25,1), font=('Arial', 11, "bold")), sg.Text("", size=(2,1))],
-                [sg.Text('ITT xlsx v1.0:', size=(25,1)), sg.FileBrowse(initial_folder = path_to_outdirs, key = 'itt_table_path'), sg.Button("Download ITT", button_color=('blue', 'white'), key = 'run_download_itt')],
-                [sg.Text("Add OTU traits from ITT:", size=(25,1)), sg.Button("Run", key = 'run_add_itt_metadata'), sg.Text("", size=(1,1)), sg.Button(" ? ", button_color=('blue', 'white'), key="run_add_itt_metadata_help" )],
+                [sg.Text('Trait modules', size=(43,1), font=('Arial', 11, "bold")), sg.Text("", size=(2,1))],
+                [sg.Text("Add traits:", size=(25,1)), sg.Button("Run", key = 'run_add_traits'), sg.Text("", size=(1,1)), sg.Button(" ? ", button_color=('blue', 'white'), key="run_add_traits_help" )],
+                [sg.Text("Trait source table:"), sg.Input(size=(10,1)), sg.FileBrowse(key='trait_table_path', initial_folder=path_to_outdirs)],
                 [sg.Text('Learn more about OTU traits', size=(25,1)), sg.Button(" ? ", button_color=('blue', 'white'), key="run_OTU_trait_help" )],
+                [sg.Text('',size=(1,1))]
                 ]
 
     data_conversion_layout = [
@@ -727,7 +711,7 @@ def main():
     					[sg.Text('Site occupancy', size=(40,1), font=('Arial', 11, "bold"))],
     					[sg.Text("Calculate site occupancy:", size=(25,1)), sg.Button("Run", key = 'run_site_occupancy'), sg.Text("", size=(1,1)), sg.Frame(layout=[[sg.Text("Plot size (w,h): "), sg.Input("1000", size=(4,1), key="width_site_occ"),
                         sg.Input("1000", size=(4,1), key="height_site_occ"), sg.Text("Tax. level:"), sg.Combo(available_taxonomic_levels_list, default_value="Species", key="site_occupancy_taxonomic_level")],
-                        [sg.Text("Layout:"), sg.Combo(["barchart", "heatmap"], default_value="heatmap", key="site_occupancy_option"), sg.CB("Summarise metadata", default=True, key="site_occupancy_heatmap_add_metadata_sum")]], title="Settings")],
+                        [sg.Text("Layout:"), sg.Combo(["barchart", "heatmap (log reads)", "heatmap (presence/absence)"], default_value="heatmap (presence/absence)", key="site_occupancy_option"), sg.CB("Summarise metadata", default=True, key="site_occupancy_heatmap_add_metadata_sum")]], title="Settings")],
 
     					[sg.Text('',size=(1,1))],
     					]
@@ -1038,9 +1022,7 @@ def main():
             create_gbif_link = values['create_gbif_link']
             calc_dist = values['calc_dist']
             use_metadata = values['use_metadata']
-            sorting_method_fh = values['sorting_method_fh']
-            sorting_method_jamp = values['sorting_method_jamp']
-            sorting_method_boldigger = values['sorting_method_boldigger']
+            taxonomy_table_format = values['taxonomy_table_format']
             width_cca = values['width_cca']
             height_cca = values['height_cca']
             cca_scatter_size = values['cca_scatter_size']
@@ -1050,8 +1032,7 @@ def main():
             height_bstats = values["height_bstats"]
             width_bstats = values["width_bstats"]
             taxon_table_0_path = values["taxon_table_0_path"]
-            read_table_format_TTT = values["read_table_format_TTT"]
-            read_table_format_qiime = values["read_table_format_qiime"]
+            read_table_format = values["read_table_format"]
             height_repicates = values["height_repicates"]
             width_repicates = values["width_repicates"]
             width_repcorr = values["width_repcorr"]
@@ -1141,47 +1122,34 @@ def main():
             tc_6_taxonomic_level = values["tc_6_taxonomic_level"]
             tc_6_taxonomic_level_2 = values["tc_6_taxonomic_level_2"]
             tc_3_min_show = values["tc_3_min_show"]
-            itt_table_path = values['itt_table_path']
+            trait_table_path = values['trait_table_path']
 
             if event == 'run_taxon_converter':
 
                 if (taxonomy_table_path == '' or Read_table_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
-                    if sorting_method_fh == True:
-                        sheet_name = "First hit"
-                    elif sorting_method_jamp == True:
-                        sheet_name = "JAMP hit"
-                    else:
-                        sheet_name = "BOLDigger hit"
-
-                    if read_table_format_TTT == True:
+                    if read_table_format == 'APSCALE':
                         from taxontabletools.taxon_table_converter import taxon_table_converter_ttt
-                        taxon_table_converter_ttt(Read_table_path, taxonomy_table_path, TaXon_table_name, sheet_name, path_to_outdirs)
-                    elif read_table_format_qiime == True:
+                        taxon_table_converter_ttt(Read_table_path, taxonomy_table_path, TaXon_table_name, taxonomy_table_format, path_to_outdirs)
+                    elif read_table_format == 'Qiime2':
                         from taxontabletools.taxon_table_converter import taxon_table_converter_qiime2
-                        taxon_table_converter_qiime2(Read_table_path, taxonomy_table_path, TaXon_table_name, sheet_name, path_to_outdirs)
+                        taxon_table_converter_qiime2(Read_table_path, taxonomy_table_path, TaXon_table_name, taxonomy_table_format, path_to_outdirs)
 
             if event == 'run_taxonomy_table_check':
                 if (taxonomy_table_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
                 else:
                     from taxontabletools.check_taxononomy_table_format import check_taxononomy_table_format
-                    if sorting_method_fh == True:
-                        sheet_name = "First hit"
-                    elif sorting_method_jamp == True:
-                        sheet_name = "JAMP hit"
-                    else:
-                        sheet_name = "BOLDigger hit"
-                    check_taxononomy_table_format(taxonomy_table_path, sheet_name)
+                    check_taxononomy_table_format(taxonomy_table_path, taxonomy_table_format)
 
             if event == 'run_read_table_check':
                 if (Read_table_path == ''):
                     sg.PopupError("Please provide a file", keep_on_top=True)
-                elif read_table_format_TTT == True:
+                elif read_table_format == 'APSCALE':
                     from taxontabletools.check_read_table_format import check_read_table_format_TTT
                     check_read_table_format_TTT(Read_table_path)
-                elif read_table_format_qiime == True:
+                elif read_table_format == 'Qiime2':
                     from taxontabletools.check_read_table_format import check_read_table_format_qiime2
                     check_read_table_format_qiime2(Read_table_path)
 
@@ -1278,7 +1246,7 @@ def main():
                             meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
                             layout2 = [[sg.Text("Rename samples", size=(20,1))],
-                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check taxa to exlude')],
+                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check columns with new names')],
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
@@ -1645,12 +1613,12 @@ def main():
                     from taxontabletools.create_metadata_table import modify_metadata_table
                     modify_metadata_table(path_to_outdirs)
 
-            if event == "run_add_itt_metadata":
-                if taxon_table_3_path == '' or itt_table_path == '':
+            if event == "run_add_traits":
+                if taxon_table_3_path == '' or trait_table_path == '':
                     sg.PopupError("Please provide a file!")
                 else:
-                    from taxontabletools.itt_metadata import itt_import
-                    itt_import(taxon_table_3_path, itt_table_path, path_to_outdirs)
+                    from taxontabletools.add_traits import add_traits_to_TTT
+                    add_traits_to_TTT(taxon_table_3_path, path_to_outdirs, trait_table_path)
 
             if event == 'run_site_occupancy':
                 if taxon_table_5_path == '':
@@ -1690,9 +1658,15 @@ def main():
                                     win2.Close()
                                     win2_active = False
                                     window.UnHide()
+                                elif site_occupancy_option == "heatmap (log reads)":
+                                    from taxontabletools.site_occupancy import site_occupancy_heatmap_reads
+                                    site_occupancy_heatmap_reads(taxon_table_5_path, path_to_outdirs, template, height_site_occ, width_site_occ, meta_data_to_test, site_occupancy_taxonomic_level, font_size, color_discrete_sequence, site_occupancy_heatmap_add_metadata_sum)
+                                    win2.Close()
+                                    win2_active = False
+                                    window.UnHide()
                                 else:
-                                    from taxontabletools.site_occupancy import site_occupancy_heatmap
-                                    site_occupancy_heatmap(taxon_table_5_path, path_to_outdirs, template, height_site_occ, width_site_occ, meta_data_to_test, site_occupancy_taxonomic_level, font_size, color_discrete_sequence, site_occupancy_heatmap_add_metadata_sum)
+                                    from taxontabletools.site_occupancy import site_occupancy_heatmap_pa
+                                    site_occupancy_heatmap_pa(taxon_table_5_path, path_to_outdirs, template, height_site_occ, width_site_occ, meta_data_to_test, site_occupancy_taxonomic_level, font_size, color_discrete_sequence, site_occupancy_heatmap_add_metadata_sum)
                                     win2.Close()
                                     win2_active = False
                                     window.UnHide()
@@ -1766,7 +1740,7 @@ def main():
                             meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
                             layout2 = [[sg.Text("CCA analysis", size=(20,1))],
-                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check taxa to exlude')],
+                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check metadata to test')],
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
@@ -1811,7 +1785,7 @@ def main():
                             meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
                             layout2 = [[sg.Text("PCoA analysis", size=(20,1))],
-                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check taxa to exlude')],
+                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check metadata to test')],
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
@@ -1856,7 +1830,7 @@ def main():
                             meta_data_to_test_list = list(slices([sg.Radio(name, "metadata", key=name, default=True) for name in sorted(meta_data_to_test)], 5))
 
                             layout2 = [[sg.Text("NMDS analysis", size=(20,1))],
-                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check taxa to exlude')],
+                                    [sg.Frame(layout = meta_data_to_test_list, title = 'Check metadata to test')],
                                     [sg.Button('Calculate')],
                                     [sg.Button('Back')]] # test = True
 
@@ -2085,11 +2059,11 @@ def main():
             if event == 'open_operational_taxonlist_download':
                 webbrowser.open('https://www.gewaesser-bewertung-berechnung.de/index.php/perlodes-online.html')
 
-            if event == 'run_download_itt':
-                webbrowser.open('https://www.biorxiv.org/content/10.1101/2022.01.25.477751v1')
-
             if event == 'open_github':
                 webbrowser.open('https://github.com/TillMacher/TaxonTableTools')
+
+            if event == 'open_boldigger_flags':
+                webbrowser.open('https://github.com/DominikBuchner/BOLDigger#boldigger---requires-additional-data')
 
             if event == 'open_twitter':
                 webbrowser.open('https://twitter.com/TillMacher')
@@ -2137,10 +2111,10 @@ def main():
                 sg.Popup(read_proportions_help_text(), title = "How to optimize read proportion plots")
 
             if event == 'run_OTU_trait_help':
-                sg.Popup(OTU_traits_help_text(), title = 'OTU traits')
+                webbrowser.open('https://github.com/TillMacher/TaxonTableTools#ecological-traits')
 
-            if event == 'run_add_itt_metadata_help':
-                sg.Popup(add_itt_trait_help_text(), title = 'Insect trait tool metadata')
+            if event == 'run_add_traits_help':
+                sg.Popup(add_trait_help_text(), title = 'Insect trait tool metadata')
 
             if event == 'run_per_taxon_analysis':
                 if taxon_table_6_path == '':

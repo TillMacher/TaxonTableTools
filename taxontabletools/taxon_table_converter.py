@@ -3,8 +3,12 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 from pathlib import Path
+from taxontabletools.taxontable_manipulation import add_metadata
 
 def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_table_name, sheet_name, path_to_outdirs):
+
+    if sheet_name == 'APSCALE':
+        sheet_name = 'Taxonomy table'
 
     ## collect both input files
     taxonomy_results_xlsx =  Path(taxonomy_results_xlsx)
@@ -12,7 +16,7 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
 
     #ä create filename and path for output file
     Output_name = TaXon_table_name + ".xlsx"
-    Output_file = path_to_outdirs / "TaXon_tables" / Output_name
+    Output_file = Path(path_to_outdirs) / "TaXon_tables" / Output_name
 
     ## store the file name for later use
     file_name = taxonomy_results_xlsx.name
@@ -20,7 +24,9 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
     ## create dataframes for both files
     taxonomy_df = pd.read_excel(taxonomy_results_xlsx, sheet_name, header=0)
     if sheet_name == "BOLDigger hit":
-        taxonomy_df = taxonomy_df.drop(columns=['Flags'])
+        metada_df = taxonomy_df[['ID', 'Flags']]
+        taxonomy_df = taxonomy_df.drop(['Flags'], axis=1)
+
     read_table_df = pd.read_excel(read_table_xlsx, header=0)
 
     ## create a new dataframe
@@ -30,10 +36,10 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
     if taxonomy_df["ID"].to_list() == read_table_df["ID"].to_list():
 
         ## append the sequences to the TaXon stable
-        TaXon_table_df["seq"] = read_table_df["Sequences"]
+        TaXon_table_df["seq"] = read_table_df["Seq"]
 
         ## remove the sequence column from the read table
-        read_table_df.drop('Sequences', axis='columns', inplace=True)
+        read_table_df.drop('Seq', axis='columns', inplace=True)
 
         ## remove the ID column from the read table
         read_table_df.drop('ID', axis='columns', inplace=True)
@@ -54,6 +60,10 @@ def taxon_table_converter_ttt(read_table_xlsx, taxonomy_results_xlsx, TaXon_tabl
 
         ## add new species column to the dataframe
         TaXon_table_df["Species"] = new_species_column
+
+        ## add FLAGS
+        if sheet_name == "BOLDigger hit":
+            TaXon_table_df = add_metadata(TaXon_table_df, metada_df)
 
         ## save the newly created Taxon table in TaXon format as excel file
         TaXon_table_df.to_excel(Output_file, sheet_name='TaXon table', index=False)

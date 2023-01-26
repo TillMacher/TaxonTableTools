@@ -23,8 +23,8 @@ def check_read_table_format_TTT(read_table_xlsx):
         sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
         raise RuntimeError(ErrorMessage)
 
-    if header_prompt_sequences != "Sequences":
-        ErrorMessage = "Oops! Something is wrong with the header: " + header_prompt_sequences + "\n" + "\n" + "Prompt: Sequences"
+    if header_prompt_sequences != "Seq":
+        ErrorMessage = "Oops! Something is wrong with the header: " + header_prompt_sequences + "\n" + "\n" + "Prompt: Sequence or Seq"
         sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
         raise RuntimeError(ErrorMessage)
 
@@ -117,8 +117,8 @@ def check_read_table_format_qiime2(read_table_xlsx):
         sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
         raise RuntimeError(ErrorMessage)
 
-    if header_prompt_sequences != "Sequence":
-        ErrorMessage = "Oops! Something is wrong with the header: " + header_prompt_sequences + "\n" + "\n" + "Prompt: Sequence"
+    if header_prompt_sequences != "Seq":
+        ErrorMessage = "Oops! Something is wrong with the header: " + header_prompt_sequences + "\n" + "\n" + "Prompt: Sequence or Seq"
         sg.PopupError(ErrorMessage, title="Error", keep_on_top=True)
         raise RuntimeError(ErrorMessage)
 

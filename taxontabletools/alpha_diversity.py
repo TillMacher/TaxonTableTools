@@ -113,6 +113,7 @@ def alpha_diversity_scatter_plot(TaXon_table_xlsx, meta_data_to_test, width, hei
         for category, color in zip(sorted(set(categories)), color_discrete_sequence):
             fig.add_trace(go.Scatter(x=samples_dict[category], y=observed_otus_dict[category], mode='markers', name=category, marker=dict(color=color, size=int(scatter_size))))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=True, font_size=font_size, title_font_size=font_size)
+        fig.update_yaxes(rangemode="tozero")
 
         ## finish script
         output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_scatter_plot.pdf")
@@ -255,6 +256,7 @@ def alpha_diversity_boxplot(TaXon_table_xlsx, meta_data_to_test, width, heigth, 
         for category, color in zip(sorted(set(categories)), color_discrete_sequence):
             fig.add_trace(go.Box(y=observed_otus_dict[category], name=category, marker_color=color, marker_line_color="Black", marker_line_width=0.2, opacity=opacity_value))
         fig.update_layout(height=int(heigth), width=int(width), template=template, yaxis_title=title, showlegend=False, font_size=font_size, title_font_size=font_size)
+        fig.update_yaxes(rangemode="tozero")
 
         ## finish script
         output_pdf = Path(str(path_to_outdirs) + "/" + "Alpha_diversity" + "/" + TaXon_table_xlsx.stem + "_" + meta_data_to_test + "_" + taxon_title + "_boxplot.pdf")

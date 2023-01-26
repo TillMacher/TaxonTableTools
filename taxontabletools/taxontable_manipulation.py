@@ -1,4 +1,5 @@
 import pandas as pd
+import itertools
 
 def reduce_taxontable(df, taxonomic_level, samples, meta_data_to_test):
 
@@ -95,4 +96,28 @@ def add_metadata(df, metadata_df):
 
     return df
 
-#
+def aggregate_taxontable(df, taxonomic_level):
+
+    seq_loc = df.columns.get_loc("seq")
+    samples = df.columns.tolist()[seq_loc+1:]
+    taxonomic_levels = ['Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']
+    index = taxonomic_levels.index(taxonomic_level)+1
+    taxonomic_levels = taxonomic_levels[:index]
+
+    ## collect unique taxa
+    taxa = df[taxonomic_levels].values.tolist()
+    taxa.sort()
+    unique_taxa = list(taxa for taxa, _ in itertools.groupby(taxa))
+
+    df_list = []
+
+    ## summarize reads for all taxa
+    for taxon in unique_taxa:
+        ## calculate the sum of reads
+        reads = list(pd.DataFrame(
+            [i[index:] for i in df[taxonomic_levels + samples].values.tolist() if i[0:index] == taxon]).sum())
+        df_list.append(taxon + reads)
+
+    df_out = pd.DataFrame(df_list, columns=taxonomic_levels + samples)
+
+    return df_out

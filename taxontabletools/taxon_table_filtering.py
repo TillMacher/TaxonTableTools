@@ -172,9 +172,7 @@ def filter_samples(TaXon_table_xlsx, selected_samples, appendix_name, path_to_ou
                 TaXon_table_df = TaXon_table_df.drop(sample, axis=1)
 
     header = TaXon_table_df.columns.values.tolist()
-
     row_filter_list = []
-
     for row in TaXon_table_df.values.tolist():
         reads = set(row[10:])
         if reads != {0}:

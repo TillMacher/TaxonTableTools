@@ -69,6 +69,7 @@ def tc_alpha_diversity(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_to_outdirs, 
     fig.add_trace(go.Box(y=y2, name=name_2, text=text_values2, marker_color=color_discrete_sequence[1]))
     fig.update_yaxes(title=taxon_title)
     fig.update_traces(boxpoints='all', jitter=0.5)
+    fig.update_yaxes(rangemode="tozero")
     fig.update_layout(width=int(width_value), height=int(height_value), template=template, showlegend=False, font_size=font_size)
 
     ## create a folder if neccessary
@@ -411,8 +412,8 @@ def tc_pairwise_sample_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_t
         df_out["Only " + name_2] = y_table_2_list
 
         ## Shared / Only barchart
-        fig.add_trace(go.Bar(name=name_1, orientation='h', y=x_samples, x=y_table_1_list, marker_color="rgb(141,160,203)"), row=1, col=1)
         fig.add_trace(go.Bar(name="Shared", orientation='h', y=x_samples, x=y_shared_list, marker_color="rgb(102,194,164)"), row=1, col=1)
+        fig.add_trace(go.Bar(name=name_1, orientation='h', y=x_samples, x=y_table_1_list, marker_color="rgb(141,160,203)"), row=1, col=1)
         fig.add_trace(go.Bar(name=name_2, orientation='h', y=x_samples, x=y_table_2_list, marker_color="rgb(252,141,98)"), row=1, col=1)
         fig.update_layout(barmode='stack', showlegend=False, width=int(width_value), height=int(height_value), template=template, title="", font_size=font_size)
         fig.update_yaxes(tickmode = 'linear', showgrid=False, row=1, col=1)
@@ -420,11 +421,11 @@ def tc_pairwise_sample_comparison(TaXon_table_xlsx_1, TaXon_table_xlsx_2, path_t
 
         ## Jaccard plot
         y = list(jaccard_dict.keys())
-        x = list(jaccard_dict.values())
+        x = [float(i) for i in list(jaccard_dict.values())]
         df_out["Jaccard dissimilarity"] = x
         fig.add_trace(go.Bar(y=y, x=x, name="Jaccard", orientation='h', marker_color="lightgrey"), row=1, col=2)
         fig.update_yaxes(tickmode = 'linear', showticklabels=False, showgrid=False, row=1, col=2)
-        fig.update_xaxes(title="jaccard diss.", dtick = 0.5, showgrid=True, range=[0,1], row=1, col=2)
+        fig.update_xaxes(title="jaccard diss.", showgrid=True, range=[0, 1], autorange=False, tick0=0, dtick=0.5, row=1, col=2)
 
         y = x_samples
         x = y_n_taxa
