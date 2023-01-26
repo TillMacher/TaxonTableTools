@@ -101,8 +101,11 @@ all modules (OTU traits will simply be ignored if not required).
   * New feature:
   * Added support for easier read and taxonomy table conversion from APSCALE.
   * Important changes:
+
       -> Taxonomy table sheet name for the APSCALE import changed to 'Taxonomy table’
+
       -> Read table column name for OTU sequences changed to 'Seq'
+      
       -> Those are the default names generated in APSCALE and makes importing data easier.
 
   * Bug fixes:
