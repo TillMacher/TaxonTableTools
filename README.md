@@ -8,7 +8,7 @@ TaxonTableTools (TTT) aims to provide easy to use tools for biologists and non-b
 
 TaxonTableTools is an evolving software and there will be bugs and issues at few points. If so, please leave the report in the git repository or drop me an email. Furthermore, new content and functions will be gradually added. Suggestions and recommendations for new features are always welcome!
 
-## Requirements
+## Version 2
 
 TaxonTableTools has moved to [TaxonTableTools2](https://github.com/TillMacher/TaxonTableTools2).
 New updates and features will be coming soon!
